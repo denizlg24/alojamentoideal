@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { ArrowUpRightFromSquare, MapPinHouse } from "lucide-react";
 import { ListingHomeCard } from "../listings/listing-home-card";
+import { useTranslations } from "next-intl";
 export const AccommodationMap = ({
   locale,
   listings,
@@ -13,17 +14,19 @@ export const AccommodationMap = ({
   locale: string;
   listings: ListingType[];
 }) => {
+  const t = useTranslations("home-map");
   return (
     <APIProvider
+      key={locale}
       language={locale}
-      apiKey={"AIzaSyDcoJI8dKtvljH4lS7Qo8ywcyLOU9qcDi0"}
+      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY!}
     >
       <Map
         style={{ width: "100%", height: "400px" }}
         mapId={"home_map"}
         defaultCenter={{ lat: 41.1579, lng: -8.6291 }}
         defaultZoom={12}
-        gestureHandling={"greedy"}
+        gestureHandling={"auto"}
         disableDefaultUI={true}
         clickableIcons={false}
       >
@@ -40,7 +43,7 @@ export const AccommodationMap = ({
                   <ListingHomeCard listing={l} />
                   <Button asChild>
                     <Link href={"/rooms/" + l.id}>
-                      Book Now <ArrowUpRightFromSquare />
+                      {t("book")} <ArrowUpRightFromSquare />
                     </Link>
                   </Button>
                 </PopoverContent>

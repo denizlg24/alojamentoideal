@@ -8,7 +8,9 @@ import { Link } from "@/i18n/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
+import { useTranslations } from "next-intl";
 export const ListingHomeCard = ({ listing }: { listing: ListingType }) => {
+  const t = useTranslations("listing-home-card");
   const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(true);
   return (
     <Link
@@ -60,11 +62,11 @@ export const ListingHomeCard = ({ listing }: { listing: ListingType }) => {
             </div>
             <div className="">
               <p className="text-sm font-semibold">
-                <span className="text-xs">Starting at </span>
+                <span className="text-xs">{t("from")}</span>
                 {listing.position == "before"
                   ? `${listing.symbol}${listing.price}`
                   : `${listing.price}${listing.symbol}`}
-                <span className="text-xs">/night</span>
+                <span className="text-xs">/{t("night")}</span>
               </p>
             </div>
           </div>

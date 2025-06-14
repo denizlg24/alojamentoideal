@@ -11,6 +11,33 @@
     "douro-exp": "Rutas del vino por el valle del Duero",
     "arouca-exp": "Pasarelas de Arouca y Paiva",
     "geres-exp": "Parque Nacional de Peneda-Gerês",
-    "other-exp": "Otras experiencias únicas"
+    "other-exp": "Otras experiencias únicas",
+    "porto-desc": "Saborea, recorre y explora el corazón de Oporto",
+    "douro-desc": "Paseos panorámicos y catas de vino de clase mundial",
+    "arouca-desc": "Puentes colgantes y senderos impresionantes",
+    "geres-desc": "Descubre la naturaleza salvaje y protegida de Portugal",
+    "other-desc": "Tesoros ocultos y aventuras próximamente"
+  },
+  "home": {
+    "map-title": "¿Dónde te alojarás esta noche?"
+  },
+  "home-map": {
+    "book": "Reservar ahora"
+  },
+  "listing-home-card": {
+    "from": "Desde ",
+    "night": "por noche"
+  },
+  "floating-filter": {
+    "checkin": "Entrada",
+    "checkout": "Salida",
+    "adults": "Adultos",
+    "children": "Niños",
+    "infants": "Bebés",
+    "pets": "Mascotas",
+    "ages": "Edades",
+    "ages-under": "Menores de",
+    "pets-warning": "Algunas habitaciones pueden no permitir mascotas.",
+    "search": "Buscar"
   }
 }

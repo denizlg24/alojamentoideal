@@ -75,7 +75,7 @@ export const Header = () => {
                       <Link href="/tours/porto-city">
                         <div className="font-medium">{t("porto-exp")}</div>
                         <div className="text-muted-foreground">
-                          Taste, ride, and explore the heart of Porto
+                          {t("porto-desc")}
                         </div>
                       </Link>
                     </NavigationMenuLink>
@@ -83,7 +83,7 @@ export const Header = () => {
                       <Link href="/tours/douro">
                         <div className="font-medium">{t("douro-exp")}</div>
                         <div className="text-muted-foreground">
-                          Scenic drives and world-class wine tastings
+                          {t("douro-desc")}
                         </div>
                       </Link>
                     </NavigationMenuLink>
@@ -91,7 +91,7 @@ export const Header = () => {
                       <Link href="/tours/arouca">
                         <div className="font-medium">{t("arouca-exp")}</div>
                         <div className="text-muted-foreground">
-                          Suspension bridges and breathtaking trails
+                          {t("arouca-desc")}
                         </div>
                       </Link>
                     </NavigationMenuLink>
@@ -99,7 +99,7 @@ export const Header = () => {
                       <Link href="/tours/geres">
                         <div className="font-medium">{t("geres-exp")}</div>
                         <div className="text-muted-foreground">
-                          Discover Portugal’s wild and protected nature
+                          {t("geres-desc")}
                         </div>
                       </Link>
                     </NavigationMenuLink>
@@ -107,7 +107,7 @@ export const Header = () => {
                       <Link href="/tours/others">
                         <div className="font-medium">{t("other-exp")}</div>
                         <div className="text-muted-foreground">
-                          Hidden gems and adventures coming soon
+                          {t("other-desc")}
                         </div>
                       </Link>
                     </NavigationMenuLink>
@@ -186,7 +186,7 @@ export const Header = () => {
                                   {t("porto-exp")}
                                 </div>
                                 <div className="text-muted-foreground">
-                                  Taste, ride, and explore the heart of Porto
+                                  {t("porto-desc")}
                                 </div>
                               </Link>
                             </NavigationMenuLink>
@@ -197,7 +197,7 @@ export const Header = () => {
                                   {t("douro-exp")}
                                 </div>
                                 <div className="text-muted-foreground">
-                                  Scenic drives and world-class wine tastings
+                                  {t("douro-desc")}
                                 </div>
                               </Link>
                             </NavigationMenuLink>
@@ -208,7 +208,7 @@ export const Header = () => {
                                   {t("arouca-exp")}
                                 </div>
                                 <div className="text-muted-foreground">
-                                  Suspension bridges and breathtaking trails
+                                  {t("arouca-desc")}
                                 </div>
                               </Link>
                             </NavigationMenuLink>
@@ -219,7 +219,7 @@ export const Header = () => {
                                   {t("geres-exp")}
                                 </div>
                                 <div className="text-muted-foreground">
-                                  Discover Portugal’s wild and protected nature
+                                  {t("geres-desc")}
                                 </div>
                               </Link>
                             </NavigationMenuLink>
@@ -230,7 +230,7 @@ export const Header = () => {
                                   {t("other-exp")}
                                 </div>
                                 <div className="text-muted-foreground">
-                                  Hidden gems and adventures coming soon
+                                  {t("other-desc")}
                                 </div>
                               </Link>
                             </NavigationMenuLink>

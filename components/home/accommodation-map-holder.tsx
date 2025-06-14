@@ -4,6 +4,7 @@ import { ListingType } from "@/schemas/listing.schema";
 import { Skeleton } from "../ui/skeleton";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { useEffect, useState } from "react";
+import { AccommodationMapTitle } from "./accommodation-map-title";
 
 export const AccommodationMapHolder = ({ locale }: { locale: string }) => {
   const [listings, setListings] = useState<ListingType[]>([]);
@@ -33,6 +34,9 @@ export const AccommodationMapHolder = ({ locale }: { locale: string }) => {
   return isLoading ? (
     <Skeleton className="w-full h-[400px]" />
   ) : (
-    <AccommodationMap locale={locale} listings={listings} />
+    <>
+      <AccommodationMapTitle />
+      <AccommodationMap locale={locale} listings={listings} />
+    </>
   );
 };

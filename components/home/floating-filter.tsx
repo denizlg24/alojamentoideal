@@ -22,7 +22,16 @@ import {
   HoverCardTrigger,
 } from "../ui/hover-card";
 
-export const FloatingFilter = () => {
+import { pt, enUS, es } from "date-fns/locale";
+import { useTranslations } from "next-intl";
+
+export const FloatingFilter = ({ locale }: { locale: string }) => {
+  const localeMap = {
+    en: enUS,
+    pt: pt,
+    es: es,
+  };
+  const t = useTranslations("floating-filter");
   const [date, setDate] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
@@ -52,14 +61,14 @@ export const FloatingFilter = () => {
   }, [date, guests]);
 
   return (
-    <Card className="w-full grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 max-w-3xl mx-auto p-4 gap-2">
+    <Card className="w-full grid md:grid-cols-3 sm:grid-cols-5 grid-cols-1 max-w-3xl mx-auto p-4 gap-2">
       <Popover>
         <PopoverTrigger asChild>
           <Button
             id="date"
             variant={"outline"}
             className={cn(
-              "w-full col-span-1 justify-start text-left font-normal",
+              "md:flex hidden w-full col-span-1 justify-start text-left font-normal",
               !date && "text-muted-foreground"
             )}
           >
@@ -73,15 +82,19 @@ export const FloatingFilter = () => {
                 format(date.from, "LLL dd")
               )
             ) : (
-              <span>Check in - Check out</span>
+              <span>
+                {t("checkin")} - {t("checkout")}
+              </span>
             )}
           </Button>
         </PopoverTrigger>
         <PopoverContent
+          side="bottom"
           className="w-auto overflow-hidden p-0 z-99"
           align="start"
         >
           <Calendar
+            locale={localeMap[locale as keyof typeof localeMap]}
             mode="range"
             disabled={(date) => date < new Date(new Date().toDateString())}
             today={undefined}
@@ -89,6 +102,84 @@ export const FloatingFilter = () => {
             selected={date}
             onSelect={setDate}
             numberOfMonths={2}
+          />
+        </PopoverContent>
+      </Popover>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            id="date"
+            variant={"outline"}
+            className={cn(
+              "md:hidden flex w-full sm:col-span-2 justify-start text-left font-normal",
+              !date?.from && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {date?.from ? (
+              <>{format(date.from, "LLL dd")}</>
+            ) : (
+              <span>{t("checkin")}</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          side="bottom"
+          className="w-auto overflow-hidden p-0 z-99"
+          align="start"
+        >
+          <Calendar
+            locale={localeMap[locale as keyof typeof localeMap]}
+            mode="single"
+            disabled={(date) => date < new Date(new Date().toDateString())}
+            today={undefined}
+            defaultMonth={date?.from}
+            selected={date?.from}
+            onSelect={(e) => {
+              setDate((prev) => {
+                return { from: e, to: prev?.to };
+              });
+            }}
+            numberOfMonths={1}
+          />
+        </PopoverContent>
+      </Popover>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            id="date"
+            variant={"outline"}
+            className={cn(
+              "md:hidden flex w-full sm:col-span-2 col-span-1 justify-start text-left font-normal",
+              !date?.to && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {date?.to ? (
+              <>{format(date.to, "LLL dd")}</>
+            ) : (
+              <span>{t("checkout")}</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          side="bottom"
+          className="w-auto overflow-hidden p-0 z-99"
+          align="start"
+        >
+          <Calendar
+            locale={localeMap[locale as keyof typeof localeMap]}
+            mode="single"
+            disabled={(date) => date < new Date(new Date().toDateString())}
+            today={undefined}
+            defaultMonth={date?.to}
+            selected={date?.to}
+            onSelect={(e) => {
+              setDate((prev) => {
+                return { from: prev?.from, to: e };
+              });
+            }}
+            numberOfMonths={1}
           />
         </PopoverContent>
       </Popover>
@@ -104,15 +195,16 @@ export const FloatingFilter = () => {
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[280px] overflow-hidden p-4 z-99 flex flex-col gap-3"
+          side="bottom"
+          className="w-[300px] overflow-hidden p-4 z-99 flex flex-col gap-3"
           align="start"
         >
-          <div className="grid grid-cols-3 w-full items-center">
-            <div className="flex flex-col items-start col-span-1">
-              <p className="text-sm">Adults</p>
-              <p className="text-xs text-muted-foreground">Ages 13+</p>
+          <div className="grid grid-cols-5 w-full items-center">
+            <div className="flex flex-col items-start col-span-2">
+              <p className="text-sm">{t("adults")}</p>
+              <p className="text-xs text-muted-foreground">{t("ages")} 13+</p>
             </div>
-            <div className="w-full flex flex-row justify-between items-center col-span-2">
+            <div className="w-full flex flex-row justify-between items-center col-span-3">
               <Button
                 onClick={() => {
                   updateGuests((prev) => {
@@ -142,12 +234,12 @@ export const FloatingFilter = () => {
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-3 w-full items-center">
-            <div className="flex flex-col items-start col-span-1">
-              <p className="text-sm">Children</p>
-              <p className="text-xs text-muted-foreground">Ages 2-12</p>
+          <div className="grid grid-cols-5 w-full items-center">
+            <div className="flex flex-col items-start col-span-2">
+              <p className="text-sm">{t("children")}</p>
+              <p className="text-xs text-muted-foreground">{t("ages")} 2-12</p>
             </div>
-            <div className="w-full flex flex-row justify-between items-center col-span-2">
+            <div className="w-full flex flex-row justify-between items-center col-span-3">
               <Button
                 onClick={() => {
                   updateGuests((prev) => {
@@ -177,12 +269,14 @@ export const FloatingFilter = () => {
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-3 w-full items-center">
-            <div className="flex flex-col items-start col-span-1">
-              <p className="text-sm">Infants</p>
-              <p className="text-xs text-muted-foreground">Ages under 2</p>
+          <div className="grid grid-cols-5 w-full items-center">
+            <div className="flex flex-col items-start col-span-2">
+              <p className="text-sm">{t("infants")}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("ages-under")} 2
+              </p>
             </div>
-            <div className="w-full flex flex-row justify-between items-center col-span-2">
+            <div className="w-full flex flex-row justify-between items-center col-span-3">
               <Button
                 onClick={() => {
                   updateGuests((prev) => {
@@ -212,19 +306,19 @@ export const FloatingFilter = () => {
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-3 w-full items-center">
-            <div className="flex flex-row items-center justify-start gap-1 col-span-1">
-              <p className="text-sm">Pets</p>
+          <div className="grid grid-cols-5 w-full items-center">
+            <div className="flex flex-row items-center justify-start gap-1 col-span-2">
+              <p className="text-sm">{t("pets")}</p>
               <HoverCard>
                 <HoverCardTrigger>
                   <CircleAlert className=" w-4 h-4" />
                 </HoverCardTrigger>
                 <HoverCardContent className="z-99 text-sm p-2 w-fit">
-                  Some rooms might not allow pets.
+                  {t("pets-warning")}
                 </HoverCardContent>
               </HoverCard>
             </div>
-            <div className="w-full flex flex-row justify-between items-center col-span-2">
+            <div className="w-full flex flex-row justify-between items-center col-span-3">
               <Button
                 onClick={() => {
                   updateGuests((prev) => {
@@ -256,8 +350,8 @@ export const FloatingFilter = () => {
           </div>
         </PopoverContent>
       </Popover>
-      <Button asChild className="md:col-span-1 sm:col-span-3 col-span-1">
-        <Link href={"/rooms" + currentHref}>Search</Link>
+      <Button asChild className="md:col-span-1 sm:col-span-5 col-span-1">
+        <Link href={"/rooms" + currentHref}>{t("search")}</Link>
       </Button>
     </Card>
   );
