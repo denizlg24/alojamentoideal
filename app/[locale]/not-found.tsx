@@ -2,6 +2,13 @@ import Image from "next/image";
 import illust from "@/public/404_illustration.svg";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+  return { title: t("not-found") };
+}
+
 export default function NotFound() {
   const t = useTranslations("not-found");
 
