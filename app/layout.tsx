@@ -1,14 +1,9 @@
 import { NextIntlClientProvider } from "next-intl";
-import { routing } from "@/i18n/routing";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { Montserrat } from "next/font/google";
 import { Header } from "@/components/header/header";
 import "./globals.css";
 import { Footer } from "@/components/footer/footer";
-
-export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
-}
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -29,7 +24,7 @@ export default async function Layout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  setRequestLocale(locale);
+
   return (
     <html lang={locale}>
       <body

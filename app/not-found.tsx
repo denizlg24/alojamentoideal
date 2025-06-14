@@ -1,19 +1,8 @@
-import { setRequestLocale } from "next-intl/server";
 import Image from "next/image";
-import { use } from "react";
 import illust from "@/public/404_illustration.svg";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-export default function NotFound({
-  params,
-}: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params: any;
-}) {
-  const { locale } = use<{ locale: string }>(params);
-
-  setRequestLocale(locale);
-
+export default function NotFound() {
   const t = useTranslations("not-found");
 
   return (
