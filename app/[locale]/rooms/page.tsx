@@ -1,7 +1,8 @@
 import { FloatingFilter } from "@/components/home/floating-filter";
 import { ListingsHolder } from "@/components/rooms/listings-holder";
+import { Skeleton } from "@/components/ui/skeleton";
 import { setRequestLocale } from "next-intl/server";
-import { use } from "react";
+import { Suspense, use } from "react";
 export default function Home({
   params,
 }: {
@@ -15,10 +16,16 @@ export default function Home({
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16 px-4">
       <div className="w-full fixed z-90 bg-background h-fit p-4 shadow">
-        <FloatingFilter className="max-w-7xl" locale={locale} />
+        <Suspense
+          fallback={<Skeleton className="w-full max-w-7xl mx-auto h-[200px]" />}
+        >
+          <FloatingFilter className="max-w-7xl" locale={locale} />
+        </Suspense>
       </div>
       <div className="w-full max-w-7xl md:mt-30 sm:mt-40 mt-62">
-        <ListingsHolder locale={locale} />
+        <Suspense fallback={<Skeleton className="w-full mx-auto h-[500px]" />}>
+          <ListingsHolder locale={locale} />
+        </Suspense>
       </div>
     </main>
   );
