@@ -1,6 +1,16 @@
 {
   "metadata": {
-    "home-title": "Alojamento Ideal | Home"
+    "home-title": "Alojamento Ideal | Home",
+    "not-found": "404 Page Not Found"
+  },
+  "not-found": {
+    "oops": "Oops!",
+    "subtitle": "We can't seem to find the page you're looking for.",
+    "error": "Error code:",
+    "cta": "Here are some helpful links instead:",
+    "home": "Homepage",
+    "homes": "Homes",
+    "tours": "Tours"
   },
   "header": {
     "homes": "Homes",
@@ -16,7 +26,12 @@
     "douro-desc": "Scenic drives and world-class wine tastings",
     "arouca-desc": "Suspension bridges and breathtaking trails",
     "geres-desc": "Discover Portugal's wild and protected nature",
-    "other-desc": " Hidden gems and adventures coming soon"
+    "other-desc": " Hidden gems and adventures coming soon",
+    "support": "Support",
+    "homes-tours": "Homes & Tours",
+    "property-owner": "Property owner?",
+    "terms": "Terms & Conditions",
+    "privacy": "Privacy Policy"
   },
   "home": {
     "map-title": "Where will you stay tonight?"
