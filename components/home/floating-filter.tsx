@@ -245,7 +245,7 @@ export const FloatingFilter = ({ locale }: { locale: string }) => {
                   updateGuests((prev) => {
                     return {
                       ...prev,
-                      children: prev.children > 0 ? prev.children - 1 : 1,
+                      children: prev.children > 0 ? prev.children - 1 : 0,
                     };
                   });
                 }}
@@ -282,7 +282,7 @@ export const FloatingFilter = ({ locale }: { locale: string }) => {
                   updateGuests((prev) => {
                     return {
                       ...prev,
-                      infants: prev.infants > 0 ? prev.infants - 1 : 1,
+                      infants: prev.infants > 0 ? prev.infants - 1 : 0,
                     };
                   });
                 }}
@@ -324,7 +324,7 @@ export const FloatingFilter = ({ locale }: { locale: string }) => {
                   updateGuests((prev) => {
                     return {
                       ...prev,
-                      pets: prev.pets > 0 ? prev.pets - 1 : 1,
+                      pets: prev.pets > 0 ? prev.pets - 1 : 0,
                     };
                   });
                 }}
