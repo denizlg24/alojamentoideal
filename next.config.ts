@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     images: {
         remotePatterns: [new URL('https://img.hostify.com/**')],
     },
+    reactStrictMode: false,
 };
 
 const withNextIntl = createNextIntlPlugin();

@@ -1,5 +1,16 @@
 {
-  "HomePage": {
-    "title": "Hello world!"
+  "metadata": {
+    "home-title": "Alojamento Ideal | Início"
+  },
+  "header": {
+    "homes": "Alojamentos",
+    "tours": "Experiências",
+    "about": "Sobre Nós",
+    "contact": "Contactos",
+    "porto-exp": "Experiências na cidade do Porto",
+    "douro-exp": "Vinhas do vale do Douro",
+    "arouca-exp": "Caminhos de Arouca e Paiva",
+    "geres-exp": "Parque nacional de Peneda-Gerês",
+    "other-exp": "Outras experiências únicas"
   }
 }

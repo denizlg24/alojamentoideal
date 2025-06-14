@@ -1,5 +1,16 @@
 {
-  "HomePage": {
-    "title": "Hello world!"
+  "metadata": {
+    "home-title": "Alojamento Ideal | Home"
+  },
+  "header": {
+    "homes": "Homes",
+    "tours": "Tours",
+    "about": "About Us",
+    "contact": "Contact Us",
+    "porto-exp": "Porto City Experiences",
+    "douro-exp": "Douro Valley Wine Tours",
+    "arouca-exp": "Arouca & Paiva Walkways",
+    "geres-exp": "Peneda-Gerês National Park",
+    "other-exp": "Other Unique Experiences"
   }
 }
