@@ -1,5 +1,43 @@
 {
-  "HomePage": {
-    "title": "Hello world!"
+  "metadata": {
+    "home-title": "Alojamento Ideal | Início"
+  },
+  "header": {
+    "homes": "Alojamentos",
+    "tours": "Experiências",
+    "about": "Sobre Nós",
+    "contact": "Contactos",
+    "porto-exp": "Experiências na cidade do Porto",
+    "douro-exp": "Vinhas do vale do Douro",
+    "arouca-exp": "Caminhos de Arouca e Paiva",
+    "geres-exp": "Parque nacional de Peneda-Gerês",
+    "other-exp": "Outras experiências únicas",
+    "porto-desc": "Saboreia, percorre e explora o coração do Porto",
+    "douro-desc": "Paisagens deslumbrantes e provas de vinhos de classe mundial",
+    "arouca-desc": "Pontes suspensas e trilhos de cortar a respiração",
+    "geres-desc": "Descobre a natureza selvagem e protegida de Portugal",
+    "other-desc": "Tesouros escondidos e aventuras para breve"
+  },
+  "home": {
+    "map-title": "Onde vais ficar esta noite?"
+  },
+  "home-map": {
+    "book": "Reservar agora"
+  },
+  "listing-home-card": {
+    "from": "Desde ",
+    "night": "por noite"
+  },
+  "floating-filter": {
+    "checkin": "Entrada",
+    "checkout": "Saída",
+    "adults": "Adultos",
+    "children": "Crianças",
+    "infants": "Bebés",
+    "pets": "Animais",
+    "ages": "Idades",
+    "ages-under": "Idades até",
+    "pets-warning": "Alguns quartos podem não permitir animais.",
+    "search": "Procurar"
   }
 }

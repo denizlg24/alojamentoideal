@@ -1,5 +1,43 @@
 {
-  "HomePage": {
-    "title": "Hello world!"
+  "metadata": {
+    "home-title": "Alojamento Ideal | Home"
+  },
+  "header": {
+    "homes": "Homes",
+    "tours": "Tours",
+    "about": "About Us",
+    "contact": "Contact Us",
+    "porto-exp": "Porto City Experiences",
+    "douro-exp": "Douro Valley Wine Tours",
+    "arouca-exp": "Arouca & Paiva Walkways",
+    "geres-exp": "Peneda-Gerês National Park",
+    "other-exp": "Other Unique Experiences",
+    "porto-desc": "Taste, ride, and explore the heart of Porto",
+    "douro-desc": "Scenic drives and world-class wine tastings",
+    "arouca-desc": "Suspension bridges and breathtaking trails",
+    "geres-desc": "Discover Portugal's wild and protected nature",
+    "other-desc": " Hidden gems and adventures coming soon"
+  },
+  "home": {
+    "map-title": "Where will you stay tonight?"
+  },
+  "home-map": {
+    "book": "Book Now"
+  },
+  "listing-home-card": {
+    "from": "Starting at ",
+    "night": "night"
+  },
+  "floating-filter": {
+    "checkin": "Check in",
+    "checkout": "Check out",
+    "adults": "Adults",
+    "children": "Children",
+    "infants": "Infants",
+    "pets": "Pets",
+    "ages": "Ages",
+    "ages-under": "Ages under",
+    "pets-warning": "Some rooms might not allow pets.",
+    "search": "Search"
   }
 }

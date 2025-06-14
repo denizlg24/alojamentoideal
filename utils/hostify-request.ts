@@ -18,7 +18,7 @@ export async function hostifyRequest<T = unknown>(
     params?: { key: string, value: unknown }[],
     body?: object,
     filters?: Filter[],
-    options: { includeRelated?: boolean; page?: number; perPage?: number } = {}
+    options: { includeRelated?: 1 | 0; page?: number; perPage?: number } = {}
 ): Promise<T> {
     const url = new URL(BASE_URL + endpoint);
     if (filters?.length) {

@@ -5,19 +5,34 @@ import Image from "next/image";
 import { Card, CardContent } from "../ui/card";
 import { Bed, User } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "../ui/skeleton";
+import { useTranslations } from "next-intl";
 export const ListingHomeCard = ({ listing }: { listing: ListingType }) => {
+  const t = useTranslations("listing-home-card");
+  const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(true);
   return (
     <Link
       className="focus:outline-0 focus:ring-0 w-full max-w-sm mx-auto"
       href={`/rooms/${listing.id}`}
     >
       <Card className="w-full flex flex-col items-center gap-0 relative p-0">
+        {isLoadingThumbnail && (
+          <Skeleton className="w-full h-auto aspect-[4/2]! rounded-t-xl absolute top-0" />
+        )}
         <Image
           src={listing.thumbnail_file}
           alt={(listing.name ?? listing.nickname) + " - Thumbnail"}
           width={600}
           height={600}
-          className="w-full h-auto aspect-[4/2] rounded-t-xl object-cover"
+          className={cn(
+            "w-full h-auto aspect-[4/2] rounded-t-xl object-cover",
+            isLoadingThumbnail ? "opacity-0" : "opacity-100"
+          )}
+          onLoad={() => {
+            setIsLoadingThumbnail(false);
+          }}
         />
         <CardContent className="flex flex-col w-full truncate p-2 mt-auto gap-1">
           <h1 className="font-sans text-base font-medium w-full text-left truncate">
@@ -47,11 +62,11 @@ export const ListingHomeCard = ({ listing }: { listing: ListingType }) => {
             </div>
             <div className="">
               <p className="text-sm font-semibold">
-                <span className="text-xs">Starting at </span>
+                <span className="text-xs">{t("from")}</span>
                 {listing.position == "before"
                   ? `${listing.symbol}${listing.price}`
                   : `${listing.price}${listing.symbol}`}
-                <span className="text-xs">/night</span>
+                <span className="text-xs">/{t("night")}</span>
               </p>
             </div>
           </div>
