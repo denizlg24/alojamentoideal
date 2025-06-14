@@ -39,7 +39,7 @@ export default function Home({
       <div className="sm:hidden w-full flex flex-col items-center z-90 px-2">
         <FloatingFilter locale={locale} />
       </div>
-      <div className="w-full max-w-7xl mt-4 mx-auto h-[450px]  sm:mt-16 flex flex-col gap-2 px-2">
+      <div className="w-full max-w-7xl mt-4 mx-auto h-[450px] sm:mt-16 flex flex-col gap-2 px-2">
         <AccommodationMapHolder locale={locale} />
       </div>
       {/*<RecommendedListings />*/}

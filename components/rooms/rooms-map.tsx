@@ -9,7 +9,7 @@ import { ListingHomeCard } from "../listings/listing-home-card";
 import { useTranslations } from "next-intl";
 import { ColorScheme } from "@vis.gl/react-google-maps";
 import { RenderingType } from "@vis.gl/react-google-maps";
-export const AccommodationMap = ({
+export const RoomsMap = ({
   locale,
   listings,
 }: {
@@ -23,8 +23,8 @@ export const AccommodationMap = ({
       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY!}
     >
       <Map
-        style={{ width: "100%", height: "400px" }}
-        mapId={"home_map_" + locale}
+        style={{ width: "100%", height: "100%" }}
+        mapId={"rooms_map_" + locale}
         defaultCenter={{ lat: 41.1579, lng: -8.6291 }}
         defaultZoom={12}
         colorScheme={ColorScheme.LIGHT}

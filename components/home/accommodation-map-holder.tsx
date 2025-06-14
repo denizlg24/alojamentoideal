@@ -32,11 +32,13 @@ export const AccommodationMapHolder = ({ locale }: { locale: string }) => {
   }, []);
 
   return isLoading ? (
-    <Skeleton className="w-full h-[400px]" />
+    <Skeleton className="w-full h-[448px]" />
   ) : (
     <>
       <AccommodationMapTitle />
-      <AccommodationMap locale={locale} listings={listings} />
+      <div className="flex flex-row items-stretch w-full rounded-xl overflow-hidden">
+        <AccommodationMap locale={locale} listings={listings} />
+      </div>
     </>
   );
 };

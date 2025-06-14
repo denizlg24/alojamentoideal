@@ -52,7 +52,16 @@
     "pets": "Mascotas",
     "ages": "Edades",
     "ages-under": "Menores de",
-    "pets-warning": "Algunas habitaciones pueden no permitir mascotas.",
+    "pets-warning": "Algunas alojamientos pueden no permitir mascotas.",
     "search": "Buscar"
+  },
+  "rooms": {
+    "all": "Mostrando todos los alojamientos disponibles",
+    "adjust": "Ajusta los filtros para obtener resultados más específicos",
+    "showing": "Mostrando",
+    "rooms": " alojamientos",
+    "showing-info": "Mostrando todas las alojamientos disponibles para tu estancia",
+    "no-rooms": "No se encontraron alojamientos",
+    "no-help": "Lo sentimos, no hay disponibilidad. Contáctanos para obtener ayuda."
   }
 }

@@ -42,7 +42,9 @@ export const Header = () => {
     <header
       className={cn(
         "fixed top-0 p-2 w-full sm:h-16 h-12 bg-background backdrop-blur-3xl z-99 transition-shadow flex flex-row",
-        isScrolled && "shadow-md"
+        isScrolled &&
+          !location.pathname.match(/^\/[a-z]{2}\/rooms$/) &&
+          "shadow-md"
       )}
     >
       <div className="max-w-7xl mx-auto flex flex-row justify-between w-full">
@@ -51,6 +53,7 @@ export const Header = () => {
             src="/alojamento-ideal-logo.png"
             width={256}
             height={256}
+            priority
             alt="Alojamento ideal logo"
             className="w-auto h-full aspect-square rounded shadow"
           />
@@ -58,13 +61,35 @@ export const Header = () => {
         <NavigationMenu className="w-full h-full sm:flex hidden">
           <NavigationMenuList>
             <NavigationMenuItem>
-              <NavigationMenuLink className="font-medium" href="/rooms">
+              <NavigationMenuLink
+                className="font-medium flex flex-row items-center gap-2"
+                href="/rooms"
+              >
+                <Image
+                  width={128}
+                  height={128}
+                  src={"/house_icon.png"}
+                  alt="house icon"
+                  priority
+                  className="h-full max-h-6 w-auto aspect-square object-contain"
+                />
                 {t("homes")}
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuTrigger>
-                <NavigationMenuLink href="/tours">
+              <NavigationMenuTrigger className="w-fit px-0 pr-2">
+                <NavigationMenuLink
+                  className="font-medium flex flex-row items-center gap-2 w-full hover:bg-transparent"
+                  href="/tours"
+                >
+                  <Image
+                    width={128}
+                    height={128}
+                    src={"/tour_icon.png"}
+                    alt="house icon"
+                    priority
+                    className="h-full max-h-6 w-auto aspect-square object-contain"
+                  />
                   {t("tours")}
                 </NavigationMenuLink>
               </NavigationMenuTrigger>
@@ -153,7 +178,18 @@ export const Header = () => {
                 </div>
                 <NavigationMenuList className="flex flex-col w-full items-center">
                   <NavigationMenuItem>
-                    <NavigationMenuLink className="font-medium" href="/rooms">
+                    <NavigationMenuLink
+                      className="font-medium flex flex-row items-center gap-2"
+                      href="/rooms"
+                    >
+                      <Image
+                        width={128}
+                        height={128}
+                        src={"/house_icon.png"}
+                        alt="house icon"
+                        priority
+                        className="h-full max-h-6 w-auto aspect-square object-contain"
+                      />
                       {t("homes")}
                     </NavigationMenuLink>
                   </NavigationMenuItem>
@@ -168,6 +204,14 @@ export const Header = () => {
                           size="icon"
                           className="w-full px-2"
                         >
+                          <Image
+                            width={128}
+                            height={128}
+                            src={"/tour_icon.png"}
+                            alt="house icon"
+                            priority
+                            className="h-full max-h-6 w-auto aspect-square object-contain"
+                          />
                           {t("tours")}
                           <ChevronDown
                             className={cn(
