@@ -1,6 +1,16 @@
 {
   "metadata": {
-    "home-title": "Alojamento Ideal | Inicio"
+    "home-title": "Alojamento Ideal | Inicio",
+    "not-found": "404 Página no encontrada"
+  },
+  "not-found": {
+    "oops": "¡Vaya!",
+    "subtitle": "No podemos encontrar la página que estás buscando.",
+    "error": "Código de error:",
+    "cta": "Aquí tienes algunos enlaces útiles:",
+    "home": "Página principal",
+    "homes": "Alojamientos",
+    "tours": "Experiencias"
   },
   "header": {
     "homes": "Alojamientos",
@@ -16,7 +26,12 @@
     "douro-desc": "Paseos panorámicos y catas de vino de clase mundial",
     "arouca-desc": "Puentes colgantes y senderos impresionantes",
     "geres-desc": "Descubre la naturaleza salvaje y protegida de Portugal",
-    "other-desc": "Tesoros ocultos y aventuras próximamente"
+    "other-desc": "Tesoros ocultos y aventuras próximamente",
+    "support": "Soporte",
+    "homes-tours": "Casas y Tours",
+    "property-owner": "¿Eres propietario?",
+    "terms": "Términos y Condiciones",
+    "privacy": "Política de Privacidad"
   },
   "home": {
     "map-title": "¿Dónde te alojarás esta noche?"
