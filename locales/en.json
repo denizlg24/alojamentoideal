@@ -54,5 +54,14 @@
     "ages-under": "Ages under",
     "pets-warning": "Some rooms might not allow pets.",
     "search": "Search"
+  },
+  "rooms": {
+    "all": "Displaying all available rooms",
+    "adjust": "Adjust filters for more specific results",
+    "showing": "Displaying",
+    "rooms": " rooms",
+    "showing-info": "Showing all the rooms available for your stay",
+    "no-rooms": "No rooms found",
+    "no-help": "Sorry, nothing is available. Contact us for help."
   }
 }

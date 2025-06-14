@@ -54,5 +54,14 @@
     "ages-under": "Idades até",
     "pets-warning": "Alguns quartos podem não permitir animais.",
     "search": "Procurar"
+  },
+  "rooms": {
+    "all": "A mostrar todos os alojamentos disponíveis",
+    "adjust": "Ajuste os filtros para obter resultados mais específicos",
+    "showing": "A mostrar",
+    "rooms": " alojamentos",
+    "showing-info": "A mostrar todos os alojamentos disponíveis para a sua estadia",
+    "no-rooms": "Nenhum alojamento encontrado",
+    "no-help": "Lamentamos, não há disponibilidade. Contacte-nos para obter ajuda."
   }
 }

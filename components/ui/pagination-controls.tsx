@@ -9,13 +9,18 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 
 type PaginationControlsProps = {
+  className?: string;
   totalPages: number;
 };
 
-export function PaginationControls({ totalPages }: PaginationControlsProps) {
+export function PaginationControls({
+  className,
+  totalPages,
+}: PaginationControlsProps) {
   const searchParams = useSearchParams();
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
@@ -41,15 +46,18 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
   };
 
   return (
-    <Pagination>
+    <Pagination className={className}>
       <PaginationContent>
-        {currentPage > 1 && (
-          <PaginationItem>
-            <PaginationPrevious
-              href={buildPageHref(Math.max(1, currentPage - 1))}
-            />
-          </PaginationItem>
-        )}
+        <PaginationItem>
+          <PaginationPrevious
+            className={cn(
+              currentPage > 1
+                ? "text-foreground"
+                : "text-muted-foreground/50 hover:text-muted-foreground/50 hover:bg-background"
+            )}
+            href={buildPageHref(Math.max(1, currentPage - 1))}
+          />
+        </PaginationItem>
 
         {currentPage > 2 && (
           <>
@@ -90,13 +98,16 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
           </>
         )}
 
-        {currentPage < totalPages && (
-          <PaginationItem>
-            <PaginationNext
-              href={buildPageHref(Math.min(totalPages, currentPage + 1))}
-            />
-          </PaginationItem>
-        )}
+        <PaginationItem>
+          <PaginationNext
+            className={cn(
+              currentPage < totalPages
+                ? "text-foreground"
+                : "text-muted-foreground/50 hover:text-muted-foreground/50 hover:bg-background"
+            )}
+            href={buildPageHref(Math.min(totalPages, currentPage + 1))}
+          />
+        </PaginationItem>
       </PaginationContent>
     </Pagination>
   );

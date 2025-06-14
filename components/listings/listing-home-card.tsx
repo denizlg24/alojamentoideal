@@ -9,12 +9,21 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
 import { useTranslations } from "next-intl";
-export const ListingHomeCard = ({ listing }: { listing: ListingType }) => {
+export const ListingHomeCard = ({
+  listing,
+  className,
+}: {
+  listing: ListingType;
+  className?: string;
+}) => {
   const t = useTranslations("listing-home-card");
   const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(true);
   return (
     <Link
-      className="focus:outline-0 focus:ring-0 w-full max-w-sm mx-auto"
+      className={cn(
+        "focus:outline-0 focus:ring-0 w-full max-w-sm mx-auto",
+        className
+      )}
       href={`/rooms/${listing.id}`}
     >
       <Card className="w-full flex flex-col items-center gap-0 relative p-0">

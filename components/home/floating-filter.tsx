@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { DateRange } from "react-day-picker";
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
 import {
@@ -24,8 +24,15 @@ import {
 
 import { pt, enUS, es } from "date-fns/locale";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 
-export const FloatingFilter = ({ locale }: { locale: string }) => {
+export const FloatingFilter = ({
+  locale,
+  className,
+}: {
+  locale: string;
+  className?: string;
+}) => {
   const localeMap = {
     en: enUS,
     pt: pt,
@@ -49,8 +56,8 @@ export const FloatingFilter = ({ locale }: { locale: string }) => {
   useEffect(() => {
     const params = new URLSearchParams();
 
-    if (date?.from) params.set("from", date.from.toISOString().split("T")[0]);
-    if (date?.to) params.set("to", date.to.toISOString().split("T")[0]);
+    if (date?.from) params.set("from", format(date.from, "yyyy-MM-dd"));
+    if (date?.to) params.set("to", format(date.to, "yyyy-MM-dd"));
 
     params.set("adults", guests.adults.toString());
     params.set("children", guests.children.toString());
@@ -60,8 +67,50 @@ export const FloatingFilter = ({ locale }: { locale: string }) => {
     updateHref(`?${params.toString()}`);
   }, [date, guests]);
 
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const fromParam = searchParams.get("from");
+    const toParam = searchParams.get("to");
+
+    const newFrom = fromParam ? parseISO(fromParam) : undefined;
+    const newTo = toParam ? parseISO(toParam) : undefined;
+
+    if (newFrom && isValid(newFrom)) {
+      setDate((prev) => ({
+        to: prev?.to,
+        from: newFrom,
+      }));
+    }
+
+    if (newTo && isValid(newTo)) {
+      setDate((prev) => ({
+        from: prev?.from,
+        to: newTo,
+      }));
+    }
+
+    const adults = parseInt(searchParams.get("adults") || "1", 10);
+    const children = parseInt(searchParams.get("children") || "0", 10);
+    const infants = parseInt(searchParams.get("infants") || "0", 10);
+    const pets = parseInt(searchParams.get("pets") || "0", 10);
+
+    updateGuests({
+      adults,
+      children,
+      infants,
+      pets,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <Card className="w-full grid md:grid-cols-3 sm:grid-cols-5 grid-cols-1 max-w-3xl mx-auto p-4 gap-2">
+    <Card
+      className={cn(
+        "w-full grid md:grid-cols-3 sm:grid-cols-5 grid-cols-1 max-w-3xl mx-auto p-4 gap-2",
+        className
+      )}
+    >
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -100,7 +149,11 @@ export const FloatingFilter = ({ locale }: { locale: string }) => {
             today={undefined}
             defaultMonth={date?.from}
             selected={date}
-            onSelect={setDate}
+            onSelect={(e) => {
+              setDate((prev) => {
+                return { from: e?.from, to: e?.to || prev?.to };
+              });
+            }}
             numberOfMonths={2}
           />
         </PopoverContent>
