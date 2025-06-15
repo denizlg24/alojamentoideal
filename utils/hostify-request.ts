@@ -34,9 +34,6 @@ export async function hostifyRequest<T = unknown>(
     if (options.perPage) url.searchParams.set("per_page", options.perPage.toString());
 
 
-
-
-
     const res = await fetch(url.toString(), {
         method,
         headers: {

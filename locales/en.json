@@ -41,7 +41,8 @@
   },
   "listing-home-card": {
     "from": "Starting at ",
-    "night": "night"
+    "night": "night",
+    "stay": "stay"
   },
   "floating-filter": {
     "checkin": "Check in",

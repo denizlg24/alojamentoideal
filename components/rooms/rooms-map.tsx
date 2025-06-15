@@ -6,17 +6,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { ArrowUpRightFromSquare, MapPinHouse } from "lucide-react";
 import { ListingHomeCard } from "../listings/listing-home-card";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ColorScheme } from "@vis.gl/react-google-maps";
 import { RenderingType } from "@vis.gl/react-google-maps";
-export const RoomsMap = ({
-  locale,
-  listings,
-}: {
-  locale: string;
-  listings: ListingType[];
-}) => {
+export const RoomsMap = ({ listings }: { listings: ListingType[] }) => {
   const t = useTranslations("home-map");
+  const locale = useLocale();
   return (
     <APIProvider
       language={locale}

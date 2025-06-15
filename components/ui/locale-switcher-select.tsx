@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "@/i18n/navigation";
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Button } from "./button";
@@ -16,10 +16,11 @@ export const LocaleSwitcherSelect = ({
 }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const params = useParams();
   const [isPending, startTransition] = useTransition();
   const [currentLocale, updateLocale] = useState(defaultValue);
   const [canBeOpen, setCanBeOpen] = useState(false);
+
+  const searchParams = useSearchParams();
 
   const getLanguageName = (localeCode: string) => {
     const displayNames = new Intl.DisplayNames([localeCode], {
@@ -56,8 +57,12 @@ export const LocaleSwitcherSelect = ({
                 setCanBeOpen(false);
                 updateLocale(locale);
                 startTransition(() => {
-                  //@ts-expect-error params always match
-                  router.replace({ pathname, params }, { locale });
+                  const queryString = searchParams.toString();
+                  const url =
+                    queryString.length > 0
+                      ? `${pathname}?${queryString}`
+                      : pathname;
+                  router.replace(url, { locale });
                 });
               }}
               disabled={locale === currentLocale}

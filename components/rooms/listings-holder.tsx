@@ -1,6 +1,6 @@
 "use client";
 
-import { isValid, parseISO } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
@@ -12,8 +12,9 @@ import { Skeleton } from "../ui/skeleton";
 import { Card, CardContent } from "../ui/card";
 import { RoomsMapHolder } from "./rooms-map-holder";
 import { useTranslations } from "next-intl";
+import { ListingStayCard } from "../listings/listing-stay-card";
 
-export const ListingsHolder = ({ locale }: { locale: string }) => {
+export const ListingsHolder = () => {
   const [date, setDate] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
@@ -34,6 +35,7 @@ export const ListingsHolder = ({ locale }: { locale: string }) => {
     page: 1,
     total: 0,
   });
+  const [filtersReady, setFiltersReady] = useState(false);
 
   const searchParams = useSearchParams();
 
@@ -70,6 +72,68 @@ export const ListingsHolder = ({ locale }: { locale: string }) => {
     }
   };
 
+  const getAvailableListings = async (
+    page: number,
+    perPage: number,
+    from: string,
+    to: string,
+    guests: number
+  ) => {
+    try {
+      setIsLoading(true);
+      const start = (page - 1) * perPage;
+      const end = start + perPage;
+      const allValidListings: ListingType[] = [];
+      const listings = await hostifyRequest<{
+        listings: ListingType[];
+        total: number;
+        nextPage?: string;
+      }>(
+        `listings/available?start_date=${from}&end_date=${to}`,
+        "GET",
+        [
+          { key: "guests", value: guests },
+          { key: "include_fees", value: 1 },
+          { key: "min_rating", value: 0 },
+        ],
+        undefined,
+        undefined,
+        {
+          includeRelated: 1,
+          page: 1,
+          perPage: 80,
+        }
+      );
+      console.log(listings);
+      const filtered = listings.listings.filter((l) => l.price > 0);
+      allValidListings.push(...filtered);
+
+      const paginated = allValidListings.slice(start, end);
+      setListings(paginated);
+
+      const filteredTotal = allValidListings.length;
+      const pageCount = Math.ceil(filteredTotal / perPage);
+
+      setPagination((prev) => ({
+        ...prev,
+        total: filteredTotal,
+        totalPages: pageCount,
+      }));
+    } catch (error) {
+      console.log(error);
+      setListings([]);
+      setPagination((prev) => {
+        return {
+          ...prev,
+          total: 0,
+          totalPages: 0,
+        };
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const fromParam = searchParams.get("from");
     const toParam = searchParams.get("to");
@@ -77,18 +141,13 @@ export const ListingsHolder = ({ locale }: { locale: string }) => {
     const newFrom = fromParam ? parseISO(fromParam) : undefined;
     const newTo = toParam ? parseISO(toParam) : undefined;
 
-    if (newFrom && isValid(newFrom)) {
-      setDate((prev) => ({
-        to: prev?.to,
-        from: newFrom,
-      }));
-    }
-
-    if (newTo && isValid(newTo)) {
-      setDate((prev) => ({
-        from: prev?.from,
+    if (newFrom && isValid(newFrom) && newTo && isValid(newTo)) {
+      setDate({
         to: newTo,
-      }));
+        from: newFrom,
+      });
+    } else {
+      setDate(undefined);
     }
 
     const adults = parseInt(searchParams.get("adults") || "1", 10);
@@ -96,31 +155,32 @@ export const ListingsHolder = ({ locale }: { locale: string }) => {
     const infants = parseInt(searchParams.get("infants") || "0", 10);
     const pets = parseInt(searchParams.get("pets") || "0", 10);
 
-    updateGuests({
-      adults,
-      children,
-      infants,
-      pets,
-    });
-  }, [searchParams]);
+    updateGuests({ adults, children, infants, pets });
 
-  useEffect(() => {
-    setListings([]);
-    if (date?.from && date.to) {
-    } else {
-      getAllListings(pagination.page, pagination.perPage);
-    }
-  }, [guests, date, pagination.page, pagination.perPage]);
-
-  useEffect(() => {
     const page_string = searchParams.get("page");
     if (page_string) {
       const page = parseInt(page_string);
-      setPagination((prev) => {
-        return { ...prev, page: page || 1 };
-      });
+      setPagination((prev) => ({ ...prev, page: page || 1 }));
     }
+
+    setFiltersReady(true);
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!filtersReady) return;
+    setListings([]);
+    if (date?.from && date.to) {
+      getAvailableListings(
+        pagination.page,
+        pagination.perPage,
+        format(date.from, "yyyy-MM-dd"),
+        format(date.to, "yyyy-MM-dd"),
+        guests.adults + guests.children
+      );
+    } else {
+      getAllListings(pagination.page, pagination.perPage);
+    }
+  }, [guests, date, pagination.page, pagination.perPage, filtersReady]);
 
   const t = useTranslations("rooms");
 
@@ -133,7 +193,7 @@ export const ListingsHolder = ({ locale }: { locale: string }) => {
             <Skeleton className="col-span-full w-[35%] h-5" />
           </div>
         )}
-        {!isLoading && !(date?.from && date.to) && (
+        {!isLoading && !(date?.from || date?.to) && (
           <h1 className="col-span-full md:text-lg sm:text-base text-sm font-normal gap-0 flex flex-col">
             <span>{t("all")}</span>
             <span className="sm:text-sm text-xs text-muted-foreground/50">
@@ -141,11 +201,15 @@ export const ListingsHolder = ({ locale }: { locale: string }) => {
             </span>
           </h1>
         )}
-        {!isLoading && date?.from && date.to && listings.length > 0 && (
+        {!isLoading && date?.from && date.to && listings?.length > 0 && (
           <h1 className="col-span-full md:text-lg sm:text-base text-sm font-normal gap-0 flex flex-col">
             <span>
               {t("showing")}{" "}
-              <span className="font-semibold">{pagination.total}</span>
+              <span className="font-semibold">
+                {pagination.totalPages > 0
+                  ? pagination.total
+                  : listings?.length}
+              </span>
               {t("rooms")}
             </span>
             <span className="sm:text-sm text-xs text-muted-foreground/50">
@@ -153,7 +217,7 @@ export const ListingsHolder = ({ locale }: { locale: string }) => {
             </span>
           </h1>
         )}
-        {!isLoading && listings.length == 0 && (
+        {!isLoading && listings?.length == 0 && (
           <h1 className="col-span-full md:text-lg sm:text-base text-sm font-normal gap-0 flex flex-col">
             <span>{t("no-rooms")}</span>
             <span className="sm:text-sm text-xs text-muted-foreground/50">
@@ -162,14 +226,11 @@ export const ListingsHolder = ({ locale }: { locale: string }) => {
           </h1>
         )}
         <div className="col-span-full w-full md:hidden flex flex-row items-start h-[300px] rounded-xl shadow overflow-hidden">
-          <RoomsMapHolder
-            locale={locale}
-            listings={listings}
-            isLoading={isLoading}
-          />
+          <RoomsMapHolder listings={listings} isLoading={isLoading} />
         </div>
         {!isLoading &&
-          listings.map((listing) => {
+          !(date?.from && date.to) &&
+          listings?.map((listing) => {
             return (
               <ListingHomeCard
                 className={"max-w-full!"}
@@ -178,7 +239,19 @@ export const ListingsHolder = ({ locale }: { locale: string }) => {
               />
             );
           })}
-        {!isLoading && pagination.totalPages > 1 && listings.length > 0 && (
+        {!isLoading &&
+          date?.from &&
+          date.to &&
+          listings?.map((listing) => {
+            return (
+              <ListingStayCard
+                className={"max-w-full!"}
+                key={listing.id}
+                listing={listing}
+              />
+            );
+          })}
+        {!isLoading && pagination.totalPages > 1 && listings?.length > 0 && (
           <div className="col-span-full">
             <PaginationControls
               className="justify-center"
@@ -211,11 +284,7 @@ export const ListingsHolder = ({ locale }: { locale: string }) => {
           })}
       </div>
       <div className="col-span-1 w-full sticky top-44 md:flex hidden flex-row items-start h-[calc(100vh-64px-70px-48px-72px)] mt-16 rounded-xl shadow overflow-hidden">
-        <RoomsMapHolder
-          locale={locale}
-          listings={listings}
-          isLoading={isLoading}
-        />
+        <RoomsMapHolder listings={listings} isLoading={isLoading} />
       </div>
     </div>
   );

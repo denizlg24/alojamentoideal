@@ -6,7 +6,7 @@ import { hostifyRequest } from "@/utils/hostify-request";
 import { useEffect, useState } from "react";
 import { AccommodationMapTitle } from "./accommodation-map-title";
 
-export const AccommodationMapHolder = ({ locale }: { locale: string }) => {
+export const AccommodationMapHolder = () => {
   const [listings, setListings] = useState<ListingType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
@@ -37,7 +37,7 @@ export const AccommodationMapHolder = ({ locale }: { locale: string }) => {
     <>
       <AccommodationMapTitle />
       <div className="flex flex-row items-stretch w-full rounded-xl overflow-hidden">
-        <AccommodationMap locale={locale} listings={listings} />
+        <AccommodationMap listings={listings} />
       </div>
     </>
   );

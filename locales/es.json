@@ -41,7 +41,8 @@
   },
   "listing-home-card": {
     "from": "Desde ",
-    "night": "por noche"
+    "night": "por noche",
+    "stay": "por estadía"
   },
   "floating-filter": {
     "checkin": "Entrada",
