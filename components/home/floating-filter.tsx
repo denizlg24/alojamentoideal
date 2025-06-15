@@ -24,16 +24,12 @@ import {
 } from "../ui/hover-card";
 
 import { pt, enUS, es } from "date-fns/locale";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 
-export const FloatingFilter = ({
-  locale,
-  className,
-}: {
-  locale: string;
-  className?: string;
-}) => {
+export const FloatingFilter = ({ className }: { className?: string }) => {
+  const locale = useLocale();
+
   const localeMap = {
     en: enUS,
     pt: pt,

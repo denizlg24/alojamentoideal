@@ -19,7 +19,7 @@ export default function Home({
         <Suspense
           fallback={<Skeleton className="w-full max-w-7xl mx-auto h-[200px]" />}
         >
-          <FloatingFilter className="max-w-7xl" locale={locale} />
+          <FloatingFilter className="max-w-7xl" />
         </Suspense>
       </div>
       <div className="w-full max-w-7xl md:mt-30 sm:mt-40 mt-62">
