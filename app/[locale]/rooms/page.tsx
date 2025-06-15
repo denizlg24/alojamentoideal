@@ -24,7 +24,7 @@ export default function Home({
       </div>
       <div className="w-full max-w-7xl md:mt-30 sm:mt-40 mt-62">
         <Suspense fallback={<Skeleton className="w-full mx-auto h-[500px]" />}>
-          <ListingsHolder locale={locale} />
+          <ListingsHolder />
         </Suspense>
       </div>
     </main>

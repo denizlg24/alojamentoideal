@@ -6,6 +6,7 @@ import {
   CircleMinus,
   CirclePlus,
   User,
+  X,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
@@ -76,18 +77,11 @@ export const FloatingFilter = ({
     const newFrom = fromParam ? parseISO(fromParam) : undefined;
     const newTo = toParam ? parseISO(toParam) : undefined;
 
-    if (newFrom && isValid(newFrom)) {
-      setDate((prev) => ({
-        to: prev?.to,
-        from: newFrom,
-      }));
-    }
-
-    if (newTo && isValid(newTo)) {
-      setDate((prev) => ({
-        from: prev?.from,
+    if (newFrom && isValid(newFrom) && newTo && isValid(newTo)) {
+      setDate({
         to: newTo,
-      }));
+        from: newFrom,
+      });
     }
 
     const adults = parseInt(searchParams.get("adults") || "1", 10);
@@ -139,7 +133,7 @@ export const FloatingFilter = ({
         </PopoverTrigger>
         <PopoverContent
           side="bottom"
-          className="w-auto overflow-hidden p-0 z-99"
+          className="w-auto overflow-hidden p-1 z-99 relative flex flex-col gap-0"
           align="start"
         >
           <Calendar
@@ -149,13 +143,33 @@ export const FloatingFilter = ({
             today={undefined}
             defaultMonth={date?.from}
             selected={date}
-            onSelect={(e) => {
-              setDate((prev) => {
-                return { from: e?.from, to: e?.to || prev?.to };
-              });
+            onSelect={(range) => {
+              if (range?.from && range?.to && range.to != range.from) {
+                setDate(range);
+              } else {
+                if (range?.from) {
+                  setDate((prev) => {
+                    return { ...prev, from: range.from };
+                  });
+                } else if (range?.to) {
+                  setDate((prev) => {
+                    return { from: prev?.from, to: range.from };
+                  });
+                }
+              }
             }}
             numberOfMonths={2}
           />
+          <Button
+            onClick={() => {
+              setDate(undefined);
+            }}
+            className="mt-1 ml-1 py-1! px-2! h-fit"
+            variant="ghost"
+          >
+            <X className="text-foreground" />
+            Clear
+          </Button>
         </PopoverContent>
       </Popover>
       <Popover>

@@ -76,6 +76,7 @@ export const ListingSchema = z.object({
     custom_fields: z.array(z.any()),
     users: z.array(UserSchema),
     integration_id: z.number().int(),
+    reviews: z.object({ rating: z.number(), reviews: z.number() })
 });
 
 export type ListingType = z.infer<typeof ListingSchema>;

@@ -47,7 +47,7 @@ export default function Home({
         </Suspense>
       </div>
       <div className="w-full max-w-7xl mt-4 mx-auto h-[450px] sm:mt-16 flex flex-col gap-2 px-2">
-        <AccommodationMapHolder locale={locale} />
+        <AccommodationMapHolder />
       </div>
       {/*<RecommendedListings />*/}
     </main>

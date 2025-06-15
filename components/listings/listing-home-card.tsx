@@ -3,7 +3,7 @@
 import { ListingType } from "@/schemas/listing.schema";
 import Image from "next/image";
 import { Card, CardContent } from "../ui/card";
-import { Bed, User } from "lucide-react";
+import { Bed, DoorOpen, User } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -55,17 +55,23 @@ export const ListingHomeCard = ({
             {listing.street}
           </h2>
           <div className="flex flex-row items-center justify-between w-full font-sans">
-            <div className="flex flex-row items-center justify-start gap-2">
-              {listing.beds > 0 && (
+            <div className="flex flex-row items-center justify-start gap-1">
+              {listing.bedrooms > 0 && (
+                <div className="flex flex-row items-center justify-start gap-1 text-muted-foreground">
+                  <DoorOpen className="w-4 h-4" />
+                  <p>{listing.bedrooms}</p>
+                </div>
+              )}
+              {listing.beds > 0 && listing.bedrooms == 0 && (
                 <div className="flex flex-row items-center justify-start gap-1 text-muted-foreground">
                   <Bed className="w-4 h-4" />
                   <p>{listing.beds}</p>
                 </div>
               )}
-              {listing.guests_included > 0 && (
+              {listing.person_capacity > 0 && (
                 <div className="flex flex-row items-center justify-start gap-1 text-muted-foreground">
                   <User className="w-4 h-4" />
-                  <p>{listing.guests_included}</p>
+                  <p>{listing.person_capacity}</p>
                 </div>
               )}
             </div>
