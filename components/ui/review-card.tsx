@@ -1,7 +1,7 @@
-import Image from "next/image";
 import { Card } from "./card";
 import { FaRegStar, FaStar } from "react-icons/fa";
 import { format } from "date-fns";
+import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 export const ReviewCard = ({
   review,
 }: {
@@ -17,13 +17,12 @@ export const ReviewCard = ({
     <Card className="p-4 flex flex-col w-full col-span-full">
       <div className="flex flex-row gap-2 w-full truncate">
         <div className="h-auto aspect-square! rounded-full overflow-hidden min-w-10 max-w-10">
-          <Image
-            src={review.guest_picture}
-            width={1000}
-            height={1000}
-            className="w-full h-auto aspect-square object-cover"
-            alt={review.name}
-          />
+          <Avatar className="w-full h-auto aspect-square object-cover">
+            <AvatarImage src={review.guest_picture} alt={review.name} />
+            <AvatarFallback>
+              {review.name.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
         </div>
         <div className="w-full flex flex-col justify-between truncate">
           <p className="truncate">{review.name}</p>
