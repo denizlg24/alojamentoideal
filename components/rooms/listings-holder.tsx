@@ -166,6 +166,22 @@ export const ListingsHolder = () => {
     setFiltersReady(true);
   }, [searchParams]);
 
+  const [currentHref, updateHref] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    if (date?.from) params.set("from", format(date.from, "yyyy-MM-dd"));
+    if (date?.to) params.set("to", format(date.to, "yyyy-MM-dd"));
+
+    params.set("adults", guests.adults.toString());
+    params.set("children", guests.children.toString());
+    params.set("infants", guests.infants.toString());
+    params.set("pets", guests.pets.toString());
+
+    updateHref(`?${params.toString()}`);
+  }, [date, guests]);
+
   useEffect(() => {
     if (!filtersReady) return;
     setListings([]);
@@ -245,6 +261,7 @@ export const ListingsHolder = () => {
           listings?.map((listing) => {
             return (
               <ListingStayCard
+                href={currentHref}
                 className={"max-w-full!"}
                 key={listing.id}
                 listing={listing}

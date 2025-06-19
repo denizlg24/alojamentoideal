@@ -132,7 +132,7 @@ export const Amenitie = ({ amenitie }: { amenitie: { name: string } }) => {
   return (
     <Card className="px-2 py-1 col-span-1 flex flex-row gap-1 justify-start items-center w-full">
       {Icon && <Icon className="w-5 h-5" />}
-      <p>
+      <p className="truncate">
         {amenitie.name[0].toUpperCase() + amenitie.name.substr(1).toLowerCase()}
       </p>
     </Card>
