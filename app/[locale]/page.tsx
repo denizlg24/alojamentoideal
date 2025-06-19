@@ -3,6 +3,8 @@ import { Suspense, use } from "react";
 import { FloatingFilter } from "@/components/home/floating-filter";
 import { AccommodationMapHolder } from "@/components/home/accommodation-map-holder";
 import { Skeleton } from "@/components/ui/skeleton";
+import videoFallback from "@/public/video-fallback.png";
+import Image from "next/image";
 export default function Home({
   params,
 }: {
@@ -18,7 +20,12 @@ export default function Home({
       <div className="w-full relative flex flex-col items-center">
         <Suspense
           fallback={
-            <div className="w-full object-cover lg:h-[600px] h-[300px] bg-black"></div>
+            <Image
+              src={videoFallback}
+              alt="video-fallback"
+              priority
+              className="w-full h-full object-cover lg:max-h-[600px] max-h-[300px]"
+            />
           }
         >
           <video

@@ -12,12 +12,15 @@ import { useTranslations } from "next-intl";
 import { Button } from "../ui/button";
 export const ListingStayCard = ({
   listing,
+  href,
   className,
 }: {
+  href: string;
   listing: ListingType;
   className?: string;
 }) => {
   const t = useTranslations("listing-home-card");
+
   const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(true);
   return (
     <Card
@@ -90,7 +93,9 @@ export const ListingStayCard = ({
         )}
         <div className="w-full">
           <Button variant="default" className="w-full" asChild>
-            <Link href={listing.price <= 0 ? "" : `/rooms/${listing.id}`}>
+            <Link
+              href={listing.price <= 0 ? "" : `/rooms/${listing.id}${href}`}
+            >
               <p className="text-sm font-semibold">
                 <span className="text-xs">{t("from")}</span>
                 {listing.position == "before"
