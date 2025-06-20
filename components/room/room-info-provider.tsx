@@ -1297,7 +1297,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
             </Popover>
             {listingError && (
               <div className="w-full col-span-2 flex flex-row items-center justify-center">
-                <p className="text-destructive text-sm">{listingError}</p>
+                <p className="text-destructive text-sm">
+                  {roomInfoT(listingError)}
+                </p>
               </div>
             )}
             {(priceLoading || stayPrice) && (
