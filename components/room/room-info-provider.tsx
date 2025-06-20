@@ -298,6 +298,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
       if (nights < Math.max(listingInfo?.listing.min_nights || 2, 2)) {
         setListingError("period-not-available");
       } else {
+        setListingError("");
         updateStayPrice(undefined);
         getStayPrice(date.from, date.to, guests);
       }
