@@ -449,7 +449,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                   variant="outline"
                   className="rounded-full lg:text-sm text-xs hover:scale-[1.01] transition-transform"
                 >
-                  Show all photos ({listingInfo.photos.length})
+                  {roomInfoT("show-photos")} ({listingInfo.photos.length})
                 </Button>
               </DrawerTrigger>
               <DrawerContent>
@@ -457,7 +457,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                   <DrawerTitle>
                     {listingInfo.listing.name || listingInfo.listing.nickname}
                   </DrawerTitle>
-                  <DrawerDescription>Photo tour</DrawerDescription>
+                  <DrawerDescription>
+                    {roomInfoT("photo-tour")}
+                  </DrawerDescription>
                 </DrawerHeader>
                 {listingInfo.photos && (
                   <Carousel className="w-full max-w-3xl px-12 mx-auto mb-12 rounded-2xl">
@@ -563,7 +565,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               className="col-span-1 text-foreground hover:no-underline hover:cursor-pointer rounded-none"
               variant="link"
             >
-              Property Details
+              {roomInfoT("details")}
             </Button>
             <Button
               onClick={() => {
@@ -572,7 +574,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               className="col-span-1 text-foreground hover:no-underline hover:cursor-pointer rounded-none"
               variant="link"
             >
-              Reviews
+              {roomInfoT("reviews")}
             </Button>
             <div className="col-span-2 w-full h-[1px] bg-muted-foreground/50 grid grid-cols-2">
               <div
@@ -599,8 +601,8 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         <p>
                           {listingInfo.listing.person_capacity}{" "}
                           {listingInfo.listing.person_capacity > 1
-                            ? "Guests"
-                            : "Guest"}
+                            ? roomInfoT("guests")
+                            : roomInfoT("guest")}
                         </p>
                       </Card>
                       <Card className="px-2 py-1 col-span-1 flex flex-row gap-1 justify-start items-center w-fit">
@@ -608,15 +610,17 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         <p>
                           {listingInfo.listing.bedrooms}{" "}
                           {listingInfo.listing.bedrooms > 1
-                            ? "Bedrooms"
-                            : "Bedroom"}
+                            ? roomInfoT("bedrooms")
+                            : roomInfoT("bedroom")}
                         </p>
                       </Card>
                       <Card className="px-2 py-1 col-span-1 flex flex-row gap-1 justify-start items-center w-fit">
                         <Bed className="w-5 h-5" />
                         <p>
                           {listingInfo.listing.beds}{" "}
-                          {listingInfo.listing.beds > 1 ? "Beds" : "Bed"}
+                          {listingInfo.listing.beds > 1
+                            ? roomInfoT("beds")
+                            : roomInfoT("bed")}
                         </p>
                       </Card>
                       <Card className="px-2 py-1 col-span-1 flex flex-row gap-1 justify-start items-center w-fit">
@@ -624,8 +628,8 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         <p>
                           {listingInfo.listing.bathrooms}{" "}
                           {listingInfo.listing.bathrooms > 1
-                            ? "Bathrooms"
-                            : "Bathroom"}
+                            ? roomInfoT("bathrooms")
+                            : roomInfoT("bathroom")}
                         </p>
                       </Card>
                     </div>
@@ -636,7 +640,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                             {p}
                           </p>
                         );
-                      }) || <p>No description available.</p>}
+                      }) || <p>{roomInfoT("no-translation")}</p>}
                       {translationsLoading && (
                         <>
                           <div className="w-full flex flex-col gap-1">
@@ -649,7 +653,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       )}
                       <p className="flex flex-row items-start gap-1 text-sm mt-2">
                         <NotepadText className="w-4 h-4" />
-                        <span className="font-semibold">Permit: </span>
+                        <span className="font-semibold">
+                          {roomInfoT("tax-permit")}:{" "}
+                        </span>
                         <span className="ml-1">
                           {listingInfo.listing.permit_or_tax_id}
                         </span>
@@ -665,7 +671,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                     <div className="flex flex-col gap-4 w-full">
                       {listingTranslated?.space && (
                         <>
-                          <p className="text-lg font-semibold">The space</p>
+                          <p className="text-lg font-semibold">
+                            {roomInfoT("space")}
+                          </p>
                           <div className="flex flex-col gap-1 w-full">
                             {listingTranslated.space.split("\n").map((s) => (
                               <p key={s + Math.random()}>{s}</p>
@@ -676,7 +684,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       {listingTranslated?.interaction && (
                         <>
                           <p className="text-lg font-semibold">
-                            Interaction With Guests
+                            {roomInfoT("interaction")}
                           </p>
                           <div className="flex flex-col gap-1 w-full">
                             {listingTranslated.interaction
@@ -691,7 +699,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       {listingTranslated?.neighborhood_overview && (
                         <>
                           <p className="text-lg font-semibold">
-                            The neighborhood
+                            {roomInfoT("hood")}
                           </p>
                           <div className="flex flex-col gap-1 w-full">
                             {listingTranslated.neighborhood_overview
@@ -704,7 +712,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       )}
                       {listingTranslated?.house_rules && (
                         <>
-                          <p className="text-lg font-semibold">House rules</p>
+                          <p className="text-lg font-semibold">
+                            {roomInfoT("house-rules")}
+                          </p>
                           <div className="flex flex-col gap-1 w-full">
                             {listingTranslated.house_rules
                               .split("\n")
@@ -716,7 +726,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       )}
                       {listingTranslated?.house_manual && (
                         <>
-                          <p className="text-lg font-semibold">House Manual</p>
+                          <p className="text-lg font-semibold">
+                            {roomInfoT("house-manual")}
+                          </p>
                           <div className="flex flex-col gap-1 w-full">
                             {listingTranslated.house_manual
                               .split("\n")
@@ -728,7 +740,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       )}
                       {listingTranslated?.arrival_info && (
                         <>
-                          <p className="text-lg font-semibold">Arrival Info</p>
+                          <p className="text-lg font-semibold">
+                            {roomInfoT("arrival")}
+                          </p>
                           <div className="flex flex-col gap-1 w-full">
                             {listingTranslated.arrival_info
                               .split("\n")
@@ -740,7 +754,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       )}
                       {listingTranslated?.access && (
                         <>
-                          <p className="text-lg font-semibold">Guest access</p>
+                          <p className="text-lg font-semibold">
+                            {roomInfoT("guest-access")}
+                          </p>
                           <div className="flex flex-col gap-1 w-full">
                             {listingTranslated.access.split("\n").map((s) => (
                               <p key={s + Math.random()}>{s}</p>
@@ -751,7 +767,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       {listingTranslated?.checkin_place && (
                         <>
                           <p className="text-lg font-semibold">
-                            Check-in Place
+                            {roomInfoT("checkin-place")}
                           </p>
                           <div className="flex flex-col gap-1 w-full">
                             {listingTranslated.checkin_place
@@ -764,7 +780,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       )}
                       {listingTranslated?.transit && (
                         <>
-                          <p className="text-lg font-semibold">Transit</p>
+                          <p className="text-lg font-semibold">
+                            {roomInfoT("transit")}
+                          </p>
                           <div className="flex flex-col gap-1 w-full">
                             {listingTranslated.transit.split("\n").map((s) => (
                               <p key={s + Math.random()}>{s}</p>
@@ -775,7 +793,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       {listingTranslated?.notes && (
                         <>
                           <p className="text-lg font-semibold">
-                            Other things to note
+                            {roomInfoT("other-things")}
                           </p>
                           <div className="flex flex-col gap-1 w-full">
                             {listingTranslated.notes.split("\n").map((s) => (
@@ -793,7 +811,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       )}
                       <div className="w-full grid xl:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-2">
                         <p className="text-xl font-semibold mb-2 col-span-full">
-                          Amenities
+                          {roomInfoT("amenities")}
                         </p>
                         {listingInfo.amenities.map((amenities) => {
                           return (
@@ -803,7 +821,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       </div>
                       <div className="w-full flex flex-col gap-4">
                         <p className="text-xl font-semibold mb-2 col-span-full">
-                          Where you&apos;ll be staying
+                          {roomInfoT("where-stay")}
                         </p>
                         <div className="w-full h-[300px] rounded-2xl overflow-hidden">
                           <RoomInfoMap
@@ -1039,7 +1057,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 <p>{floatingFilterT("clear-dates")}</p>
               </Button>
             </div>
-            <Label className="w-full col-span-full">Guests</Label>
+            <Label className="w-full col-span-full">
+              {roomInfoT("guests")}
+            </Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -1060,7 +1080,11 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                   <div className="flex flex-col items-start col-span-2">
                     <p className="text-sm">{floatingFilterT("adults")}</p>
                     <p className="text-xs text-muted-foreground">
-                      {floatingFilterT("ages")} 13+
+                      {floatingFilterT("ages")}{" "}
+                      {listingInfo.listing.children_age_max
+                        ? listingInfo.listing.children_age_max + 1
+                        : "13"}
+                      +
                     </p>
                   </div>
                   <div className="w-full flex flex-row justify-between items-center col-span-3">
@@ -1112,7 +1136,8 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                   >
                     <p className="text-sm">{floatingFilterT("children")}</p>
                     <p className="text-xs text-muted-foreground">
-                      {floatingFilterT("ages")} 2-12
+                      {floatingFilterT("ages")} 2-
+                      {listingInfo.listing.children_age_max || "12"}
                     </p>
                   </div>
                   <div className="w-full flex flex-row justify-between items-center col-span-3">
@@ -1149,7 +1174,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                               total < capacity
                                 ? Math.min(
                                     prev.children + 1,
-                                    capacity - prev.adults
+                                    capacity - prev.adults,
+                                    listingInfo.listing.children_count_max ||
+                                      999999
                                   )
                                 : prev.children,
                           };
@@ -1273,52 +1300,53 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 <p className="text-destructive text-sm">{listingError}</p>
               </div>
             )}
-            {priceLoading ||
-              (stayPrice && (
-                <div className="w-full col-span-full flex flex-col">
-                  {priceLoading && (
-                    <Skeleton className="w-full h-[200px] flex flex-row items-center justify-center">
-                      <Loader2Icon className="animate-spin" />
-                    </Skeleton>
-                  )}
-                  {!priceLoading && stayPrice && (
-                    <div className="w-full flex flex-col gap-4">
-                      <div className="w-full flex flex-col gap-2">
-                        {stayPrice.fees.map((fee) => {
-                          return (
-                            <div
-                              key={fee.fee_id}
-                              className="w-full flex flex-row gap-2 items-center justify-between"
-                            >
-                              <div className="flex flex-row items-center justify-start gap-1 truncate w-full">
-                                <p className="md:text-base text-sm">
-                                  {fee.fee_name}
-                                </p>
-                                {fee.charge_type_label && (
-                                  <p className="md:text-sm text-xs truncate">
-                                    - {fee.charge_type_label}
-                                  </p>
-                                )}
-                              </div>
-                              <p className="w-full max-w-fit truncate">
-                                {fee.total} {stayPrice.symbol}
+            {(priceLoading || stayPrice) && (
+              <div className="w-full col-span-full flex flex-col">
+                {priceLoading && (
+                  <Skeleton className="w-full h-[200px] flex flex-row items-center justify-center">
+                    <Loader2Icon className="animate-spin" />
+                  </Skeleton>
+                )}
+                {!priceLoading && stayPrice && (
+                  <div className="w-full flex flex-col gap-4">
+                    <div className="w-full flex flex-col gap-2">
+                      {stayPrice.fees.map((fee) => {
+                        return (
+                          <div
+                            key={fee.fee_id}
+                            className="w-full flex flex-row gap-2 items-center justify-between"
+                          >
+                            <div className="flex flex-row items-center justify-start gap-1 truncate w-full">
+                              <p className="md:text-base text-sm">
+                                {fee.fee_name}
                               </p>
+                              {fee.charge_type_label && (
+                                <p className="md:text-sm text-xs truncate">
+                                  - {fee.charge_type_label}
+                                </p>
+                              )}
                             </div>
-                          );
-                        })}
-                        <Separator />
-                        <div className="w-full flex flex-row items-center justify-between">
-                          <p className="md:text-base text-sm">Total</p>
-                          <p>
-                            {stayPrice.total} {stayPrice.symbol}
-                          </p>
-                        </div>
+                            <p className="w-full max-w-fit truncate">
+                              {fee.total} {stayPrice.symbol}
+                            </p>
+                          </div>
+                        );
+                      })}
+                      <Separator />
+                      <div className="w-full flex flex-row items-center justify-between">
+                        <p className="md:text-base text-sm">
+                          {roomInfoT("total")}
+                        </p>
+                        <p>
+                          {stayPrice.total} {stayPrice.symbol}
+                        </p>
                       </div>
-                      <Button>Proceed to payment</Button>
                     </div>
-                  )}
-                </div>
-              ))}
+                    <Button>{roomInfoT("payment")}</Button>
+                  </div>
+                )}
+              </div>
+            )}
           </Card>
         </div>
       </div>
