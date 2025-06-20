@@ -55,7 +55,7 @@
     "ages-under": "Ages under",
     "pets-warning": "Some rooms might not allow pets.",
     "search": "Search",
-    "clear-dates": "Clear date"
+    "clear-dates": "Clear dates"
   },
   "rooms": {
     "all": "Displaying all available rooms",
@@ -127,6 +127,35 @@
       "entire": "Entire",
       "private": "Private",
       "shared": "Shared"
-    }
+    },
+    "show-photos": "Show all photos",
+    "photo-tour": "Photo tour",
+    "details": "Property Details",
+    "reviews": "Reviews",
+    "guests": "Guests",
+    "guest": "Guest",
+    "bedrooms": "Bedrooms",
+    "bedroom": "Bedroom",
+    "beds": "Beds",
+    "bed": "Bed",
+    "bathrooms": "Bathrooms",
+    "bathroom": "Bathroom",
+    "no-translation": "No description available.",
+    "tax-permit": "Permit",
+    "space": "The space",
+    "interaction": "Interaction With Guests",
+    "hood": "The neighborhood",
+    "house-rules": "House rules",
+    "house-manual": "House Manual",
+    "arrival": "Arrival Info",
+    "guest-access": "Guest access",
+    "checkin-place": "Check-in Place",
+    "transit": "Transit",
+    "other-things": "Other things to note",
+    "amenities": "Amenities",
+    "where-stay": "Where you'll be staying",
+    "total": "Total",
+    "payment": "Proceed to payment",
+    "period-not-available": "The selected period is not available"
   }
 }

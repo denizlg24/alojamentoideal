@@ -55,7 +55,7 @@
     "ages-under": "Idades até",
     "pets-warning": "Alguns quartos podem não permitir animais.",
     "search": "Procurar",
-    "clear-dates": "Clear date"
+    "clear-dates": "Limpar datas"
   },
   "rooms": {
     "all": "A mostrar todos os alojamentos disponíveis",
@@ -127,6 +127,35 @@
       "entire": "Inteiro",
       "private": "Privado",
       "shared": "Partilhado"
-    }
+    },
+    "show-photos": "Mostrar todas as fotos",
+    "photo-tour": "Tour fotográfico",
+    "details": "Detalhes da propriedade",
+    "reviews": "Avaliações",
+    "guests": "Hóspedes",
+    "guest": "Hóspede",
+    "bedrooms": "Quartos",
+    "bedroom": "Quarto",
+    "beds": "Camas",
+    "bed": "Cama",
+    "bathrooms": "Casas de banho",
+    "bathroom": "Casa de banho",
+    "no-translation": "Descrição não disponível.",
+    "tax-permit": "Licença",
+    "space": "O espaço",
+    "interaction": "Interação com os hóspedes",
+    "hood": "A vizinhança",
+    "house-rules": "Regras da casa",
+    "house-manual": "Manual da casa",
+    "arrival": "Informações de chegada",
+    "guest-access": "Acesso do hóspede",
+    "checkin-place": "Local do check-in",
+    "transit": "Transporte",
+    "other-things": "Outras coisas a ter em conta",
+    "amenities": "Comodidades",
+    "where-stay": "Onde vai ficar",
+    "total": "Total",
+    "payment": "Prosseguir para pagamento",
+    "period-not-available": "O período selecionado não está disponível"
   }
 }

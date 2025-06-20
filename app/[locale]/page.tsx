@@ -3,8 +3,8 @@ import { Suspense, use } from "react";
 import { FloatingFilter } from "@/components/home/floating-filter";
 import { AccommodationMapHolder } from "@/components/home/accommodation-map-holder";
 import { Skeleton } from "@/components/ui/skeleton";
-import videoFallback from "@/public/video-fallback.png";
-import Image from "next/image";
+import { VideoHolder } from "@/components/home/video-holder";
+
 export default function Home({
   params,
 }: {
@@ -12,34 +12,12 @@ export default function Home({
   params: any;
 }) {
   const { locale } = use<{ locale: string }>(params);
-
   setRequestLocale(locale);
 
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full relative flex flex-col items-center">
-        <Suspense
-          fallback={
-            <Image
-              src={videoFallback}
-              alt="video-fallback"
-              priority
-              className="w-full h-full object-cover lg:max-h-[600px] max-h-[300px]"
-            />
-          }
-        >
-          <video
-            src="/main_vid.mp4"
-            preload="true"
-            className="w-full h-full object-cover lg:max-h-[600px] max-h-[300px]"
-            autoPlay
-            playsInline
-            loop
-            muted
-          >
-            Not Supported
-          </video>
-        </Suspense>
+        <VideoHolder />
         <div className="absolute sm:flex hidden bottom-0 translate-y-1/2 w-full flex-col items-center z-90 px-2">
           <Suspense
             fallback={<Skeleton className="w-full mx-auto h-[120px]" />}
