@@ -548,7 +548,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               </p>
               <Button
                 onClick={() => {
-                  setTab(2);
+                  setTab(1);
                 }}
                 variant="link"
                 className="text-xs underline p-0! h-min text-foreground hover:cursor-pointer"
