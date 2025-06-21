@@ -3,6 +3,7 @@
 import { calculateAmount } from "@/app/actions/calculateAmmount";
 import { fetchClientSecret } from "@/app/actions/stripe";
 import { useCart } from "@/hooks/cart-context";
+import { useRouter } from "@/i18n/navigation";
 import {
   useStripe,
   useElements,
@@ -11,18 +12,20 @@ import {
   CardCvcElement,
 } from "@stripe/react-stripe-js";
 import { useEffect, useState } from "react";
+import { Button } from "../ui/button";
+import { Card } from "../ui/card";
 
 const elementStyle = {
   style: {
     base: {
       fontSize: "16px",
-      color: "#1f2937", // gray-800
+      color: "#1f2937",
       "::placeholder": {
-        color: "#9ca3af", // gray-400
+        color: "#9ca3af",
       },
     },
     invalid: {
-      color: "#ef4444", // red-500
+      color: "#ef4444",
     },
   },
 };
@@ -31,9 +34,11 @@ export const CheckoutForm = () => {
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, cartLoading } = useCart();
   const [_amount, setAmount] = useState(0);
   const [priceLoading, setPriceLoading] = useState(true);
+  const [checking, setChecking] = useState(true);
+  const router = useRouter();
   useEffect(() => {
     const getAmount = async () => {
       setPriceLoading(true);
@@ -41,7 +46,13 @@ export const CheckoutForm = () => {
       setAmount(amount);
       setPriceLoading(false);
     };
-    getAmount();
+    if (cart.length == 0 && !cartLoading) {
+      router.back();
+    } else if (!cartLoading) {
+      setChecking(false);
+      getAmount();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,48 +84,44 @@ export const CheckoutForm = () => {
     setLoading(false);
   };
 
+  if (checking) return null;
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-md w-full mx-auto p-6 bg-white shadow-md rounded-xl space-y-6"
-    >
-      <h2 className="text-xl font-bold text-gray-800">Payment Info</h2>
-
-      <div>
-        <label className="block mb-1 text-sm text-gray-700">Card Number</label>
-        <div className="p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
-          <CardNumberElement options={elementStyle} />
-        </div>
-      </div>
-
-      <div className="flex space-x-4">
-        <div className="flex-1">
-          <label className="block mb-1 text-sm text-gray-700">Expiry</label>
-          <div className="p-3 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500">
-            <CardExpiryElement options={elementStyle} />
+    <Card className="p-4">
+      <form onSubmit={handleSubmit} className="w-full flex flex-col gap-6">
+        <div>
+          <label className="block mb-1 text-sm">Card Number</label>
+          <div className="p-3 border-b">
+            <CardNumberElement options={elementStyle} />
           </div>
         </div>
-        <div className="flex-1">
-          <label className="block mb-1 text-sm text-gray-700">CVC</label>
-          <div className="p-3 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500">
-            <CardCvcElement options={elementStyle} />
+        <div className="flex space-x-4">
+          <div className="flex-1">
+            <label className="block mb-1 text-sm">Expiry</label>
+            <div className="p-2 border-b">
+              <CardExpiryElement options={elementStyle} />
+            </div>
+          </div>
+          <div className="flex-1">
+            <label className="block mb-1 text-sm">CVC</label>
+            <div className="p-2 border-b">
+              <CardCvcElement options={elementStyle} />
+            </div>
           </div>
         </div>
-      </div>
-
-      <button
-        type="submit"
-        disabled={!stripe || loading || priceLoading}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition disabled:opacity-50"
-      >
-        {priceLoading
-          ? "Loading..."
-          : loading
-          ? "Processing..."
-          : `Pay ${_amount}€`}
-      </button>
-
-      {error && <p className="text-red-600 text-sm">{error}</p>}
-    </form>
+        <Button
+          className="w-full text"
+          type="submit"
+          disabled={!stripe || loading || priceLoading}
+        >
+          {priceLoading
+            ? "Loading..."
+            : loading
+            ? "Processing..."
+            : `Pay ${_amount / 10}€`}
+        </Button>
+        {error && <p className="text-red-600 text-sm">{error}</p>}
+      </form>
+    </Card>
   );
 };

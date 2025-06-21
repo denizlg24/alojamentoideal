@@ -157,5 +157,8 @@
     "total": "Total",
     "payment": "Proceder al pago",
     "period-not-available": "El período seleccionado no está disponible"
+  },
+  "review-card": {
+    "written": "Escrito"
   }
 }

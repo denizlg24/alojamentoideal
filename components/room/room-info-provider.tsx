@@ -309,7 +309,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
   }, [date, guests, listingInfo?.listing.min_nights]);
 
   const { addItem } = useCart();
-
+  const [added, setAdded] = useState(false);
   if (isLoading || !listingInfo) {
     return (
       <div className="w-full max-w-7xl px-4 flex flex-col gap-6 mt-6">
@@ -1354,6 +1354,8 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         if (!date?.to || !date?.from) {
                           return;
                         }
+                        setAdded(true);
+                        setTimeout(() => setAdded(false), 1000);
                         const propertyItem: AccommodationItem = {
                           type: "accommodation",
                           property_id: listingInfo.listing.id,
@@ -1374,7 +1376,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       variant="secondary"
                       className="-mt-3 border"
                     >
-                      Add to cart
+                      {added ? "Added!" : "Add to cart"}
                     </Button>
                   </div>
                 )}

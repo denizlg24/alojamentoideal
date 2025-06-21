@@ -7,11 +7,14 @@ import { useCart } from "@/hooks/cart-context";
 import Image from "next/image";
 import { Separator } from "./separator";
 import { Link } from "@/i18n/navigation";
+import { useState } from "react";
+import React from "react";
 
 export const Cart = () => {
+  const [open, setOpen] = useState(false);
   const { cart, clearCart, removeItem, getTotal } = useCart();
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -33,6 +36,7 @@ export const Cart = () => {
             className="text-xs text-right"
             onClick={() => {
               clearCart();
+              setOpen(false);
             }}
           >
             Clear Cart
@@ -44,7 +48,7 @@ export const Cart = () => {
             cart.map((cartItem) => {
               if (cartItem.type == "accommodation") {
                 return (
-                  <>
+                  <React.Fragment key={cartItem.property_id}>
                     <Separator key={cartItem.property_id + "separator"} />
                     <div
                       key={cartItem.property_id}
@@ -82,12 +86,18 @@ export const Cart = () => {
                         </p>
                       </div>
                     </div>
-                  </>
+                  </React.Fragment>
                 );
               }
             })}
           {cart.length > 0 && (
-            <Button asChild className="w-full">
+            <Button
+              onClick={() => {
+                setOpen(false);
+              }}
+              asChild
+              className="w-full"
+            >
               <Link href={"/checkout"}>Checkout - {getTotal()} €</Link>
             </Button>
           )}

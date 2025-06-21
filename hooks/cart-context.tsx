@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 
 export type ECommerceItem = {
   type: "product";
@@ -35,12 +41,30 @@ type CartContextType = {
   clearCart: () => void;
   updateQuantity: (idOrPropertyId: string | number, quantity: number) => void;
   getTotal: () => number;
+  cartLoading: boolean;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartLoading, setCartLoading] = useState(true);
+  useEffect(() => {
+    setCartLoading(true);
+    const storedCart = localStorage.getItem("alojamentoideal.cart");
+    if (storedCart) {
+      try {
+        setCart(JSON.parse(storedCart));
+      } catch (e) {
+        console.error("Failed to parse cart from localStorage", e);
+      }
+    }
+    setCartLoading(false);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("alojamentoideal.cart", JSON.stringify(cart));
+  }, [cart]);
 
   const addItem = (item: CartItem) => {
     setCart((prev) => {
@@ -106,7 +130,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ cart, addItem, removeItem, clearCart, updateQuantity, getTotal }}
+      value={{
+        cart,
+        addItem,
+        removeItem,
+        clearCart,
+        updateQuantity,
+        getTotal,
+        cartLoading,
+      }}
     >
       {children}
     </CartContext.Provider>
