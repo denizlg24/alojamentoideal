@@ -59,6 +59,7 @@ import { CalendarType } from "@/schemas/calendar.schema";
 import { Label } from "../ui/label";
 import { PriceType } from "@/schemas/price.schema";
 import { useSearchParams } from "next/navigation";
+import { AccommodationItem, useCart } from "@/hooks/cart-context";
 export const RoomInfoProvider = ({ id }: { id: string }) => {
   const locale = useLocale();
 
@@ -306,6 +307,8 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, guests, listingInfo?.listing.min_nights]);
+
+  const { addItem } = useCart();
 
   if (isLoading || !listingInfo) {
     return (
@@ -1346,6 +1349,33 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       </div>
                     </div>
                     <Button>{roomInfoT("payment")}</Button>
+                    <Button
+                      onClick={() => {
+                        if (!date?.to || !date?.from) {
+                          return;
+                        }
+                        const propertyItem: AccommodationItem = {
+                          type: "accommodation",
+                          property_id: listingInfo.listing.id,
+                          name:
+                            listingInfo.listing.name ||
+                            listingInfo.listing.nickname,
+                          start_date: format(date?.from, "yyyy-MM-dd"),
+                          end_date: format(date?.to, "yyyy-MM-dd"),
+                          adults: guests.adults,
+                          children: guests.children,
+                          infants: guests.infants,
+                          pets: guests.pets,
+                          front_end_price: stayPrice.total,
+                          photo: listingInfo.listing.thumbnail_file,
+                        };
+                        addItem(propertyItem);
+                      }}
+                      variant="secondary"
+                      className="-mt-3 border"
+                    >
+                      Add to cart
+                    </Button>
                   </div>
                 )}
               </div>

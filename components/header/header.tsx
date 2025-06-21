@@ -23,6 +23,7 @@ import { Button } from "../ui/button";
 import { useTranslations } from "next-intl";
 import { Separator } from "../ui/separator";
 import { LocaleSwitcher } from "../ui/locale-switcher";
+import { Cart } from "../ui/cart";
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -61,36 +62,40 @@ export const Header = () => {
         <NavigationMenu className="w-full h-full sm:flex hidden">
           <NavigationMenuList>
             <NavigationMenuItem>
-              <NavigationMenuLink
-                className="font-medium flex flex-row items-center gap-2"
-                href="/rooms"
-              >
-                <Image
-                  width={128}
-                  height={128}
-                  src={"/house_icon.png"}
-                  alt="house icon"
-                  priority
-                  className="h-full max-h-6 w-auto aspect-square object-contain"
-                />
-                {t("homes")}
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuTrigger className="w-fit px-0 pr-2">
-                <NavigationMenuLink
-                  className="font-medium flex flex-row items-center gap-2 w-full hover:bg-transparent"
-                  href="/tours"
+              <NavigationMenuLink asChild>
+                <Link
+                  href="/rooms"
+                  className="font-medium flex flex-row items-center gap-2"
                 >
                   <Image
                     width={128}
                     height={128}
-                    src={"/tour_icon.png"}
+                    src={"/house_icon.png"}
                     alt="house icon"
                     priority
                     className="h-full max-h-6 w-auto aspect-square object-contain"
                   />
-                  {t("tours")}
+                  {t("homes")}
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger className="w-fit px-0 pr-2">
+                <NavigationMenuLink asChild>
+                  <Link
+                    className="font-medium flex flex-row items-center gap-2 w-full hover:bg-transparent"
+                    href="/tours"
+                  >
+                    <Image
+                      width={128}
+                      height={128}
+                      src={"/tour_icon.png"}
+                      alt="house icon"
+                      priority
+                      className="h-full max-h-6 w-auto aspect-square object-contain"
+                    />
+                    {t("tours")}
+                  </Link>
                 </NavigationMenuLink>
               </NavigationMenuTrigger>
               <NavigationMenuContent>
@@ -146,21 +151,29 @@ export const Header = () => {
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuLink className="font-medium" href="/faq">
-                FAQ
+              <NavigationMenuLink asChild>
+                <Link className="font-medium" href="/faq">
+                  FAQ
+                </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuLink className="font-medium" href="/contact">
-                {t("contact")}
+              <NavigationMenuLink asChild>
+                <Link className="font-medium" href="/contact">
+                  {t("contact")}
+                </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
               <LocaleSwitcher />
             </NavigationMenuItem>
+            <NavigationMenuItem>
+              <Cart />
+            </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
         <div className="w-auto h-full aspect-square sm:hidden flex items-center justify-center z-99">
+          {!isOpen && <Cart />}
           <Hamburger size={16} toggled={isOpen} toggle={setOpen} />
         </div>
         <AnimatePresence>
@@ -178,19 +191,21 @@ export const Header = () => {
                 </div>
                 <NavigationMenuList className="flex flex-col w-full items-center">
                   <NavigationMenuItem>
-                    <NavigationMenuLink
-                      className="font-medium flex flex-row items-center gap-2"
-                      href="/rooms"
-                    >
-                      <Image
-                        width={128}
-                        height={128}
-                        src={"/house_icon.png"}
-                        alt="house icon"
-                        priority
-                        className="h-full max-h-6 w-auto aspect-square object-contain"
-                      />
-                      {t("homes")}
+                    <NavigationMenuLink asChild>
+                      <Link
+                        className="font-medium flex flex-row items-center gap-2"
+                        href="/rooms"
+                      >
+                        <Image
+                          width={128}
+                          height={128}
+                          src={"/house_icon.png"}
+                          alt="house icon"
+                          priority
+                          className="h-full max-h-6 w-auto aspect-square object-contain"
+                        />
+                        {t("homes")}
+                      </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
@@ -284,18 +299,24 @@ export const Header = () => {
                     </Collapsible>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
-                    <NavigationMenuLink className="font-medium" href="/about">
-                      {t("about")}
+                    <NavigationMenuLink asChild>
+                      <Link className="font-medium" href="/about">
+                        {t("about")}
+                      </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
-                    <NavigationMenuLink className="font-medium" href="/about">
-                      FAQ
+                    <NavigationMenuLink asChild>
+                      <Link className="font-medium" href="/about">
+                        FAQ
+                      </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
-                    <NavigationMenuLink className="font-medium" href="/about">
-                      {t("contact")}
+                    <NavigationMenuLink asChild>
+                      <Link className="font-medium" href="/about">
+                        {t("contact")}
+                      </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                 </NavigationMenuList>

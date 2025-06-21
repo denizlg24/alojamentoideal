@@ -6,6 +6,7 @@ import { Montserrat } from "next/font/google";
 import { Header } from "@/components/header/header";
 import "../globals.css";
 import { Footer } from "@/components/footer/footer";
+import { CartProvider } from "@/hooks/cart-context";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -39,11 +40,13 @@ export default async function RootLayout({
       <body
         className={`antialiased ${montserrat.variable} w-full min-h-screen flex flex-col items-center justify-start sm:pt-16 pt-12`}
       >
-        <NextIntlClientProvider>
-          <Header />
-          {children}
-          <Footer />
-        </NextIntlClientProvider>
+        <CartProvider>
+          <NextIntlClientProvider>
+            <Header />
+            {children}
+            <Footer />
+          </NextIntlClientProvider>
+        </CartProvider>
       </body>
     </html>
   );
