@@ -6,7 +6,28 @@ import { getTranslations } from "next-intl/server";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
-  return { title: t("not-found") };
+  return {
+    title: t("not_found.title") || "Room Not Found | Alojamento Ideal",
+    description:
+      t("not_found.description") ||
+      "The room you’re looking for does not exist or is no longer available.",
+    robots: "noindex, nofollow",
+    openGraph: {
+      title: t("not_found.title") || "Page Not Found - Alojamento Ideal",
+      description:
+        t("not_found.description") ||
+        "Sorry, we couldn’t find the accommodation you’re looking for.",
+      url: "https://alojamentoideal.com/rooms/not-found",
+      type: "website",
+    },
+    twitter: {
+      card: "summary",
+      title: t("not_found.title") || "Room Not Found - Alojamento Ideal",
+      description:
+        t("not_found.description") ||
+        "This room is no longer available or may have been removed.",
+    },
+  };
 }
 
 export default function NotFound() {

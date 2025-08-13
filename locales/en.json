@@ -1,7 +1,40 @@
 {
   "metadata": {
-    "home-title": "Alojamento Ideal | Home",
-    "not-found": "404 Page Not Found"
+    "home": {
+      "title": "Find Your Ideal Stay | Alojamento Ideal",
+      "description": "Browse and book the best accommodations for your trip. Comfort, convenience, and reliability all in one place.",
+      "keywords": "accommodations,hotels,booking,travel,Portugal stays,ideal lodging,Alojamento Ideal"
+    },
+    "checkout": {
+      "title": "Checkout - Confirm Your Booking",
+      "description": "Review and confirm your selected accommodations before completing your reservation.",
+      "keywords": "checkout,booking confirmation,reservation,Alojamento Ideal,hotel checkout"
+    },
+    "checkout_room": {
+      "title": "Room Checkout",
+      "description": "You're one step away from confirming your stay. Review your room details and finish the booking process.",
+      "keywords": "room checkout,book room,single item checkout,hotel room confirmation"
+    },
+    "order_details": {
+      "title": "Order Details",
+      "description": "Here are the details of your completed reservation, including dates, rooms, and payment status.",
+      "keywords": "order summary,reservation details,booking confirmation,Alojamento Ideal"
+    },
+    "room_detail": {
+      "title": "Room Details",
+      "description": "Explore this room's features, amenities, photos, and pricing before booking.",
+      "keywords": "room details,hotel room,accommodation info,Alojamento Ideal"
+    },
+    "rooms": {
+      "title": "Available Rooms",
+      "description": "Browse all available rooms and find the perfect stay for your next trip.",
+      "keywords": "rooms list,available rooms,accommodation,hotel booking,Alojamento Ideal"
+    },
+    "not_found": {
+      "title": "Room Not Found",
+      "description": "The room you’re looking for does not exist or is no longer available.",
+      "keywords": "room not found,404,unavailable room,Alojamento Ideal"
+    }
   },
   "not-found": {
     "oops": "Oops!",
@@ -34,7 +67,9 @@
     "privacy": "Privacy Policy"
   },
   "home": {
-    "map-title": "Where will you stay tonight?"
+    "map-title": "Where will you stay tonight?",
+    "searching": "Searching for a place to stay?",
+    "have_res": "Have a Reservation?"
   },
   "home-map": {
     "book": "Book Now"
@@ -42,7 +77,9 @@
   "listing-home-card": {
     "from": "Starting at ",
     "night": "night",
-    "stay": "stay"
+    "stay": "stay",
+    "unavailable": "Unavailable for booking.",
+    "property-in": "Property in"
   },
   "floating-filter": {
     "checkin": "Check in",
@@ -55,7 +92,8 @@
     "ages-under": "Ages under",
     "pets-warning": "Some rooms might not allow pets.",
     "search": "Search",
-    "clear-dates": "Clear dates"
+    "clear-dates": "Clear dates",
+    "clear": "Clear"
   },
   "rooms": {
     "all": "Displaying all available rooms",
@@ -156,9 +194,96 @@
     "where-stay": "Where you'll be staying",
     "total": "Total",
     "payment": "Proceed to payment",
-    "period-not-available": "The selected period is not available"
+    "period-not-available": "The selected period is not available",
+    "added": "Added!",
+    "add_to_cart": "Add to cart"
   },
   "review-card": {
     "written": "Written"
+  },
+  "cart": {
+    "title": "My Cart ({cartLength})",
+    "clear": "Clear Cart",
+    "empty": "Your Cart is empty.",
+    "nights_guests": "{nights} nights - {guests} guests",
+    "total": "Total: ",
+    "checkout": "Checkout - {total} €"
+  },
+  "checkout": {
+    "checkin": "Check-in",
+    "checkout": "Check-out",
+    "total": "Total",
+    "unavailable_msg": "The selected dates are not available.",
+    "update_stay": "Update stay",
+    "fee_type_label": "- {label}",
+    "order_summary": "Order Summary",
+    "trip_details": "Trip details",
+    "nights": "{count} nights - {adults} adults{children}{infants}",
+    "child_suffix": ", {count} children",
+    "infant_suffix": ", {count} infants"
+  },
+  "checkout_form": {
+    "name": "Name",
+    "name_placeholder": "John",
+    "email": "Email",
+    "email_placeholder": "mail@example.com",
+    "phone": "Phone",
+    "phone_placeholder": "+35192...",
+    "notes": "Additional Notes",
+    "notes_placeholder": "Anything you want to tell the host",
+    "card_number": "Card Number",
+    "expiry": "Expiry",
+    "cvc": "CVC",
+    "loading": "Loading...",
+    "error_reservation": "There was an error making your reservation. Try again later.",
+    "error_payment": "Payment failed",
+    "error_transaction": "There was an error processing your transaction. We will be in touch.",
+    "loading_verify_price": "Verifying price.",
+    "loading_create_res": "Creating reservation.",
+    "loading_process_pay": "Processing payment.",
+    "loading_cancel_res": "Canceling reservation.",
+    "loading_verify_pay": "Verifying payment.",
+    "loading_confirm_tx": "Confirming transaction.",
+    "loading_confirm_res": "Confirming reservation.",
+    "loading_save_order": "Saving order.",
+    "error_username": "Username must be at least 2 characters.",
+    "error_email": "Must be a valid email address.",
+    "error_phone": "Must be a valid phone number (e.g. +351912345678)"
+  },
+  "order": {
+    "order_info": "Order Information",
+    "reservations": "Reservations",
+    "invoice": "Invoice",
+    "order_id": "Order ID",
+    "created_at": "Created at",
+    "name_on_order": "Name on Order",
+    "order_total": "Order Total",
+    "price_breakdown": "Price Breakdown",
+    "item_total": "Item Total"
+  },
+  "propertyCard": {
+    "trip_details": "Trip details",
+    "nights": "{count} nights - {adults} adults{children}{infants}",
+    "children_text": ", {count} children",
+    "infants_text": ", {count} infants",
+    "guest_info_provided": "Guest information provided.",
+    "guest_info_missing": "Guest information not provided.",
+    "guest_info_loading": "Guest registration loading... Come back in a few minutes.",
+    "guest_info_required": "This is mandatory information for border patrol!",
+    "checkin": "Check-in from {start} until {end}",
+    "arriving": "Arriving",
+    "checkout": "Check-out until {time}",
+    "checkout_anytime": "Check-out anytime",
+    "leaving": "Leaving",
+    "add_guest_info": "Add Guest Info",
+    "get_directions": "Get Directions",
+    "contact_host": "Contact host",
+    "invalid_time": "Must be a valid time."
+  },
+  "orderSearch": {
+    "placeholder": "Ex: HMPKRDKBKY",
+    "searching": "Searching...",
+    "find": "Find Reservation",
+    "not_found": "Reservation not found."
   }
 }

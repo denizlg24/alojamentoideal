@@ -2,20 +2,29 @@
 
 import { ShoppingBasket, Trash2 } from "lucide-react";
 import { Button } from "./button";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { useCart } from "@/hooks/cart-context";
 import Image from "next/image";
 import { Separator } from "./separator";
 import { Link } from "@/i18n/navigation";
 import { useState } from "react";
 import React from "react";
+import { useTranslations } from "next-intl";
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./sheet";
 
 export const Cart = () => {
   const [open, setOpen] = useState(false);
+  const t = useTranslations("cart");
   const { cart, clearCart, removeItem, getTotal } = useCart();
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
         <Button
           variant="outline"
           className="p-2! rounded-full aspect-square h-auto relative"
@@ -27,10 +36,15 @@ export const Cart = () => {
             </div>
           )}
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[320px] flex flex-col z-99 sm:max-h-[calc(100vh-64px)] max-h-[calc(100vh-48px)] overflow-y-auto p-0 pb-4">
-        <div className="w-full flex flex-row items-center sticky top-0 justify-between bg-card p-4 pb-2">
-          <p className="font-semibold text-sm">My Cart ({cart.length})</p>
+      </SheetTrigger>
+      <SheetContent className="flex flex-col z-[99]! p-0 pb-4 w-[310px] sm:w-[540px]">
+        <SheetHeader className="hidden">
+          <SheetTitle>My cart</SheetTitle>
+        </SheetHeader>
+        <div className="w-full flex flex-row items-center sticky top-0 justify-between bg-card p-4 pb-2 mt-2">
+          <p className="font-semibold text-sm">
+            {t("title", { cartLength: cart.length })}
+          </p>
           <Button
             variant="link"
             className="text-xs text-right"
@@ -39,21 +53,20 @@ export const Cart = () => {
               setOpen(false);
             }}
           >
-            Clear Cart
+            {t("clear")}
           </Button>
         </div>
         <div className="flex flex-col gap-4 w-full items-center px-4">
-          {cart.length == 0 && <p className="text-xs">Your Cart is empty.</p>}
+          {cart.length == 0 && <p className="text-xs">{t("empty")}</p>}
           {cart.length > 0 &&
-            cart.map((cartItem) => {
+            cart.map((cartItem, index) => {
               if (cartItem.type == "accommodation") {
                 return (
-                  <React.Fragment key={cartItem.property_id}>
-                    <Separator key={cartItem.property_id + "separator"} />
-                    <div
-                      key={cartItem.property_id}
-                      className="w-full flex flex-row items-start justify-between gap-2 relative"
-                    >
+                  <React.Fragment
+                    key={cartItem.property_id + "-index:" + index}
+                  >
+                    <Separator />
+                    <div className="w-full flex flex-row items-start justify-between gap-2 relative">
                       <Image
                         src={cartItem.photo}
                         alt="cart-logo"
@@ -63,7 +76,7 @@ export const Cart = () => {
                       />
                       <Button
                         onClick={() => {
-                          removeItem(cartItem.property_id);
+                          removeItem(index);
                         }}
                         variant="destructive"
                         className="absolute w-4! h-auto aspect-square! rounded-full p-0 -top-2 -left-2 hover:scale-105 transition-transform"
@@ -75,13 +88,17 @@ export const Cart = () => {
                           {cartItem.name}
                         </h1>
                         <p className="text-xs">
-                          {(new Date(cartItem.end_date).getTime() -
-                            new Date(cartItem.start_date).getTime()) /
-                            (1000 * 60 * 60 * 24)}{" "}
-                          nights - {cartItem.adults + cartItem.children} guests
+                          {t("nights_guests", {
+                            nights: (
+                              (new Date(cartItem.end_date).getTime() -
+                                new Date(cartItem.start_date).getTime()) /
+                              (1000 * 60 * 60 * 24)
+                            ).toString(),
+                            guests: cartItem.adults + cartItem.children,
+                          })}
                         </p>
                         <p className="text-xs">
-                          <span className="font-semibold">Total:</span>{" "}
+                          <span className="font-semibold">{t("total")}:</span>
                           {cartItem.front_end_price} €
                         </p>
                       </div>
@@ -90,6 +107,8 @@ export const Cart = () => {
                 );
               }
             })}
+        </div>
+        <SheetFooter>
           {cart.length > 0 && (
             <Button
               onClick={() => {
@@ -98,11 +117,13 @@ export const Cart = () => {
               asChild
               className="w-full"
             >
-              <Link href={"/checkout"}>Checkout - {getTotal()} €</Link>
+              <Link href={"/checkout"}>
+                {t("checkout", { total: getTotal() })}
+              </Link>
             </Button>
           )}
-        </div>
-      </PopoverContent>
-    </Popover>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 };

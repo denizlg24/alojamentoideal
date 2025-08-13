@@ -19,7 +19,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, localeMap } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   listingTypeMap,
@@ -51,15 +51,15 @@ import {
 } from "../ui/drawer";
 import { RoomInfoMap } from "./room-info-map";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { enUS, es, pt } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
-import { format, isValid, parseISO } from "date-fns";
+import { eachDayOfInterval, format, isValid, parseISO } from "date-fns";
 import { Calendar } from "../ui/calendar";
 import { CalendarType } from "@/schemas/calendar.schema";
 import { Label } from "../ui/label";
 import { PriceType } from "@/schemas/price.schema";
 import { useSearchParams } from "next/navigation";
 import { AccommodationItem, useCart } from "@/hooks/cart-context";
+import { useRouter } from "@/i18n/navigation";
 export const RoomInfoProvider = ({ id }: { id: string }) => {
   const locale = useLocale();
 
@@ -92,8 +92,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
         undefined
       );
       setListingInfo(info);
-    } catch (error) {
-      console.log(error);
+    } catch {
       setListingInfo(undefined);
     } finally {
       setLoading(false);
@@ -111,8 +110,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
         undefined
       );
       setListingTranslations(translations);
-    } catch (error) {
-      console.log(error);
+    } catch {
       setListingTranslations(undefined);
     } finally {
       setTranslationsLoading(false);
@@ -133,20 +131,13 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
         { page: 1, perPage: 365 }
       );
       updateListingCalendar(calendar.calendar);
-      console.log(calendar);
-    } catch (error) {
-      console.log(error);
+    } catch {
       updateListingCalendar(undefined);
     } finally {
       setLoading(false);
     }
   };
 
-  const localeMap = {
-    en: enUS,
-    pt: pt,
-    es: es,
-  };
   const [date, setDate] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
@@ -161,7 +152,14 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
 
   const searchParams = useSearchParams();
 
+  const [listingCalendar, updateListingCalendar] = useState<
+    CalendarType[] | undefined
+  >(undefined);
+
   useEffect(() => {
+    if (!listingCalendar) {
+      return;
+    }
     const fromParam = searchParams.get("from");
     const toParam = searchParams.get("to");
 
@@ -169,10 +167,24 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
     const newTo = toParam ? parseISO(toParam) : undefined;
 
     if (newFrom && isValid(newFrom) && newTo && isValid(newTo)) {
-      setDate({
-        to: newTo,
-        from: newFrom,
-      });
+      const dateRange = eachDayOfInterval({ start: newFrom, end: newTo }).map(
+        (date) => date.toISOString().split("T")[0]
+      );
+
+      const isRangeBooked = dateRange.some((date) =>
+        listingCalendar.some(
+          (entry) =>
+            entry.date === date &&
+            (entry.status === "booked" || entry.status === "unavailable")
+        )
+      );
+
+      if (!isRangeBooked) {
+        setDate({
+          to: newTo,
+          from: newFrom,
+        });
+      }
     }
 
     const adults = parseInt(searchParams.get("adults") || "1", 10);
@@ -186,11 +198,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
       infants,
       pets,
     });
-  }, [searchParams]);
-
-  const [listingCalendar, updateListingCalendar] = useState<
-    CalendarType[] | undefined
-  >(undefined);
+  }, [searchParams, listingCalendar]);
 
   const [listingError, setListingError] = useState("");
   const [priceLoading, setPriceLoading] = useState(false);
@@ -279,8 +287,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
       });
       price.price.total -= overchargeToDeduct;
       updateStayPrice(price.price);
-    } catch (error) {
-      console.log(error);
+    } catch {
       updateStayPrice(undefined);
     } finally {
       setPriceLoading(false);
@@ -310,6 +317,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
 
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
+
+  const router = useRouter();
+
   if (isLoading || !listingInfo) {
     return (
       <div className="w-full max-w-7xl px-4 flex flex-col gap-6 mt-6">
@@ -878,11 +888,18 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                   {date?.from ? (
                     date.to ? (
                       <>
-                        {format(date.from, "LLL dd")} -{" "}
-                        {format(date.to, "LLL dd")}
+                        {format(date.from, "LLL dd", {
+                          locale: localeMap[locale as keyof typeof localeMap],
+                        })}{" "}
+                        -{" "}
+                        {format(date.to, "LLL dd", {
+                          locale: localeMap[locale as keyof typeof localeMap],
+                        })}
                       </>
                     ) : (
-                      format(date.from, "LLL dd")
+                      format(date.from, "LLL dd", {
+                        locale: localeMap[locale as keyof typeof localeMap],
+                      })
                     )
                   ) : (
                     <span>
@@ -910,7 +927,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
 
                     const isBooked = listingCalendar.some(
                       (entry) =>
-                        entry.status === "booked" && entry.date === dateStr
+                        (entry.status === "booked" ||
+                          entry.status === "unavailable") &&
+                        entry.date === dateStr
                     );
 
                     return date < today || isBooked;
@@ -952,7 +971,11 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {date?.from ? (
-                    <>{format(date.from, "LLL dd")}</>
+                    <>
+                      {format(date.from, "LLL dd", {
+                        locale: localeMap[locale as keyof typeof localeMap],
+                      })}
+                    </>
                   ) : (
                     <span>{floatingFilterT("checkin")}</span>
                   )}
@@ -976,7 +999,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
 
                     const isBooked = listingCalendar.some(
                       (entry) =>
-                        entry.status === "booked" && entry.date === dateStr
+                        (entry.status === "booked" ||
+                          entry.status === "unavailable") &&
+                        entry.date === dateStr
                     );
 
                     return date < today || isBooked;
@@ -1008,7 +1033,11 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {date?.to ? (
-                    <>{format(date.to, "LLL dd")}</>
+                    <>
+                      {format(date.to, "LLL dd", {
+                        locale: localeMap[locale as keyof typeof localeMap],
+                      })}
+                    </>
                   ) : (
                     <span>{floatingFilterT("checkout")}</span>
                   )}
@@ -1032,7 +1061,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
 
                     const isBooked = listingCalendar.some(
                       (entry) =>
-                        entry.status === "booked" && entry.date === dateStr
+                        (entry.status === "booked" ||
+                          entry.status === "unavailable") &&
+                        entry.date === dateStr
                     );
 
                     return date < today || isBooked;
@@ -1348,7 +1379,36 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         </p>
                       </div>
                     </div>
-                    <Button>{roomInfoT("payment")}</Button>
+                    <Button
+                      onClick={() => {
+                        if (!date?.from || !date.to) {
+                          return;
+                        }
+                        localStorage.setItem(
+                          `room-${id}-start_date`,
+                          format(date.from, "yyyy-MM-dd")
+                        );
+                        localStorage.setItem(
+                          `room-${id}-end_date`,
+                          format(date.to, "yyyy-MM-dd")
+                        );
+                        localStorage.setItem(
+                          `room-${id}-adults`,
+                          guests.adults.toString()
+                        );
+                        localStorage.setItem(
+                          `room-${id}-children`,
+                          guests.children.toString()
+                        );
+                        localStorage.setItem(
+                          `room-${id}-infants`,
+                          guests.infants.toString()
+                        );
+                        router.push(`/checkout/room/${id}`);
+                      }}
+                    >
+                      {roomInfoT("payment")}
+                    </Button>
                     <Button
                       onClick={() => {
                         if (!date?.to || !date?.from) {
@@ -1370,13 +1430,14 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                           pets: guests.pets,
                           front_end_price: stayPrice.total,
                           photo: listingInfo.listing.thumbnail_file,
+                          fees: stayPrice.fees,
                         };
                         addItem(propertyItem);
                       }}
                       variant="secondary"
                       className="-mt-3 border"
                     >
-                      {added ? "Added!" : "Add to cart"}
+                      {roomInfoT(added ? "added" : "add_to_cart")}
                     </Button>
                   </div>
                 )}

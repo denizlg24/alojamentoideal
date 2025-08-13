@@ -1,5 +1,6 @@
 "use client";
 
+import { FeeType } from "@/schemas/price.schema";
 import React, {
   createContext,
   useContext,
@@ -30,6 +31,7 @@ export type AccommodationItem = {
   pets: number;
   front_end_price: number;
   photo: string;
+  fees: FeeType[];
 };
 
 export type CartItem = ECommerceItem | AccommodationItem;
@@ -37,7 +39,7 @@ export type CartItem = ECommerceItem | AccommodationItem;
 type CartContextType = {
   cart: CartItem[];
   addItem: (item: CartItem) => void;
-  removeItem: (idOrPropertyId: string | number) => void;
+  removeItem: (index: number) => void;
   clearCart: () => void;
   updateQuantity: (idOrPropertyId: string | number, quantity: number) => void;
   getTotal: () => number;
@@ -93,14 +95,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const removeItem = (idOrPropertyId: string | number) => {
-    setCart((prev) =>
-      prev.filter((item) =>
-        item.type === "product"
-          ? item.id !== idOrPropertyId
-          : item.property_id !== idOrPropertyId
-      )
-    );
+  const removeItem = (index: number) => {
+    setCart((prev) => {
+      const old = [...prev];
+      old.splice(index, 1);
+      return old;
+    });
   };
 
   const clearCart = () => setCart([]);

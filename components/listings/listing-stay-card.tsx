@@ -109,7 +109,7 @@ export const ListingStayCard = ({
         </div>
         {listing.price <= 0 && (
           <div className="flex flex-row items-center justify-center w-full font-sans bg-muted rounded-lg text-center">
-            <p>Unavailable for booking.</p>
+            <p>{t("unavailable")}</p>
           </div>
         )}
       </CardContent>

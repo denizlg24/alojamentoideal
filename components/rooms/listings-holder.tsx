@@ -57,8 +57,7 @@ export const ListingsHolder = () => {
           totalPages: Math.ceil(listings.total / prev.perPage),
         };
       });
-    } catch (error) {
-      console.log(error);
+    } catch {
       setListings([]);
       setPagination((prev) => {
         return {
@@ -104,7 +103,6 @@ export const ListingsHolder = () => {
           perPage: 80,
         }
       );
-      console.log(listings);
       const filtered = listings.listings.filter((l) => l.price > 0);
       allValidListings.push(...filtered);
 
@@ -119,8 +117,7 @@ export const ListingsHolder = () => {
         total: filteredTotal,
         totalPages: pageCount,
       }));
-    } catch (error) {
-      console.log(error);
+    } catch {
       setListings([]);
       setPagination((prev) => {
         return {

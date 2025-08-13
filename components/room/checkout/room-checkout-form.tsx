@@ -2,7 +2,7 @@
 
 import { calculateAmount } from "@/app/actions/calculateAmount";
 import { fetchClientSecret } from "@/app/actions/stripe";
-import { useCart } from "@/hooks/cart-context";
+import { CartItem } from "@/hooks/cart-context";
 import { useRouter } from "@/i18n/navigation";
 import {
   useStripe,
@@ -12,8 +12,8 @@ import {
   CardCvcElement,
 } from "@stripe/react-stripe-js";
 import { useEffect, useState } from "react";
-import { Button } from "../ui/button";
-import { Card } from "../ui/card";
+import { Button } from "../../ui/button";
+import { Card } from "../../ui/card";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -24,8 +24,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "../ui/form";
-import { Input } from "../ui/input";
+} from "../../ui/form";
+import { Input } from "../../ui/input";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { ReservationType } from "@/schemas/reservation.schema";
 import { addDays, format } from "date-fns";
@@ -46,41 +46,44 @@ const elementStyle = {
     },
   },
 };
-export const CheckoutForm = () => {
+
+export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
   const t = useTranslations("checkout_form");
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
   const [error, setError] = useState("");
-  const { cart, cartLoading } = useCart();
   const [_amount, setAmount] = useState(0);
   const [priceLoading, setPriceLoading] = useState(true);
   const [checking, setChecking] = useState(true);
-  const [loadingMessage, setLoadingMessage] = useState("");
   const router = useRouter();
   useEffect(() => {
     const getAmount = async () => {
       setPriceLoading(true);
-      const amount = await calculateAmount(cart);
+      const amount = await calculateAmount([property]);
       setAmount(amount);
       setPriceLoading(false);
     };
-    if (cart.length == 0 && !cartLoading) {
+    if (!property) {
       if (document.referrer && document.referrer !== window.location.href) {
         router.back();
       } else {
         router.push("/");
       }
-    } else if (!cartLoading) {
+    } else {
       setChecking(false);
       getAmount();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cart]);
+  }, [property, router]);
   const handleSubmit = async (data: z.infer<typeof FormSchema>) => {
     setLoading(true);
     setLoadingMessage("loading_verify_price");
     setError("");
+
+    if (property.type != "accommodation") {
+      return;
+    }
 
     const clientName = data.name;
     const clientEmail = data.email;
@@ -88,80 +91,63 @@ export const CheckoutForm = () => {
     const clientNotes = data.note;
 
     const cardNumberElement = elements?.getElement(CardNumberElement);
-    const amount = await calculateAmount(cart);
-    const amounts = [];
-    const reservationIds = [];
-    const reservationReferences = [];
+    const amount = await calculateAmount([property]);
+    setLoadingMessage("loading_create_res");
+    const reservation = await hostifyRequest<{ reservation: ReservationType }>(
+      `reservations`,
+      "POST",
+      undefined,
+      {
+        listing_id: property.property_id,
+        start_date: property.start_date,
+        end_date: property.end_date,
+        name: clientName,
+        email: clientEmail,
+        phone: clientPhone,
+        total_price: amount / 100,
+        source: "alojamentoideal.pt",
+        status: "pending",
+        note: clientNotes,
+        guests: property.adults + property.children,
+        pets: property.pets,
+        fees: property.fees,
+      },
+      undefined,
+      undefined
+    );
 
-    for (const property of cart.filter((i) => i.type == "accommodation")) {
-      const property_amount = await calculateAmount([property]);
-      amounts.push(property_amount);
-    }
-    let i = 0;
-    for (const property of cart.filter((i) => i.type == "accommodation")) {
-      setLoadingMessage("loading_create_res");
-      const reservation = await hostifyRequest<{
-        reservation: ReservationType;
-      }>(
-        `reservations`,
-        "POST",
-        undefined,
-        {
-          listing_id: property.property_id,
-          start_date: property.start_date,
-          end_date: property.end_date,
-          name: clientName,
-          email: clientEmail,
-          phone: clientPhone,
-          total_price: amounts[i] / 100,
-          source: "alojamentoideal.pt",
-          status: "pending",
-          note: clientNotes,
-          guests: property.adults + property.children,
-          pets: property.pets,
-          fees: property.fees,
-        },
-        undefined,
-        undefined
-      );
-      i++;
-      if (!reservation.reservation.id) {
-        setError("error_reservation");
-        continue;
-      }
-      reservationIds.push(reservation.reservation.id);
-      reservationReferences.push(reservation.reservation.confirmation_code);
+    if (!reservation.reservation.id) {
+      setError("error_reservation");
+      return;
     }
     setLoadingMessage("loading_process_pay");
-    const { success, client_secret } = await fetchClientSecret(
+    const { success, client_secret, id } = await fetchClientSecret(
       amount,
       clientName,
       clientEmail,
       clientPhone,
       clientNotes,
-      reservationIds
+      [reservation.reservation.id]
     );
 
-    if (!success || !stripe || !cardNumberElement || !client_secret) {
+    if (!success || !stripe || !cardNumberElement || !client_secret || !id) {
       setLoadingMessage("loading_cancel_res");
-      for (const rId of reservationIds) {
-        await hostifyRequest<{ success: boolean }>(
-          `reservations/${rId}`,
-          "PUT",
-          undefined,
-          {
-            status: "denied",
-          },
-          undefined,
-          undefined
-        );
-      }
+      await hostifyRequest<{ success: boolean }>(
+        `reservations/${reservation.reservation.id}`,
+        "PUT",
+        undefined,
+        {
+          status: "denied",
+        },
+        undefined,
+        undefined
+      );
+
       setLoading(false);
+
       return;
     }
-
     setLoadingMessage("loading_verify_pay");
-
     const result = await stripe.confirmCardPayment(client_secret, {
       payment_method: {
         card: cardNumberElement,
@@ -170,9 +156,40 @@ export const CheckoutForm = () => {
 
     if (result?.error) {
       setLoadingMessage("loading_cancel_res");
-      for (const rId of reservationIds) {
+      await hostifyRequest<{ success: boolean }>(
+        `reservations/${reservation.reservation.id}`,
+        "PUT",
+        undefined,
+        {
+          status: "denied",
+        },
+        undefined,
+        undefined
+      );
+
+      setError(result.error.message || "Payment failed");
+    } else if (result?.paymentIntent?.status === "succeeded") {
+      setLoadingMessage("loading_confirm_tx");
+      const transaction = await hostifyRequest<{ success: boolean }>(
+        "transactions",
+        "POST",
+        undefined,
+        {
+          reservation_id: reservation.reservation.id,
+          amount: amount / 100,
+          currency: "EUR",
+          charge_date: format(new Date(), "yyyy-MM-dd"),
+          arrival_date: format(addDays(new Date(), 2), "yyyy-MM-dd"),
+          is_completed: 1,
+          type: "accommodation",
+        }
+      );
+
+      if (!transaction.success) {
+        setLoadingMessage("loading_cancel_res");
+
         await hostifyRequest<{ success: boolean }>(
-          `reservations/${rId}`,
+          `reservations/${reservation.reservation.id}`,
           "PUT",
           undefined,
           {
@@ -181,71 +198,38 @@ export const CheckoutForm = () => {
           undefined,
           undefined
         );
+
+        setError("error_transaction");
+
+        return;
       }
-      setLoading(false);
-      setError(result.error.message || "Payment failed");
-    } else if (result?.paymentIntent?.status === "succeeded") {
-      setLoadingMessage("loading_confirm_tx");
-      let b = 0;
-      for (const rId of reservationIds) {
-        const transaction = await hostifyRequest<{ success: boolean }>(
-          "transactions",
-          "POST",
-          undefined,
-          {
-            reservation_id: rId,
-            amount: amounts[b] / 100,
-            currency: "EUR",
-            charge_date: format(new Date(), "yyyy-MM-dd"),
-            arrival_date: format(addDays(new Date(), 2), "yyyy-MM-dd"),
-            is_completed: 1,
-            type: "accommodation",
-          }
-        );
-        b++;
-        if (!transaction.success) {
-          setLoadingMessage("loading_cancel_res");
 
-          await hostifyRequest<{ success: boolean }>(
-            `reservations/${rId}`,
-            "PUT",
-            undefined,
-            {
-              status: "denied",
-            },
-            undefined,
-            undefined
-          );
+      setLoadingMessage("loading_confirm_res");
 
-          setError("error_transaction");
+      await hostifyRequest<{ success: boolean }>(
+        `reservations/${reservation.reservation.id}`,
+        "PUT",
+        undefined,
+        {
+          status: "accepted",
+        },
+        undefined,
+        undefined
+      );
 
-          continue;
-        }
-        setLoadingMessage("loading_confirm_res");
-
-        await hostifyRequest<{ success: boolean }>(
-          `reservations/${rId}`,
-          "PUT",
-          undefined,
-          {
-            status: "accepted",
-          },
-          undefined,
-          undefined
-        );
-      }
       setLoadingMessage("loading_save_order");
       const { success, orderId } = await registerOrder({
         name: clientName,
         email: clientEmail,
         phoneNumber: clientPhone,
         notes: clientNotes,
-        reservationIds: reservationIds.map((id) => id.toString()),
-        reservationReferences: reservationReferences,
-        items: cart,
+        reservationIds: [reservation.reservation.id.toString()],
+        reservationReferences: [reservation.reservation.confirmation_code],
+        items: [property],
       });
 
       if (success && orderId) {
+        localStorage.clear();
         router.push(`/orders/${orderId}`);
       }
     }

@@ -1,8 +1,38 @@
 import { FloatingFilter } from "@/components/home/floating-filter";
 import { ListingsHolder } from "@/components/rooms/listings-holder";
 import { Skeleton } from "@/components/ui/skeleton";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense, use } from "react";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+  return {
+    title: t("rooms.title") || "Available Rooms | Alojamento Ideal",
+    description:
+      t("rooms.description") ||
+      "Browse all available rooms and find the perfect stay for your next trip.",
+    keywords: t("rooms.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    robots: "index, follow",
+    openGraph: {
+      title: t("rooms.title") || "Find Your Stay - Alojamento Ideal",
+      description:
+        t("rooms.description") ||
+        "Compare rooms, see features, and book directly from our platform.",
+      url: "https://alojamentoideal.com/rooms",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("rooms.title") || "Rooms Listing - Alojamento Ideal",
+      description:
+        t("rooms.description") ||
+        "Explore available rooms and book your next stay with ease.",
+    },
+  };
+}
+
 export default function Home({
   params,
 }: {

@@ -21,8 +21,7 @@ export const AccommodationMapHolder = () => {
           perPage: 80,
         });
         setListings(listings.listings);
-      } catch (error) {
-        console.log(error);
+      } catch {
         setListings([]);
       } finally {
         setIsLoading(false);

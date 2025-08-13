@@ -47,3 +47,5 @@ export const PriceSchema = z.object({
 });
 
 export type PriceType = z.infer<typeof PriceSchema>;
+
+export type FeeType = z.infer<typeof FeeSchema>;

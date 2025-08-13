@@ -28,7 +28,7 @@ export const AccommodationMap = ({ listings }: { listings: ListingType[] }) => {
         disableDefaultUI={true}
         clickableIcons={false}
       >
-        {listings.map((l) => {
+        {listings?.map((l) => {
           return (
             <AdvancedMarker key={l.id} position={{ lat: l.lat, lng: l.lng }}>
               <Popover>

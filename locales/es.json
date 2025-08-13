@@ -1,7 +1,40 @@
 {
   "metadata": {
-    "home-title": "Alojamento Ideal | Inicio",
-    "not-found": "404 Página no encontrada"
+    "home": {
+      "title": "Encuentra tu alojamiento ideal | Alojamento Ideal",
+      "description": "Descubre y reserva los mejores alojamientos para tu viaje. Comodidad, conveniencia y confianza en un solo lugar.",
+      "keywords": "alojamientos,hoteles,reservas,viajes,estancias en Portugal,alojamiento ideal"
+    },
+    "checkout": {
+      "title": "Finalizar reserva - Confirma tu alojamiento",
+      "description": "Revisa y confirma los alojamientos seleccionados antes de completar tu reserva.",
+      "keywords": "finalizar reserva,confirmación de alojamiento,reserva,Alojamento Ideal,checkout hotel"
+    },
+    "checkout_room": {
+      "title": "Confirmación de habitación",
+      "description": "Estás a un paso de confirmar tu estancia. Revisa los detalles de la habitación y finaliza la reserva.",
+      "keywords": "checkout habitación,confirmar habitación,reserva directa,hotel habitación"
+    },
+    "order_details": {
+      "title": "Detalles del pedido",
+      "description": "Aquí están los detalles de tu reserva completada, incluyendo fechas, habitaciones y estado del pago.",
+      "keywords": "resumen de pedido,detalle de reserva,confirmación de reserva,Alojamento Ideal"
+    },
+    "room_detail": {
+      "title": "Detalles de la habitación",
+      "description": "Explora las características, comodidades, fotos y precios de esta habitación antes de reservar.",
+      "keywords": "detalle habitación,información alojamiento,hotel,reserva habitación"
+    },
+    "rooms": {
+      "title": "Habitaciones disponibles",
+      "description": "Consulta todas las habitaciones disponibles y encuentra la estancia ideal para tu próximo viaje.",
+      "keywords": "lista habitaciones,habitaciones disponibles,alojamiento,reserva hotel,Alojamento Ideal"
+    },
+    "not_found": {
+      "title": "Habitación no encontrada",
+      "description": "La habitación que buscas no existe o ya no está disponible.",
+      "keywords": "habitación no encontrada,404,habitaciones no disponibles,Alojamento Ideal"
+    }
   },
   "not-found": {
     "oops": "¡Vaya!",
@@ -34,7 +67,9 @@
     "privacy": "Política de Privacidad"
   },
   "home": {
-    "map-title": "¿Dónde te alojarás esta noche?"
+    "map-title": "¿Dónde te alojarás esta noche?",
+    "searching": "¿Buscas un lugar para alojarte?",
+    "have_res": "¿Tienes una reserva?"
   },
   "home-map": {
     "book": "Reservar ahora"
@@ -42,7 +77,9 @@
   "listing-home-card": {
     "from": "Desde ",
     "night": "por noche",
-    "stay": "por estadía"
+    "stay": "por estadía",
+    "unavailable": "No disponible para la reserva.",
+    "property-in": "Propiedad de"
   },
   "floating-filter": {
     "checkin": "Entrada",
@@ -55,7 +92,8 @@
     "ages-under": "Menores de",
     "pets-warning": "Algunas alojamientos pueden no permitir mascotas.",
     "search": "Buscar",
-    "clear-dates": "Limpiar fechas"
+    "clear-dates": "Limpiar fechas",
+    "clear": "Claro"
   },
   "rooms": {
     "all": "Mostrando todos los alojamientos disponibles",
@@ -156,9 +194,96 @@
     "where-stay": "Dónde te alojarás",
     "total": "Total",
     "payment": "Proceder al pago",
-    "period-not-available": "El período seleccionado no está disponible"
+    "period-not-available": "El período seleccionado no está disponible",
+    "added": "¡Añadido!",
+    "add_to_cart": "Añadir al carrito"
   },
   "review-card": {
     "written": "Escrito"
+  },
+  "cart": {
+    "title": "Mi carrito ({cartLength})",
+    "clear": "Vaciar carrito",
+    "empty": "Tu carrito está vacío.",
+    "nights_guests": "{nights} noches - {guests} huéspedes",
+    "total": "Total: ",
+    "checkout": "Pagar - {total} €"
+  },
+  "checkout": {
+    "checkin": "Entrada",
+    "checkout": "Salida",
+    "total": "Total",
+    "unavailable_msg": "Las fechas seleccionadas no están disponibles.",
+    "update_stay": "Actualizar estancia",
+    "fee_type_label": "- {label}",
+    "order_summary": "Resumen del Pedido",
+    "trip_details": "Detalles del viaje",
+    "nights": "{count} noches - {adults} adultos{children}{infants}",
+    "child_suffix": ", {count} niños",
+    "infant_suffix": ", {count} bebés"
+  },
+  "checkout_form": {
+    "name": "Nombre",
+    "name_placeholder": "Juan",
+    "email": "Correo electrónico",
+    "email_placeholder": "correo@ejemplo.com",
+    "phone": "Teléfono",
+    "phone_placeholder": "+3492...",
+    "notes": "Notas adicionales",
+    "notes_placeholder": "Algo que quieras decir al anfitrión",
+    "card_number": "Número de tarjeta",
+    "expiry": "Vencimiento",
+    "cvc": "CVC",
+    "loading": "Cargando...",
+    "error_reservation": "Hubo un error al hacer tu reserva. Inténtalo más tarde.",
+    "error_payment": "El pago ha fallado",
+    "error_transaction": "Hubo un error al procesar tu transacción. Nos pondremos en contacto.",
+    "loading_verify_price": "Verificando el precio.",
+    "loading_create_res": "Creando la reserva.",
+    "loading_process_pay": "Procesando el pago.",
+    "loading_cancel_res": "Cancelando la reserva.",
+    "loading_verify_pay": "Verificando el pago.",
+    "loading_confirm_tx": "Confirmando la transacción.",
+    "loading_confirm_res": "Confirmando la reserva.",
+    "loading_save_order": "Guardando el pedido.",
+    "error_username": "El nombre debe tener al menos 2 caracteres.",
+    "error_email": "Debes proporcionar un correo electrónico válido.",
+    "error_phone": "Debe ser un número válido (por ejemplo: +34912345678)"
+  },
+  "order": {
+    "order_info": "Información del Pedido",
+    "reservations": "Reservas",
+    "invoice": "Factura",
+    "order_id": "ID del Pedido",
+    "created_at": "Creado el",
+    "name_on_order": "Nombre del Pedido",
+    "order_total": "Total del Pedido",
+    "price_breakdown": "Desglose de Precios",
+    "item_total": "Total del Artículo"
+  },
+  "propertyCard": {
+    "trip_details": "Detalles del viaje",
+    "nights": "{count} noches - {adults} adultos{children}{infants}",
+    "children_text": ", {count} niños",
+    "infants_text": ", {count} bebés",
+    "guest_info_provided": "Información del huésped proporcionada.",
+    "guest_info_missing": "Información del huésped no proporcionada.",
+    "guest_info_loading": "Cargando registro del huésped... Vuelve en unos minutos.",
+    "guest_info_required": "¡Esta información es obligatoria para el control fronterizo!",
+    "checkin": "Check-in desde las {start} hasta las {end}",
+    "arriving": "Llegada",
+    "checkout": "Check-out hasta las {time}",
+    "checkout_anytime": "Check-out en cualquier momento",
+    "leaving": "Salida",
+    "add_guest_info": "Agregar Info del Huésped",
+    "get_directions": "Obtener Direcciones",
+    "contact_host": "Contactar al anfitrión",
+    "invalid_time": "Debe ser una hora válida."
+  },
+  "orderSearch": {
+    "placeholder": "Ej: HMPKRDKBKY",
+    "searching": "Buscando...",
+    "find": "Buscar Reserva",
+    "not_found": "Reserva no encontrada."
   }
 }

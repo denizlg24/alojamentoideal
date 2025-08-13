@@ -14,9 +14,26 @@ export function generateStaticParams() {
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
-  return { title: t("home-title") };
-}
 
+  return {
+    title: t("home.title"),
+    description: t("home.description"),
+    keywords: t("home.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("home.title"),
+      description: t("home.description"),
+      url: "https://alojamentoideal.com",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("home.title"),
+      description: t("home.description"),
+    },
+  };
+}
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
@@ -38,7 +55,7 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <body
-        className={`antialiased ${montserrat.variable} w-full min-h-screen flex flex-col items-center justify-start sm:pt-16 pt-12`}
+        className={`antialiased ${montserrat.variable} w-full min-h-screen flex flex-col items-center justify-start sm:pt-16! pt-12!`}
       >
         <CartProvider>
           <NextIntlClientProvider>
