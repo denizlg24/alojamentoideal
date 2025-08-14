@@ -12,7 +12,7 @@ const ECommerceItemSchema = z.object({
     name: z.string(),
     price: z.number(),
     quantity: z.number(),
-    photo: z.string().optional(),
+    photo: z.string(),
     description: z.string().optional(),
 });
 
@@ -27,7 +27,7 @@ const AccommodationItemSchema = z.object({
     infants: z.number(),
     pets: z.number(),
     front_end_price: z.number(),
-    photo: z.string().optional(),
+    photo: z.string(),
     fees: z.array(FeeSchema),
 });
 

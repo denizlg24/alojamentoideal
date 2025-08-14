@@ -270,7 +270,7 @@
     "guest_info_missing": "Información del huésped no proporcionada.",
     "guest_info_loading": "Cargando registro del huésped... Vuelve en unos minutos.",
     "guest_info_required": "¡Esta información es obligatoria para el control fronterizo!",
-    "checkin": "Check-in desde las {start} hasta las {end}",
+    "checkin": "Check-in desde las {start}",
     "arriving": "Llegada",
     "checkout": "Check-out hasta las {time}",
     "checkout_anytime": "Check-out en cualquier momento",
@@ -278,7 +278,12 @@
     "add_guest_info": "Agregar Info del Huésped",
     "get_directions": "Obtener Direcciones",
     "contact_host": "Contactar al anfitrión",
-    "invalid_time": "Debe ser una hora válida."
+    "invalid_time": "Debe ser una hora válida.",
+    "guest_info_loading_button": "Cargando registro del huésped...",
+    "order-confirmed": "Reserva confirmada.",
+    "reservation-canceled": "Reserva cancelada.",
+    "reservation-pending": "Reserva pendiente.",
+    "waiting-for-guest-data": "Esperando datos de huéspedes."
   },
   "orderSearch": {
     "placeholder": "Ej: HMPKRDKBKY",

@@ -97,13 +97,15 @@ export function isTimeBetweenAndValid(
   }
 }
 
-export function formatTime(timeStr: string) {
-  const date = new Date(`1970-01-01T${timeStr}`);
-  return format(date, "h:mm aaa").toLowerCase().replace(":00", "");
-}
-
 export const localeMap = {
   en: enUS,
   pt: pt,
   es: es,
 };
+
+export function formatTime(timeStr: string, locale: string) {
+  const date = new Date(`1970-01-01T${timeStr}`);
+  return format(date, "h:mm BBBB", {
+    locale: localeMap[locale as keyof typeof localeMap],
+  }).toLowerCase().replace(":00", "");
+}

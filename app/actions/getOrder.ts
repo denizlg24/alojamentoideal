@@ -2,13 +2,12 @@
 import { connectDB } from "@/lib/mongodb";
 import { OrderModel } from "@/models/Order";
 import { OrderSchemaZ } from "@/schemas/order.schema";
+import { verifySession } from "@/utils/verifySession";
 import mongoose from "mongoose";
-import { headers } from "next/headers";
 
 export async function getOrderById(orderId: string) {
-    const origin = (await headers()).get('origin');
-    if (origin !== process.env.SITE_URL) {
-        throw new Error('Unauthorized request');
+    if (!(await verifySession())) {
+        throw new Error('Unauthorized');
     }
     try {
         await connectDB();

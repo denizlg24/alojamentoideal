@@ -256,7 +256,7 @@
     "invoice": "Fatura",
     "order_id": "ID do Pedido",
     "created_at": "Criado em",
-    "name_on_order": "Nome na Pedido",
+    "name_on_order": "Nome no Pedido",
     "order_total": "Total do Pedido",
     "price_breakdown": "Detalhe de Preços",
     "item_total": "Total do Item"
@@ -270,7 +270,7 @@
     "guest_info_missing": "Informação dos hóspedes não fornecida.",
     "guest_info_loading": "A carregar registo de hóspede... Volte dentro de alguns minutos.",
     "guest_info_required": "Esta informação é obrigatória para controlo fronteiriço!",
-    "checkin": "Check-in das {start} até às {end}",
+    "checkin": "Check-in a partir das {start}",
     "arriving": "Chegada",
     "checkout": "Check-out até às {time}",
     "checkout_anytime": "Check-out a qualquer hora",
@@ -278,7 +278,12 @@
     "add_guest_info": "Adicionar Info de Hóspede",
     "get_directions": "Obter Direções",
     "contact_host": "Contactar anfitrião",
-    "invalid_time": "Hora inválida."
+    "invalid_time": "Hora inválida.",
+    "guest_info_loading_button": "A carregar registo de hóspede...",
+    "order-confirmed": "Reserva confirmada.",
+    "reservation-canceled": "Reserva cancelada.",
+    "reservation-pending": "Reserva pendente.",
+    "waiting-for-guest-data": "Aguardando dados dos convidados."
   },
   "orderSearch": {
     "placeholder": "Ex: HMPKRDKBKY",

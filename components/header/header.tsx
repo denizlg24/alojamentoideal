@@ -42,7 +42,7 @@ export const Header = () => {
   return (
     <header
       className={cn(
-        "fixed top-0 p-2 w-full sm:h-16 h-12 bg-background backdrop-blur-3xl z-99 transition-shadow flex flex-row",
+        "fixed top-0 p-2 w-full sm:h-16 h-12 bg-background backdrop-blur-3xl z-90 transition-shadow flex flex-row",
         isScrolled &&
           !location.pathname.match(/^\/[a-z]{2}\/rooms$/) &&
           "shadow-md"
@@ -193,6 +193,9 @@ export const Header = () => {
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
                       <Link
+                        onClick={() => {
+                          setOpen(false);
+                        }}
                         className="font-medium flex flex-row items-center gap-2"
                         href="/rooms"
                       >
@@ -240,7 +243,12 @@ export const Header = () => {
                         <ul className="grid w-full gap-2 text-center bg-accent rounded">
                           <li>
                             <NavigationMenuLink asChild>
-                              <Link href="/tours/porto-city">
+                              <Link
+                                onClick={() => {
+                                  setOpen(false);
+                                }}
+                                href="/tours/porto-city"
+                              >
                                 <div className="font-medium">
                                   {t("porto-exp")}
                                 </div>
@@ -251,7 +259,12 @@ export const Header = () => {
                             </NavigationMenuLink>
                             <Separator className="my-1" />
                             <NavigationMenuLink asChild>
-                              <Link href="/tours/douro">
+                              <Link
+                                onClick={() => {
+                                  setOpen(false);
+                                }}
+                                href="/tours/douro"
+                              >
                                 <div className="font-medium">
                                   {t("douro-exp")}
                                 </div>
@@ -262,7 +275,12 @@ export const Header = () => {
                             </NavigationMenuLink>
                             <Separator className="my-1" />
                             <NavigationMenuLink asChild>
-                              <Link href="/tours/arouca">
+                              <Link
+                                onClick={() => {
+                                  setOpen(false);
+                                }}
+                                href="/tours/arouca"
+                              >
                                 <div className="font-medium">
                                   {t("arouca-exp")}
                                 </div>
@@ -273,7 +291,12 @@ export const Header = () => {
                             </NavigationMenuLink>
                             <Separator className="my-1" />
                             <NavigationMenuLink asChild>
-                              <Link href="/tours/geres">
+                              <Link
+                                onClick={() => {
+                                  setOpen(false);
+                                }}
+                                href="/tours/geres"
+                              >
                                 <div className="font-medium">
                                   {t("geres-exp")}
                                 </div>
@@ -284,7 +307,12 @@ export const Header = () => {
                             </NavigationMenuLink>
                             <Separator className="my-1" />
                             <NavigationMenuLink asChild>
-                              <Link href="/tours/others">
+                              <Link
+                                onClick={() => {
+                                  setOpen(false);
+                                }}
+                                href="/tours/others"
+                              >
                                 <div className="font-medium">
                                   {t("other-exp")}
                                 </div>
@@ -300,21 +328,39 @@ export const Header = () => {
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
-                      <Link className="font-medium" href="/about">
+                      <Link
+                        onClick={() => {
+                          setOpen(false);
+                        }}
+                        className="font-medium"
+                        href="/about"
+                      >
                         {t("about")}
                       </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
-                      <Link className="font-medium" href="/about">
+                      <Link
+                        onClick={() => {
+                          setOpen(false);
+                        }}
+                        className="font-medium"
+                        href="/about"
+                      >
                         FAQ
                       </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
-                      <Link className="font-medium" href="/about">
+                      <Link
+                        onClick={() => {
+                          setOpen(false);
+                        }}
+                        className="font-medium"
+                        href="/about"
+                      >
                         {t("contact")}
                       </Link>
                     </NavigationMenuLink>

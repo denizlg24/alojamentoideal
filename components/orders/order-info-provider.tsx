@@ -20,29 +20,30 @@ export const OrderInfoProvider = ({ id }: { id: string }) => {
     localStorage.clear();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  useEffect(() => {
-    const getReservationCustomFields = async (rId: string) => {
-      const custom_fields_response = await hostifyRequest<{
-        success: boolean;
-        custom_fields: CustomFieldType[];
-      }>(`reservations/custom_fields/${rId}`, "GET");
-      if (
-        custom_fields_response.success &&
-        custom_fields_response.custom_fields
-      ) {
-        return custom_fields_response.custom_fields;
-      } else {
-        return undefined;
-      }
-    };
 
+  const getReservationCustomFields = async (rId: string) => {
+    const custom_fields_response = await hostifyRequest<{
+      success: boolean;
+      custom_fields: CustomFieldType[];
+    }>(`reservations/custom_fields/${rId}`, "GET");
+    if (
+      custom_fields_response.success &&
+      custom_fields_response.custom_fields
+    ) {
+      return custom_fields_response.custom_fields;
+    } else {
+      return undefined;
+    }
+  };
+
+  useEffect(() => {
     const getOrder = async (id: string) => {
       setLoading(true);
       const { success, order } = await getOrderById(id);
       if (success && order) {
         setOrder(order);
         for (const rId of order.reservationIds) {
-          console.log(rId);
+          setLoading(false);
           const custom_fields = (await getReservationCustomFields(rId)) || [];
           setCustomFields((prev) => {
             const newArr = [...prev];
@@ -66,7 +67,35 @@ export const OrderInfoProvider = ({ id }: { id: string }) => {
     }
   }, [id]);
 
+  const refreshCustomFields = async (order: OrderType) => {
+    for (const rId of order.reservationIds) {
+      const custom_fields = (await getReservationCustomFields(rId)) || [];
+      setCustomFields((prev) => {
+        const newArr = [...prev];
+        const index = newArr.findIndex((item) => item.reservation_id === rId);
+        if (index !== -1) {
+          newArr[index] = { reservation_id: rId, custom_fields };
+        } else {
+          newArr.push({ reservation_id: rId, custom_fields });
+        }
+        return newArr;
+      });
+    }
+  };
+
+  const refreshCustomFieldsWrapper = () => {
+    if (!order) {
+      return;
+    }
+    refreshCustomFields(order);
+  };
+
   return (
-    <OrderInfo order={order} custom_fields={customFields} loading={loading} />
+    <OrderInfo
+      order={order}
+      custom_fields={customFields}
+      loading={loading}
+      refreshCustomFields={refreshCustomFieldsWrapper}
+    />
   );
 };

@@ -1,8 +1,12 @@
 'use server'
 
+import { verifySession } from '@/utils/verifySession';
 import { stripe } from '../../lib/stripe'
 
 export async function fetchClientSecret(amount: number, client_name: string, client_email: string, client_phone_number: string, notes: string, reservationIds: number[]) {
+    if (!(await verifySession())) {
+        throw new Error('Unauthorized');
+    }
     const commaSeparatedReservationIds = reservationIds.join(",");
     try {
         const paymentIntent = await stripe.paymentIntents.create({

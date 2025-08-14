@@ -270,7 +270,7 @@
     "guest_info_missing": "Guest information not provided.",
     "guest_info_loading": "Guest registration loading... Come back in a few minutes.",
     "guest_info_required": "This is mandatory information for border patrol!",
-    "checkin": "Check-in from {start} until {end}",
+    "checkin": "Check-in from {start}",
     "arriving": "Arriving",
     "checkout": "Check-out until {time}",
     "checkout_anytime": "Check-out anytime",
@@ -278,7 +278,12 @@
     "add_guest_info": "Add Guest Info",
     "get_directions": "Get Directions",
     "contact_host": "Contact host",
-    "invalid_time": "Must be a valid time."
+    "invalid_time": "Must be a valid time.",
+    "guest_info_loading_button": "Guest registration loading...",
+    "waiting-for-guest-data": "Waiting for guest data.",
+    "order-confirmed": "Reservation confirmed.",
+    "reservation-pending": "Reservation pending.",
+    "reservation-canceled": "Reservation canceled."
   },
   "orderSearch": {
     "placeholder": "Ex: HMPKRDKBKY",

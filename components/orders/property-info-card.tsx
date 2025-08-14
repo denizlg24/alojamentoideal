@@ -4,13 +4,13 @@ import { format } from "date-fns";
 import { Separator } from "../ui/separator";
 import {
   Check,
+  CheckCircle2,
   Edit,
   Info,
   Loader2Icon,
   MapPinned,
   MessageCircle,
   PlusCircle,
-  X,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Link } from "@/i18n/navigation";
@@ -37,8 +37,19 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { useLocale, useTranslations } from "next-intl";
+import { AccommodationItem } from "@/hooks/cart-context";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { DialogDescription } from "@radix-ui/react-dialog";
+import { RoomInfoMap } from "../room/room-info-map";
 
 export const PropertyInfoCard = ({
+  item,
   listingId,
   reservationId,
   start_date,
@@ -47,7 +58,10 @@ export const PropertyInfoCard = ({
   children_,
   infants,
   custom_fields,
+  photo,
+  refreshCustomFields,
 }: {
+  item: AccommodationItem;
   listingId: number;
   reservationId: string;
   start_date: string;
@@ -56,10 +70,11 @@ export const PropertyInfoCard = ({
   children_: number;
   infants: number;
   custom_fields: CustomFieldType[] | undefined;
+  photo: string | undefined;
+  refreshCustomFields: () => void;
 }) => {
   const locale = useLocale();
   const t = useTranslations("propertyCard");
-  const [loading, setLoading] = useState(true);
   const [listing, setListing] = useState<FullListingType | undefined>(
     undefined
   );
@@ -72,16 +87,7 @@ export const PropertyInfoCard = ({
 
   useEffect(() => {
     const getListingInfo = async () => {
-      setLoading(true);
-      const info = await hostifyRequest<FullListingType>(
-        `listings/${listingId}`,
-        "GET",
-        [{ key: "include_related_objects", value: 1 }],
-        undefined,
-        undefined
-      );
       const getReservationInfo = async () => {
-        setLoading(true);
         const info = await hostifyRequest<{ reservation: ReservationType }>(
           `reservations/${reservationId}`,
           "GET",
@@ -97,13 +103,19 @@ export const PropertyInfoCard = ({
           setReservation(undefined);
         }
       };
+      await getReservationInfo();
+      const info = await hostifyRequest<FullListingType>(
+        `listings/${listingId}`,
+        "GET",
+        [{ key: "include_related_objects", value: 1 }],
+        undefined,
+        undefined
+      );
       if (info.success) {
         setListing(info);
-        await getReservationInfo();
       } else {
         setListing(undefined);
       }
-      setLoading(false);
     };
     if (listingId && reservationId) {
       getListingInfo();
@@ -166,16 +178,158 @@ export const PropertyInfoCard = ({
       clearTimeout(timeOut);
     };
   }, [listing?.listing, plannedDeparture]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    const shouldntContinue =
+      guestInfoCustomField?.value && guestInfoCustomDoneField?.value;
+    if (!shouldntContinue) {
+      refreshCustomFields();
+      interval = setInterval(refreshCustomFields, 60000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [guestInfoCustomField, guestInfoCustomDoneField, refreshCustomFields]);
+
   const isMobile = useIsMobile();
-  if (loading || !listing || !reservation) {
-    return <Skeleton className="w-full h-[200px]" />;
-  }
+
+  const getReservationStatus = (
+    reservation: ReservationType | undefined,
+    guestInfoCustomField: CustomFieldType | undefined,
+    guestInfoCustomDoneField: CustomFieldType | undefined
+  ) => {
+    if (!reservation) {
+      return (
+        <div className="w-full flex flex-row items-center gap-2">
+          <Skeleton className="h-2.5 w-2.5 rounded-full" />
+          <Skeleton className="w-[80%] max-w-[200px] h-5" />
+        </div>
+      );
+    }
+    if (reservation.status == "accepted") {
+      if (guestInfoCustomField?.value && guestInfoCustomDoneField?.value) {
+        if (guestInfoCustomDoneField.value === "false") {
+          return (
+            <div className="w-full flex flex-row items-center gap-2">
+              <div className="h-2.5 w-2.5 rounded-full bg-yellow-600"></div>
+              <p className="text-xs font-semibold">
+                {t("waiting-for-guest-data")}
+              </p>
+              {isMobile ? (
+                <Popover>
+                  <PopoverTrigger>
+                    <Info className="w-4! h-4!" />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full max-w-[300px] text-xs">
+                    {(!guestInfoCustomField ||
+                      !guestInfoCustomDoneField ||
+                      !guestInfoCustomDoneField.value) && (
+                      <>{t("guest_info_loading")}</>
+                    )}{" "}
+                    {t("guest_info_required")}
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <HoverCard>
+                  <HoverCardTrigger>
+                    <Info className="w-4! h-4!" />
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-full max-w-[300px] text-xs">
+                    {(!guestInfoCustomField ||
+                      !guestInfoCustomDoneField ||
+                      !guestInfoCustomDoneField.value) && (
+                      <>{t("guest_info_loading")}</>
+                    )}
+                    {t("guest_info_required")}
+                  </HoverCardContent>
+                </HoverCard>
+              )}
+            </div>
+          );
+        }
+        return (
+          <div className="w-full flex flex-row items-center gap-2">
+            <div className="h-2.5 w-2.5 rounded-full bg-green-600"></div>
+            <p className="text-xs font-semibold">{t("order-confirmed")}</p>
+          </div>
+        );
+      }
+      return (
+        <div className="w-full flex flex-row items-center gap-2">
+          <div className="h-2.5 w-2.5 rounded-full bg-yellow-600"></div>
+          <p className="text-xs font-semibold">{t("waiting-for-guest-data")}</p>
+          {isMobile ? (
+            <Popover>
+              <PopoverTrigger>
+                <Info className="w-4! h-4!" />
+              </PopoverTrigger>
+              <PopoverContent className="w-full max-w-[300px] text-xs">
+                {(!guestInfoCustomField ||
+                  !guestInfoCustomDoneField ||
+                  !guestInfoCustomDoneField.value) && (
+                  <>{t("guest_info_loading")}</>
+                )}{" "}
+                {t("guest_info_required")}
+              </PopoverContent>
+            </Popover>
+          ) : (
+            <HoverCard>
+              <HoverCardTrigger>
+                <Info className="w-4! h-4!" />
+              </HoverCardTrigger>
+              <HoverCardContent className="w-full max-w-[300px] text-xs">
+                {(!guestInfoCustomField ||
+                  !guestInfoCustomDoneField ||
+                  !guestInfoCustomDoneField.value) && (
+                  <>{t("guest_info_loading")}</>
+                )}
+                {t("guest_info_required")}
+              </HoverCardContent>
+            </HoverCard>
+          )}
+        </div>
+      );
+    }
+    if (
+      reservation.status == "pending" ||
+      reservation.status == "awaiting_payment"
+    ) {
+      return (
+        <div className="w-full flex flex-row items-center gap-2">
+          <div className="h-2.5 w-2.5 rounded-full bg-yellow-600"></div>
+          <p className="text-xs font-semibold">{t("reservation-pending")}</p>
+        </div>
+      );
+    }
+
+    if (
+      reservation.status == "cancelled" ||
+      reservation.status == "denied" ||
+      reservation.status == "deleted"
+    ) {
+      return (
+        <div className="w-full flex flex-row items-center gap-2">
+          <div className="h-2.5 w-2.5 rounded-full bg-red-600"></div>
+          <p className="text-xs font-semibold">
+            {t("reservation-canceled")}{" "}
+            <span className="font-medium">
+              ({reservation.status_description})
+            </span>
+          </p>
+        </div>
+      );
+    }
+    return <></>;
+  };
 
   return (
     <Card className="w-full flex flex-col gap-3 relative p-4">
       <div className="w-full flex sm:flex-row flex-col items-start justify-between gap-3 relative ">
         <Image
-          src={listing.photos[0].original_file}
+          src={listing ? listing.photos[0].original_file : photo ?? ""}
           alt="cart-logo"
           width={1080}
           height={1080}
@@ -184,7 +338,7 @@ export const PropertyInfoCard = ({
         <div className="w-full grow flex flex-col truncate gap-1">
           <div className="flex flex-col w-full gap-0">
             <h1 className="w-full font-semibold truncate">
-              {listing.listing.name}
+              {listing ? listing.listing.name : item.name}
             </h1>
             <h2 className="text-sm">
               {format(new Date(start_date), "MMM, dd", {
@@ -214,235 +368,273 @@ export const PropertyInfoCard = ({
             </p>
           </div>
           <Separator />
-          {guestInfoCustomField &&
-          guestInfoCustomDoneField &&
-          guestInfoCustomDoneField.value == "true" ? (
-            <div className="flex flex-row gap-1 items-center text-xs">
-              <Check className="text-green-700 w-4! h-4!" />
-              <p className="truncate max-w-[90%]">{t("guest_info_provided")}</p>
-            </div>
-          ) : (
-            <div className="flex flex-row gap-1 items-center text-xs">
-              <X className="text-destructive w-4! h-4!" />
-              <p className="truncate max-w-[90%]">{t("guest_info_missing")}</p>
-              {isMobile ? (
-                <Popover>
-                  <PopoverTrigger>
-                    <Info className="w-4! h-4!" />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-full max-w-[300px] text-xs">
-                    {(!guestInfoCustomField ||
-                      !guestInfoCustomDoneField ||
-                      !guestInfoCustomDoneField.value) && (
-                      <>{t("guest_info_loading")}</>
-                    )}
-                    {t("guest_info_required")}
-                  </PopoverContent>
-                </Popover>
-              ) : (
-                <HoverCard>
-                  <HoverCardTrigger>
-                    <Info className="w-4! h-4!" />
-                  </HoverCardTrigger>
-                  <HoverCardContent className="w-full max-w-[300px] text-xs">
-                    {(!guestInfoCustomField ||
-                      !guestInfoCustomDoneField ||
-                      !guestInfoCustomDoneField.value) && (
-                      <>{t("guest_info_loading")}</>
-                    )}
-                    {t("guest_info_required")}
-                  </HoverCardContent>
-                </HoverCard>
-              )}
-            </div>
+          {getReservationStatus(
+            reservation,
+            guestInfoCustomField,
+            guestInfoCustomDoneField
           )}
         </div>
       </div>
-      <div className="w-full sm:grid flex flex-col grid-cols-2 gap-4 items-stretch">
-        <div className="col-span-1 w-full flex flex-col gap-1">
-          <p className="text-sm">
-            {t("checkin", {
-              start: formatTime(listing.listing.checkin_start),
-              end: formatTime(listing.listing.checkin_end),
-            })}
-          </p>
-          <div className="w-full flex flex-row gap-1 items-center ">
-            <p className="text-sm">{t("arriving")}</p>
-            <Input
-              value={plannedArrival}
-              onChange={(e) => {
-                setPlannedArrival(e.target.value);
-              }}
-              placeholder="15:00"
-              name="check-in"
-              className="grow max-w-24 p-1! px-2! h-fit"
-            />
-            <Button
-              onClick={async () => {
-                if (
-                  !isTimeBetweenAndValid(
-                    plannedArrival,
-                    listing.listing.checkin_start,
-                    listing.listing.checkin_end
-                  )
-                ) {
-                  return;
-                }
-                const time = formatSecondsToHHMM(
-                  parseTimeToSeconds(plannedArrival) || 0
-                );
-                if (time) {
-                  setArrivalLoading(true);
-                  hostifyRequest<{ success: boolean }>(
-                    `reservations/${reservation.id}`,
-                    "PUT",
-                    undefined,
-                    {
-                      planned_arrival: `${time}:00`,
-                    },
-                    undefined,
-                    undefined
-                  );
-                  await new Promise((resolve) => setTimeout(resolve, 300));
-                  setPlannedArrival(`${time}:00`);
-                  setReservation((prev) => {
-                    if (prev) {
-                      return { ...prev, planned_arrival: `${time}:00` };
-                    }
-                    return prev;
-                  });
-                  setArrivalLoading(false);
-                }
-              }}
-              disabled={
-                arrivalLoading ||
-                !plannedArrival ||
-                plannedArrival == reservation.planned_arrival ||
-                arrivingError
-                  ? true
-                  : false
-              }
-              className="w-7 h-7 hover:cursor-pointer"
-            >
-              {arrivalLoading ? (
-                <Loader2Icon className="animate-spin" />
-              ) : !reservation.planned_arrival ? (
-                <Check />
-              ) : (
-                <Edit />
-              )}
-            </Button>
-          </div>
-          {arrivingError && (
-            <p className="text-xs font-semibold text-destructive">
-              {t(arrivingError)}
+      {listing && reservation && (
+        <div className="w-full sm:grid flex flex-col grid-cols-2 gap-4 items-stretch">
+          <div className="col-span-1 w-full h-full flex flex-col gap-1">
+            <p className="text-sm">
+              {t("checkin", {
+                start: formatTime(listing.listing.checkin_start, locale),
+              })}
             </p>
-          )}
-        </div>
+            <div className="w-full flex flex-row gap-1 items-center mt-auto">
+              <p className="text-sm">{t("arriving")}</p>
+              <Input
+                value={plannedArrival}
+                onChange={(e) => {
+                  setPlannedArrival(e.target.value);
+                }}
+                placeholder="15:00"
+                name="check-in"
+                className="grow max-w-24 p-1! px-2! h-fit"
+              />
+              <Button
+                onClick={async () => {
+                  if (
+                    !isTimeBetweenAndValid(
+                      plannedArrival,
+                      listing.listing.checkin_start,
+                      listing.listing.checkin_end
+                    )
+                  ) {
+                    return;
+                  }
+                  const time = formatSecondsToHHMM(
+                    parseTimeToSeconds(plannedArrival) || 0
+                  );
+                  if (time) {
+                    setArrivalLoading(true);
+                    hostifyRequest<{ success: boolean }>(
+                      `reservations/${reservation.id}`,
+                      "PUT",
+                      undefined,
+                      {
+                        planned_arrival: `${time}:00`,
+                      },
+                      undefined,
+                      undefined
+                    );
+                    await new Promise((resolve) => setTimeout(resolve, 300));
+                    setPlannedArrival(`${time}:00`);
+                    setReservation((prev) => {
+                      if (prev) {
+                        return { ...prev, planned_arrival: `${time}:00` };
+                      }
+                      return prev;
+                    });
+                    setArrivalLoading(false);
+                  }
+                }}
+                disabled={
+                  arrivalLoading ||
+                  !plannedArrival ||
+                  plannedArrival == reservation.planned_arrival ||
+                  arrivingError
+                    ? true
+                    : false
+                }
+                className="w-6 h-6 hover:cursor-pointer rounded-full"
+              >
+                {arrivalLoading ? (
+                  <Loader2Icon className="animate-spin" />
+                ) : !reservation.planned_arrival ? (
+                  <Check />
+                ) : (
+                  <Edit />
+                )}
+              </Button>
+            </div>
+            {arrivingError && (
+              <p className="text-xs font-semibold text-destructive">
+                {t(arrivingError)}
+              </p>
+            )}
+          </div>
 
-        <div className="col-span-1 w-full flex flex-col gap-1">
-          <p className="text-sm">
-            {listing.listing.checkout
-              ? t("checkout", { time: listing.listing.checkout })
-              : t("checkout_anytime")}
-          </p>
-          <div className="w-full flex flex-row gap-1 items-center ">
-            <p className="text-sm">{t("leaving")}</p>
-            <Input
-              value={plannedDeparture}
-              onChange={(e) => {
-                setPlannedDeparture(e.target.value);
-              }}
-              placeholder="21:00"
-              name="check-out"
-              className="grow max-w-24 p-1! px-2! h-fit"
-            />
-            <Button
-              onClick={async () => {
-                if (!isTimeUpTo(plannedDeparture, listing?.listing.checkout)) {
-                  return;
-                }
-                const time = formatSecondsToHHMM(
-                  parseTimeToSeconds(plannedDeparture) || 0
-                );
-                if (time) {
-                  setDepartureLoading(true);
-                  hostifyRequest<{ success: boolean }>(
-                    `reservations/${reservation.id}`,
-                    "PUT",
-                    undefined,
-                    {
-                      planned_departure: `${time}:00`,
-                    },
-                    undefined,
-                    undefined
-                  );
-                  await new Promise((resolve) => setTimeout(resolve, 300));
-                  setPlannedDeparture(`${time}:00`);
-                  setReservation((prev) => {
-                    if (prev) {
-                      return { ...prev, planned_departure: `${time}:00` };
-                    }
-                    return prev;
-                  });
-                  setDepartureLoading(false);
-                }
-              }}
-              disabled={
-                departureLoading ||
-                !plannedDeparture ||
-                plannedDeparture == reservation.planned_departure ||
-                leavingError
-                  ? true
-                  : false
-              }
-              className="w-7 h-7 hover:cursor-pointer"
-            >
-              {departureLoading ? (
-                <Loader2Icon className="animate-spin" />
-              ) : !reservation.planned_departure ? (
-                <Check />
-              ) : (
-                <Edit />
-              )}
-            </Button>
-          </div>
-          {leavingError && (
-            <p className="text-xs font-semibold text-destructive">
-              {t(leavingError)}
+          <div className="col-span-1 w-full h-full flex flex-col gap-1">
+            <p className="text-sm">
+              {listing.listing.checkout
+                ? t("checkout", {
+                    time: formatTime(listing.listing.checkout, locale),
+                  })
+                : t("checkout_anytime")}
             </p>
-          )}
+            <div className="w-full flex flex-row gap-1 items-center mt-auto">
+              <p className="text-sm">{t("leaving")}</p>
+              <Input
+                value={plannedDeparture}
+                onChange={(e) => {
+                  setPlannedDeparture(e.target.value);
+                }}
+                placeholder="21:00"
+                name="check-out"
+                className="grow max-w-24 p-1! px-2! h-fit"
+              />
+              <Button
+                onClick={async () => {
+                  if (
+                    !isTimeUpTo(plannedDeparture, listing?.listing.checkout)
+                  ) {
+                    return;
+                  }
+                  const time = formatSecondsToHHMM(
+                    parseTimeToSeconds(plannedDeparture) || 0
+                  );
+                  if (time) {
+                    setDepartureLoading(true);
+                    hostifyRequest<{ success: boolean }>(
+                      `reservations/${reservation.id}`,
+                      "PUT",
+                      undefined,
+                      {
+                        planned_departure: `${time}:00`,
+                      },
+                      undefined,
+                      undefined
+                    );
+                    await new Promise((resolve) => setTimeout(resolve, 300));
+                    setPlannedDeparture(`${time}:00`);
+                    setReservation((prev) => {
+                      if (prev) {
+                        return { ...prev, planned_departure: `${time}:00` };
+                      }
+                      return prev;
+                    });
+                    setDepartureLoading(false);
+                  }
+                }}
+                disabled={
+                  departureLoading ||
+                  !plannedDeparture ||
+                  plannedDeparture == reservation.planned_departure ||
+                  leavingError
+                    ? true
+                    : false
+                }
+                className="w-6 h-6 hover:cursor-pointer rounded-full"
+              >
+                {departureLoading ? (
+                  <Loader2Icon className="animate-spin" />
+                ) : !reservation.planned_departure ? (
+                  <Check />
+                ) : (
+                  <Edit />
+                )}
+              </Button>
+            </div>
+            {leavingError && (
+              <p className="text-xs font-semibold text-destructive">
+                {t(leavingError)}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
-      <CardAction className="flex flex-row gap-1 w-full flex-wrap">
-        {guestInfoCustomField &&
-          guestInfoCustomDoneField &&
-          guestInfoCustomDoneField.value == "false" && (
-            <Button asChild className="grow">
-              <Link href={guestInfoCustomField.value || ""} target="_blank">
-                <PlusCircle />
-                {t("add_guest_info")}
+      )}
+      {(!listing || !reservation) && (
+        <div className="w-full sm:grid flex flex-col grid-cols-2 gap-4 items-stretch">
+          <div className="col-span-1 w-full flex flex-col gap-1">
+            <Skeleton className="w-[35%] h-2 rounded-xl" />
+            <Skeleton className="w-full h-4 rounded-xl" />
+          </div>
+          <div className="col-span-1 w-full flex flex-col gap-1">
+            <Skeleton className="w-[35%] h-2 rounded-xl" />
+            <Skeleton className="w-full h-4 rounded-xl" />
+          </div>
+        </div>
+      )}
+      {(!listing || !reservation) && (
+        <CardAction className="flex flex-row gap-1 w-full flex-wrap">
+          <Skeleton className="grow h-6" />
+          <Skeleton className="grow h-6" />
+        </CardAction>
+      )}
+      {listing && (
+        <CardAction className="flex flex-row gap-1 w-full flex-wrap">
+          {guestInfoCustomField?.value && guestInfoCustomDoneField?.value ? (
+            guestInfoCustomDoneField.value == "false" ? (
+              reservation?.status != "accepted" ? (
+                <Button disabled className="grow">
+                  <PlusCircle />
+                  {t("add_guest_info")}
+                </Button>
+              ) : (
+                <Button asChild className="grow">
+                  <Link href={guestInfoCustomField.value || ""} target="_blank">
+                    <PlusCircle />
+                    {t("add_guest_info")}
+                  </Link>
+                </Button>
+              )
+            ) : (
+              <Button disabled className="grow">
+                <CheckCircle2 />
+                {t("guest_info_provided")}
+              </Button>
+            )
+          ) : (
+            <Button disabled className="grow">
+              <Loader2Icon className="animate-spin" />
+              {t("guest_info_loading_button")}
+            </Button>
+          )}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                disabled={reservation?.status != "accepted"}
+                className="grow"
+              >
+                <MapPinned />
+                {t("get_directions")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{listing.listing.name}</DialogTitle>
+                <DialogDescription className="hidden">
+                  Get directions to your place
+                </DialogDescription>
+              </DialogHeader>
+              <div className="w-full aspect-video h-auto overflow-hidden rounded shadow">
+                <RoomInfoMap
+                  lat={listing.listing.lat}
+                  long={listing.listing.lng}
+                  street={listing.listing.street}
+                />
+              </div>
+              <Button asChild>
+                <Link
+                  href={`https://www.google.com/maps/place/${encodeURI(
+                    listing.listing.address
+                  )}`}
+                  target="_blank"
+                >
+                  <MapPinned />
+                  {t("get_directions")}
+                </Link>
+              </Button>
+            </DialogContent>
+          </Dialog>
+          {reservation?.status != "accepted" ? (
+            <Button disabled className="grow" variant={"outline"}>
+              <MessageCircle />
+              {t("contact_host")}
+            </Button>
+          ) : (
+            <Button asChild className="grow" variant={"outline"}>
+              <Link href={"#"}>
+                <MessageCircle />
+                {t("contact_host")}
               </Link>
             </Button>
           )}
-        <Button asChild className="grow">
-          <Link
-            href={`https://www.google.com/maps/place/${encodeURI(
-              listing.listing.address
-            )}`}
-            target="_blank"
-          >
-            <MapPinned />
-            {t("get_directions")}
-          </Link>
-        </Button>
-        <Button asChild className="grow" variant={"outline"}>
-          <Link href={"#"}>
-            <MessageCircle />
-            {t("contact_host")}
-          </Link>
-        </Button>
-      </CardAction>
+        </CardAction>
+      )}
     </Card>
   );
 };

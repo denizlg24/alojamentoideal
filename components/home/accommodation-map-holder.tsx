@@ -1,38 +1,39 @@
 "use client";
 import { AccommodationMap } from "./accommodation-map";
 import { ListingType } from "@/schemas/listing.schema";
-import { Skeleton } from "../ui/skeleton";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { useEffect, useState } from "react";
 import { AccommodationMapTitle } from "./accommodation-map-title";
 
 export const AccommodationMapHolder = () => {
   const [listings, setListings] = useState<ListingType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
-    const getListings = async () => {
+    const getListings = async (limit: number, page: number) => {
       try {
-        setIsLoading(true);
         const listings = await hostifyRequest<{
           listings: ListingType[];
           total: number;
         }>("listings", "GET", undefined, undefined, undefined, {
-          page: 1,
-          perPage: 80,
+          page: page,
+          perPage: limit,
         });
-        setListings(listings.listings);
+        return listings.listings;
       } catch {
-        setListings([]);
+        return [];
       } finally {
-        setIsLoading(false);
       }
     };
-    getListings();
+    setListings([]);
+    for (let index = 1; index <= 80 / 10; index += 1) {
+      getListings(10, index).then((_listings) => {
+        setListings((prev) => {
+          return [...prev, ..._listings];
+        });
+      });
+    }
   }, []);
 
-  return isLoading ? (
-    <Skeleton className="w-full h-[448px]" />
-  ) : (
+  return (
     <>
       <AccommodationMapTitle />
       <div className="flex flex-row items-stretch w-full rounded-xl overflow-hidden">

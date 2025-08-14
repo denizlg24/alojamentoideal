@@ -3,13 +3,12 @@
 import { CartItem } from "@/hooks/cart-context";
 import { PriceType } from "@/schemas/price.schema";
 import { hostifyRequest } from "@/utils/hostify-request";
+import { verifySession } from "@/utils/verifySession";
 import { format } from "date-fns";
-import { headers } from "next/headers";
 
 export const calculateAmount = async (cart: CartItem[]) => {
-    const origin = (await headers()).get('origin');
-    if (origin !== process.env.SITE_URL) {
-        throw new Error('Unauthorized request');
+    if (!(await verifySession())) {
+        throw new Error('Unauthorized');
     }
     let total = 0;
     for (const cartItem of cart) {
