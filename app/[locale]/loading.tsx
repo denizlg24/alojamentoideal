@@ -1,6 +1,8 @@
 import Image from "next/image";
 import planeFlyingGif from "@/public/plane_flying_gif.gif";
+import { useTranslations } from "next-intl";
 export default function Loading() {
+  const t = useTranslations("loading");
   return (
     <main className="w-screen h-screen flex flex-col items-center pt-24">
       <div className="w-full max-w-3xl px-4 flex flex-col">
@@ -10,7 +12,7 @@ export default function Loading() {
           className="w-full max-w-3xs mx-auto object-contain h-auto rounded-xl"
         />
         <h1 className="text-base text-center w-full font-semibold mt-6">
-          Loading your next holidays
+          {t("loading")}
           <span
             style={{
               display: "inline-block",

@@ -1,10 +1,7 @@
 "use client";
-import { CustomFieldType } from "@/schemas/custom-field.schema";
-import { OrderType } from "@/schemas/order.schema";
 import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { format } from "date-fns";
-import { PropertyInfoCard } from "./property-info-card";
 import { useTranslations } from "next-intl";
 import {
   Accordion,
@@ -12,19 +9,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
+import { OrderDocument } from "@/models/Order";
+import { PropertyItemCard } from "./property-item-card";
 
 export const OrderInfo = ({
   order,
-  custom_fields,
   loading,
-  refreshCustomFields,
 }: {
-  order: OrderType | undefined;
-  refreshCustomFields: () => void;
-  custom_fields: {
-    reservation_id: string;
-    custom_fields: CustomFieldType[];
-  }[];
+  order: OrderDocument | undefined;
   loading: boolean;
 }) => {
   const t = useTranslations("order");
@@ -50,10 +42,10 @@ export const OrderInfo = ({
         >
           <AccordionItem value="item-1">
             <AccordionTrigger>
-              <div className="flex flex-row items-center justify-between text-sm">
+              <div className="flex flex-row items-center justify-between text-sm w-full">
                 <p className="font-bold">{t("order_id")}</p>
                 <p className="font-normal max-w-[60%] truncate">
-                  #{order?._id}
+                  #{order.orderId}
                 </p>
               </div>
             </AccordionTrigger>
@@ -149,8 +141,7 @@ export const OrderInfo = ({
           .filter((_) => _.type == "accommodation")
           .map((item, indx) => {
             return (
-              <PropertyInfoCard
-                refreshCustomFields={refreshCustomFields}
+              <PropertyItemCard
                 item={item}
                 photo={item.photo}
                 key={item.property_id}
@@ -159,13 +150,7 @@ export const OrderInfo = ({
                 adults={item.adults}
                 children_={item.children}
                 infants={item.infants}
-                listingId={item.property_id}
-                reservationId={order.reservationIds[indx]}
-                custom_fields={
-                  custom_fields.find(
-                    (a) => a.reservation_id === order.reservationIds[indx]
-                  )?.custom_fields
-                }
+                reservation_id={order.reservationIds[indx]}
               />
             );
           })}

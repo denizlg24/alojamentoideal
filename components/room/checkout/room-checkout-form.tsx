@@ -230,7 +230,7 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
 
       if (success && orderId) {
         localStorage.clear();
-        router.push(`/orders/${orderId}`);
+        await router.push(`/orders/${orderId}`);
       }
     }
 

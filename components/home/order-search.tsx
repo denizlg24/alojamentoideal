@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "../ui/card";
 import { getOrderByReference } from "@/app/actions/getOrderByReference";
 import { useRouter } from "@/i18n/navigation";
 import { Input } from "../ui/input";
@@ -17,9 +16,13 @@ export const OrderSearch = () => {
   const t = useTranslations("orderSearch");
   const searchBooking = async () => {
     setLoading(true);
-    const orderId = await getOrderByReference(bookingCode);
-    if (orderId) {
-      router.push(`/orders/${orderId}`);
+    const { order, reservation } = await getOrderByReference(bookingCode);
+    if (order) {
+      if (reservation) {
+        await router.push(`/reservations/${reservation}`);
+      } else {
+        await router.push(`/orders/${order}`);
+      }
     } else {
       setError("not_found");
     }
@@ -27,7 +30,7 @@ export const OrderSearch = () => {
   };
 
   return (
-    <Card className="p-2 flex flex-col gap-1 w-full">
+    <>
       <div className="w-full flex sm:flex-row flex-col gap-2">
         <Input
           value={bookingCode}
@@ -41,7 +44,6 @@ export const OrderSearch = () => {
         />
         <Button
           disabled={loading}
-          variant="outline"
           onClick={() => {
             searchBooking();
           }}
@@ -59,6 +61,6 @@ export const OrderSearch = () => {
       {error && (
         <p className="text-destructive font-semibold text-sm">{t(error)}</p>
       )}
-    </Card>
+    </>
   );
 };

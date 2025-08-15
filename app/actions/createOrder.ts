@@ -1,7 +1,8 @@
 "use server";
 import { CartItem } from "@/hooks/cart-context";
 import { connectDB } from "@/lib/mongodb";
-import { OrderModel } from "@/models/Order";
+import { generateReservationID } from "@/lib/utils";
+import OrderModel from "@/models/Order";
 import { verifySession } from "@/utils/verifySession";
 
 
@@ -51,7 +52,10 @@ export async function registerOrder(data: RegisterOrderInput) {
             }
         });
 
+        const randomOrderId = generateReservationID();
+
         const order = new OrderModel({
+            orderId: randomOrderId,
             name: data.name,
             email: data.email,
             phoneNumber: data.phoneNumber,
@@ -62,7 +66,7 @@ export async function registerOrder(data: RegisterOrderInput) {
         });
 
         await order.save();
-        return { success: true, orderId: order._id.toString() };
+        return { success: true, orderId: order.orderId };
     } catch (error) {
         console.error('Failed to register order:', error);
         return { success: false, error: 'Failed to register order' };

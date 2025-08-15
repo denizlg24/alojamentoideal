@@ -35,6 +35,7 @@ const CartItemSchema = z.union([ECommerceItemSchema, AccommodationItemSchema]);
 
 export const OrderSchemaZ = z.object({
     _id: z.string().optional(),
+    orderId: z.string(),
     name: z.string(),
     email: z.string(),
     phoneNumber: z.string(),

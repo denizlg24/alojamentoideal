@@ -42,7 +42,7 @@ export const Header = () => {
   return (
     <header
       className={cn(
-        "fixed top-0 p-2 w-full sm:h-16 h-12 bg-background backdrop-blur-3xl z-90 transition-shadow flex flex-row",
+        "fixed top-0 p-2 w-full md:h-16 h-12 bg-background backdrop-blur-3xl z-90 transition-shadow flex flex-row",
         isScrolled &&
           !location.pathname.match(/^\/[a-z]{2}\/rooms$/) &&
           "shadow-md"
@@ -59,7 +59,7 @@ export const Header = () => {
             className="w-auto h-full aspect-square rounded shadow"
           />
         </Link>
-        <NavigationMenu className="w-full h-full sm:flex hidden">
+        <NavigationMenu className="w-full h-full md:flex hidden">
           <NavigationMenuList>
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
@@ -172,14 +172,14 @@ export const Header = () => {
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
-        <div className="w-auto h-full aspect-square sm:hidden flex items-center justify-center z-99">
+        <div className="w-auto h-full aspect-square md:hidden flex items-center justify-center z-99">
           {!isOpen && <Cart />}
           <Hamburger size={16} toggled={isOpen} toggle={setOpen} />
         </div>
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              className="sm:hidden block right-0 top-0 h-screen w-full max-w-[300px]! absolute border shadow p-4 bg-background"
+              className="md:hidden block right-0 top-0 h-screen w-full max-w-[300px]! absolute border shadow p-4 bg-background"
               initial={{ opacity: 1, x: 300 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 1, x: 300 }}
@@ -377,7 +377,7 @@ export const Header = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="w-screen sm:hidden block h-screen bg-black/25 absolute top-0 left-0 -z-10"
+              className="w-screen md:hidden block h-screen bg-black/25 absolute top-0 left-0 -z-10"
             ></motion.div>
           )}
         </AnimatePresence>

@@ -1,5 +1,4 @@
 import { CustomFieldType } from "@/schemas/custom-field.schema";
-import { Card, CardAction } from "../ui/card";
 import { format } from "date-fns";
 import { Separator } from "../ui/separator";
 import {
@@ -15,7 +14,7 @@ import {
 import { Button } from "../ui/button";
 import { Link } from "@/i18n/navigation";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { FullListingType } from "@/schemas/full-listings.schema";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { Input } from "../ui/input";
@@ -37,7 +36,6 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { useLocale, useTranslations } from "next-intl";
-import { AccommodationItem } from "@/hooks/cart-context";
 import {
   Dialog,
   DialogContent,
@@ -47,80 +45,30 @@ import {
 } from "../ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { RoomInfoMap } from "../room/room-info-map";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "../ui/carousel";
 
 export const PropertyInfoCard = ({
-  item,
-  listingId,
-  reservationId,
-  start_date,
-  end_date,
-  adults,
-  children_,
-  infants,
+  listing,
+  reservation,
   custom_fields,
-  photo,
-  refreshCustomFields,
+  setReservation,
 }: {
-  item: AccommodationItem;
-  listingId: number;
-  reservationId: string;
-  start_date: string;
-  end_date: string;
-  adults: number;
-  children_: number;
-  infants: number;
-  custom_fields: CustomFieldType[] | undefined;
-  photo: string | undefined;
-  refreshCustomFields: () => void;
+  listing: FullListingType;
+  reservation: ReservationType;
+  custom_fields: CustomFieldType[] | [];
+  setReservation: Dispatch<SetStateAction<ReservationType | undefined>>;
 }) => {
   const locale = useLocale();
   const t = useTranslations("propertyCard");
-  const [listing, setListing] = useState<FullListingType | undefined>(
-    undefined
-  );
-  const [reservation, setReservation] = useState<ReservationType | undefined>(
-    undefined
-  );
 
   const [arrivalLoading, setArrivalLoading] = useState(false);
   const [departureLoading, setDepartureLoading] = useState(false);
-
-  useEffect(() => {
-    const getListingInfo = async () => {
-      const getReservationInfo = async () => {
-        const info = await hostifyRequest<{ reservation: ReservationType }>(
-          `reservations/${reservationId}`,
-          "GET",
-          undefined,
-          undefined,
-          undefined
-        );
-        if (info.reservation) {
-          setReservation(info.reservation);
-          setPlannedArrival(info.reservation.planned_arrival || "");
-          setPlannedDeparture(info.reservation.planned_departure || "");
-        } else {
-          setReservation(undefined);
-        }
-      };
-      await getReservationInfo();
-      const info = await hostifyRequest<FullListingType>(
-        `listings/${listingId}`,
-        "GET",
-        [{ key: "include_related_objects", value: 1 }],
-        undefined,
-        undefined
-      );
-      if (info.success) {
-        setListing(info);
-      } else {
-        setListing(undefined);
-      }
-    };
-    if (listingId && reservationId) {
-      getListingInfo();
-    }
-  }, [listingId, reservationId]);
 
   const guestInfoCustomField = custom_fields?.find(
     (a) => a.name == "hostkit_url"
@@ -129,8 +77,12 @@ export const PropertyInfoCard = ({
     (b) => b.name == "hostkit_done"
   );
 
-  const [plannedArrival, setPlannedArrival] = useState("");
-  const [plannedDeparture, setPlannedDeparture] = useState("");
+  const [plannedArrival, setPlannedArrival] = useState(
+    reservation.planned_arrival ?? ""
+  );
+  const [plannedDeparture, setPlannedDeparture] = useState(
+    reservation.planned_departure ?? ""
+  );
   const [arrivingError, setArrivingError] = useState("");
   const [leavingError, setLeavingError] = useState("");
 
@@ -178,21 +130,6 @@ export const PropertyInfoCard = ({
       clearTimeout(timeOut);
     };
   }, [listing?.listing, plannedDeparture]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    const shouldntContinue =
-      guestInfoCustomField?.value && guestInfoCustomDoneField?.value;
-    if (!shouldntContinue) {
-      refreshCustomFields();
-      interval = setInterval(refreshCustomFields, 60000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [guestInfoCustomField, guestInfoCustomDoneField, refreshCustomFields]);
 
   const isMobile = useIsMobile();
 
@@ -242,7 +179,7 @@ export const PropertyInfoCard = ({
                       !guestInfoCustomDoneField ||
                       !guestInfoCustomDoneField.value) && (
                       <>{t("guest_info_loading")}</>
-                    )}
+                    )}{" "}
                     {t("guest_info_required")}
                   </HoverCardContent>
                 </HoverCard>
@@ -326,57 +263,192 @@ export const PropertyInfoCard = ({
   };
 
   return (
-    <Card className="w-full flex flex-col gap-3 relative p-4">
-      <div className="w-full flex sm:flex-row flex-col items-start justify-between gap-3 relative ">
-        <Image
-          src={listing ? listing.photos[0].original_file : photo ?? ""}
-          alt="cart-logo"
-          width={1080}
-          height={1080}
-          className="w-full sm:max-w-[200px] h-auto aspect-video! max-h-[200px] object-cover rounded-lg"
-        />
-        <div className="w-full grow flex flex-col truncate gap-1">
-          <div className="flex flex-col w-full gap-0">
-            <h1 className="w-full font-semibold truncate">
-              {listing ? listing.listing.name : item.name}
-            </h1>
-            <h2 className="text-sm">
-              {format(new Date(start_date), "MMM, dd", {
-                locale: localeMap[locale as keyof typeof localeMap],
-              })}{" "}
-              -{" "}
-              {format(new Date(end_date), "MMM, dd", {
-                locale: localeMap[locale as keyof typeof localeMap],
-              })}
-            </h2>
-          </div>
-          <Separator />
-          <div className="flex flex-col">
-            <p className="text-xs font-semibold">{t("trip_details")}</p>
-            <p className="text-xs">
-              {t("nights", {
-                count:
-                  (new Date(end_date).getTime() -
-                    new Date(start_date).getTime()) /
-                  (1000 * 60 * 60 * 24),
-                adults: adults,
-                children:
-                  children_ > 0 ? t("children_text", { count: children_ }) : "",
-                infants:
-                  infants > 0 ? t("infants_text", { count: infants }) : "",
-              })}
-            </p>
-          </div>
-          <Separator />
+    <div className="w-full flex flex-col gap-3 relative">
+      <div className="grid sm:grid-cols-2 grid-cols-1 gap-x-8">
+        {listing?.photos && (
+          <Carousel className="w-full">
+            <CarouselContent>
+              {listing?.photos.map((photo, index) => (
+                <CarouselItem key={index}>
+                  <Image
+                    src={photo.original_file}
+                    blurDataURL={
+                      photo.has_thumb ? photo.thumbnail_file : undefined
+                    }
+                    alt={"photo-" + index}
+                    width={1920}
+                    height={1080}
+                    className="w-full sm:h-auto h-full sm:max-h-full max-h-[250px] sm:aspect-video object-cover rounded-2xl"
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-2" />
+            <CarouselNext className="right-2" />
+          </Carousel>
+        )}
+        <div className="w-full sm:h-full h-[250px] sm:mt-0 mt-4 overflow-hidden rounded-lg shadow">
+          <RoomInfoMap
+            lat={listing.listing.lat}
+            long={listing.listing.lng}
+            street={listing.listing.street}
+          />
+        </div>
+        <div className="flex flex-col w-full gap-0 sm:mt-8 mt-4">
+          <h1 className="w-full lg:text-2xl md:text-xl sm:text-lg text-base font-semibold truncate">
+            {listing.listing.name}
+          </h1>
+          <p className="w-full md:text-base text-xs font-medium truncate text-muted-foreground">
+            {listing.listing.street}
+          </p>
           {getReservationStatus(
             reservation,
             guestInfoCustomField,
             guestInfoCustomDoneField
           )}
         </div>
-      </div>
-      {listing && reservation && (
-        <div className="w-full sm:grid flex flex-col grid-cols-2 gap-4 items-stretch">
+        <div className="w-full max-w-full p-1 px-3 bg-muted rounded-lg shadow grid grid-cols-2 relative h-fit! sm:mt-8 mt-4">
+          <div className="col-span-1 flex flex-col">
+            <p className="md:text-base text-sm font-medium">{t("arriving")}</p>
+            <p className="md:text-base text-sm font-normal">
+              {format(new Date(reservation?.checkIn), "EEE, MMM dd", {
+                locale: localeMap[locale as keyof typeof localeMap],
+              })}
+            </p>
+          </div>
+          <div className="absolute left-1/2 -translate-x-1/2 h-[60%] w-[0.5px] bg-muted-foreground/50 top-1/2 -translate-y-1/2"></div>
+          <div className="col-span-1 flex flex-col text-right">
+            <p className="md:text-base text-sm font-medium">{t("leaving")}</p>
+            <p className="md:text-base text-sm font-normal">
+              {format(new Date(reservation?.checkOut), "EEE, MMM dd", {
+                locale: localeMap[locale as keyof typeof localeMap],
+              })}
+            </p>
+          </div>
+        </div>
+        <Separator className="col-span-full my-4" />
+        <div className="col-span-full w-full">
+          <p className="lg:text-xl md:text-lg text-base font-semibold">
+            {t("trip_details")}
+          </p>
+        </div>
+        <div className="w-full flex flex-col gap-1 mt-4">
+          <p className="md:text-base text-sm font-semibold">
+            {t("whos-coming")}
+          </p>
+          <p className="md:text-base sm:text-sm text-xs">
+            {t("guests", {
+              adults: reservation?.adults,
+              children:
+                reservation.children && reservation.children > 0
+                  ? t("children_text", { count: reservation?.children })
+                  : "",
+              infants:
+                reservation.infants && reservation.infants > 0
+                  ? t("infants_text", { count: reservation?.infants })
+                  : "",
+            })}
+          </p>
+        </div>
+        <div className="w-full flex flex-col gap-1 mt-4">
+          <p className="md:text-base text-sm font-semibold">
+            {t("confirmation-code")}{" "}
+          </p>
+          <p className="md:text-base sm:text-sm text-xs">
+            {reservation.confirmation_code}
+          </p>
+        </div>
+        <div className="w-full flex flex-col gap-1 mt-4">
+          <p className="md:text-base text-sm font-semibold">
+            {t("cancellation-policy")}{" "}
+          </p>
+          <p className="md:text-base sm:text-sm text-xs">
+            {reservation.cancel_policy}
+          </p>
+        </div>
+        <div className="w-full flex flex-col gap-1 mt-4">
+          <div className="w-full flex flex-row gap-1 items-center">
+            <p className="md:text-base text-sm font-semibold">
+              {t("guest-information")}
+            </p>
+            {isMobile ? (
+              <Popover>
+                <PopoverTrigger>
+                  <Info className="w-4! h-4!" />
+                </PopoverTrigger>
+                <PopoverContent className="w-full max-w-[300px] text-xs">
+                  {(!guestInfoCustomField ||
+                    !guestInfoCustomDoneField ||
+                    !guestInfoCustomDoneField.value) && (
+                    <>{t("guest_info_loading")}</>
+                  )}{" "}
+                  {t("guest_info_required")}
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <HoverCard>
+                <HoverCardTrigger>
+                  <Info className="w-4! h-4!" />
+                </HoverCardTrigger>
+                <HoverCardContent className="w-full max-w-[300px] text-xs">
+                  {(!guestInfoCustomField ||
+                    !guestInfoCustomDoneField ||
+                    !guestInfoCustomDoneField.value) && (
+                    <>{t("guest_info_loading")}</>
+                  )}{" "}
+                  {t("guest_info_required")}
+                </HoverCardContent>
+              </HoverCard>
+            )}
+          </div>
+
+          <p className="md:text-base sm:text-sm text-xs">
+            {guestInfoCustomField?.value && guestInfoCustomDoneField?.value ? (
+              guestInfoCustomDoneField.value == "false" ? (
+                reservation?.status != "accepted" ? (
+                  <Button disabled className="grow">
+                    <PlusCircle />
+                    {t("add_guest_info")}
+                  </Button>
+                ) : (
+                  <Button asChild className="grow">
+                    <Link
+                      href={guestInfoCustomField.value || ""}
+                      target="_blank"
+                    >
+                      <PlusCircle />
+                      {t("add_guest_info")}
+                    </Link>
+                  </Button>
+                )
+              ) : (
+                <Button disabled className="grow">
+                  <CheckCircle2 />
+                  {t("guest_info_provided")}
+                </Button>
+              )
+            ) : (
+              <Button disabled className="grow">
+                <Loader2Icon className="animate-spin" />
+                {t("guest_info_loading_button")}
+              </Button>
+            )}
+          </p>
+        </div>
+        <Separator className="col-span-full my-4" />
+
+        <div className="w-full col-span-full grid sm:grid-cols-2 grid-cols-1 gap-4 items-stretch">
+          <div className="col-span-full flex flex-col gap-0">
+            <p className="col-span-full lg:text-lg md:text-base text-sm font-semibold">
+              {t("coordinate-with-host")}{" "}
+            </p>
+            <p className="col-span-full md:text-base text-xs text-muted-foreground">
+              {t(
+                "please-provide-this-information-to-help-coordinate-with-the-host"
+              )}{" "}
+            </p>
+          </div>
+
           <div className="col-span-1 w-full h-full flex flex-col gap-1">
             <p className="text-sm">
               {t("checkin", {
@@ -384,7 +456,7 @@ export const PropertyInfoCard = ({
               })}
             </p>
             <div className="w-full flex flex-row gap-1 items-center mt-auto">
-              <p className="text-sm">{t("arriving")}</p>
+              <p className="text-sm">{t("planed-checkin")}</p>
               <Input
                 value={plannedArrival}
                 onChange={(e) => {
@@ -410,6 +482,7 @@ export const PropertyInfoCard = ({
                   );
                   if (time) {
                     setArrivalLoading(true);
+
                     hostifyRequest<{ success: boolean }>(
                       `reservations/${reservation.id}`,
                       "PUT",
@@ -422,7 +495,7 @@ export const PropertyInfoCard = ({
                     );
                     await new Promise((resolve) => setTimeout(resolve, 300));
                     setPlannedArrival(`${time}:00`);
-                    setReservation((prev) => {
+                    reservation.planned_arrival = setReservation((prev) => {
                       if (prev) {
                         return { ...prev, planned_arrival: `${time}:00` };
                       }
@@ -466,7 +539,7 @@ export const PropertyInfoCard = ({
                 : t("checkout_anytime")}
             </p>
             <div className="w-full flex flex-row gap-1 items-center mt-auto">
-              <p className="text-sm">{t("leaving")}</p>
+              <p className="text-sm">{t("planed-checkout")}</p>
               <Input
                 value={plannedDeparture}
                 onChange={(e) => {
@@ -535,54 +608,8 @@ export const PropertyInfoCard = ({
             )}
           </div>
         </div>
-      )}
-      {(!listing || !reservation) && (
-        <div className="w-full sm:grid flex flex-col grid-cols-2 gap-4 items-stretch">
-          <div className="col-span-1 w-full flex flex-col gap-1">
-            <Skeleton className="w-[35%] h-2 rounded-xl" />
-            <Skeleton className="w-full h-4 rounded-xl" />
-          </div>
-          <div className="col-span-1 w-full flex flex-col gap-1">
-            <Skeleton className="w-[35%] h-2 rounded-xl" />
-            <Skeleton className="w-full h-4 rounded-xl" />
-          </div>
-        </div>
-      )}
-      {(!listing || !reservation) && (
-        <CardAction className="flex flex-row gap-1 w-full flex-wrap">
-          <Skeleton className="grow h-6" />
-          <Skeleton className="grow h-6" />
-        </CardAction>
-      )}
-      {listing && (
-        <CardAction className="flex flex-row gap-1 w-full flex-wrap">
-          {guestInfoCustomField?.value && guestInfoCustomDoneField?.value ? (
-            guestInfoCustomDoneField.value == "false" ? (
-              reservation?.status != "accepted" ? (
-                <Button disabled className="grow">
-                  <PlusCircle />
-                  {t("add_guest_info")}
-                </Button>
-              ) : (
-                <Button asChild className="grow">
-                  <Link href={guestInfoCustomField.value || ""} target="_blank">
-                    <PlusCircle />
-                    {t("add_guest_info")}
-                  </Link>
-                </Button>
-              )
-            ) : (
-              <Button disabled className="grow">
-                <CheckCircle2 />
-                {t("guest_info_provided")}
-              </Button>
-            )
-          ) : (
-            <Button disabled className="grow">
-              <Loader2Icon className="animate-spin" />
-              {t("guest_info_loading_button")}
-            </Button>
-          )}
+        <Separator className="col-span-full my-4" />
+        <div className="grid sm:grid-cols-2 grid-cols-1 gap-x-8 gap-4 col-span-full w-full">
           <Dialog>
             <DialogTrigger asChild>
               <Button
@@ -627,14 +654,14 @@ export const PropertyInfoCard = ({
             </Button>
           ) : (
             <Button asChild className="grow" variant={"outline"}>
-              <Link href={"#"}>
+              <Link href={`/chat/${reservation.message_id}`}>
                 <MessageCircle />
                 {t("contact_host")}
               </Link>
             </Button>
           )}
-        </CardAction>
-      )}
-    </Card>
+        </div>
+      </div>
+    </div>
   );
 };

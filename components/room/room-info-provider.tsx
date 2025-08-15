@@ -32,7 +32,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import { Card } from "../ui/card";
 import { Separator } from "../ui/separator";
-import { Amenitie } from "../ui/amenitie";
+import { Amenitie, amenityIconMap } from "../ui/amenitie";
 import { ReviewCard } from "../ui/review-card";
 import {
   Carousel,
@@ -60,6 +60,14 @@ import { PriceType } from "@/schemas/price.schema";
 import { useSearchParams } from "next/navigation";
 import { AccommodationItem, useCart } from "@/hooks/cart-context";
 import { useRouter } from "@/i18n/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 export const RoomInfoProvider = ({ id }: { id: string }) => {
   const locale = useLocale();
 
@@ -823,15 +831,85 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         listingTranslated?.notes) && (
                         <Separator className="w-full" />
                       )}
-                      <div className="w-full grid xl:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-2">
+                      <div className="w-full grid sm:grid-cols-2 grid-cols-1 gap-2">
                         <p className="text-xl font-semibold mb-2 col-span-full">
                           {roomInfoT("amenities")}
                         </p>
-                        {listingInfo.amenities.map((amenities) => {
-                          return (
-                            <Amenitie key={amenities.id} amenitie={amenities} />
-                          );
-                        })}
+                        {listingInfo.amenities
+                          .sort((a, b) => {
+                            const aHas = amenityIconMap[a.name.toLowerCase()];
+                            const bHas = amenityIconMap[b.name.toLowerCase()];
+                            if ((bHas && aHas) || (!bHas && !aHas)) {
+                              return 0;
+                            }
+                            if (aHas && !bHas) {
+                              return -1;
+                            } else {
+                              return 1;
+                            }
+                          })
+                          .map((amenities, indx) => {
+                            if (indx > 9) {
+                              return null;
+                            }
+                            return (
+                              <Amenitie
+                                key={amenities.id}
+                                amenitie={amenities}
+                              />
+                            );
+                          })}
+                        {listingInfo.amenities.length > 10 && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant={"secondary"}
+                                className="sm:w-fit! sm:mr-auto"
+                              >
+                                {roomInfoT("show-all-amenities", {
+                                  count: listingInfo.amenities.length,
+                                })}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>
+                                  <p className="text-xl font-semibold mb-2 col-span-full">
+                                    {roomInfoT("amenities")}
+                                  </p>
+                                </DialogTitle>
+                                <DialogDescription className="hidden">
+                                  {roomInfoT("amenities")}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="w-full grid sm:grid-cols-2 grid-cols-1 gap-2 h-full overflow-y-auto max-h-[500px]">
+                                {listingInfo.amenities
+                                  .sort((a, b) => {
+                                    const aHas =
+                                      amenityIconMap[a.name.toLowerCase()];
+                                    const bHas =
+                                      amenityIconMap[b.name.toLowerCase()];
+                                    if ((bHas && aHas) || (!bHas && !aHas)) {
+                                      return 0;
+                                    }
+                                    if (aHas && !bHas) {
+                                      return -1;
+                                    } else {
+                                      return 1;
+                                    }
+                                  })
+                                  .map((amenities) => {
+                                    return (
+                                      <Amenitie
+                                        key={amenities.id}
+                                        amenitie={amenities}
+                                      />
+                                    );
+                                  })}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        )}
                       </div>
                       <div className="w-full flex flex-col gap-4">
                         <p className="text-xl font-semibold mb-2 col-span-full">

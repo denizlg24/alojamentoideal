@@ -246,7 +246,7 @@ export const CheckoutForm = () => {
       });
 
       if (success && orderId) {
-        router.push(`/orders/${orderId}`);
+        await router.push(`/orders/${orderId}`);
       }
     }
 

@@ -109,3 +109,13 @@ export function formatTime(timeStr: string, locale: string) {
     locale: localeMap[locale as keyof typeof localeMap],
   }).toLowerCase().replace(":00", "");
 }
+
+export function generateReservationID() {
+  const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const timestamp = Date.now().toString(36).toUpperCase();
+  let randomPart = '';
+  for (let i = 0; i < 4; i++) {
+    randomPart += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  return `${timestamp}-${randomPart}`;
+}

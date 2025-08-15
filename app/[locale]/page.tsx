@@ -35,7 +35,7 @@ export default function Home({
           <FloatingFilter />
         </Suspense>
       </div>
-      <div className="w-full px-4 max-w-7xl mx-auto sm:mt-16 flex flex-col">
+      <div className="w-full px-4 max-w-7xl mx-auto sm:mt-16 flex flex-col gap-1">
         <h2 className="lg:text-xl md:text-lg text-base font-semibold">
           {t("have_res")}
         </h2>

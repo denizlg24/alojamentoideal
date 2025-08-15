@@ -4,6 +4,7 @@ import { FeeType } from "@/schemas/price.schema";
 import mongoose from "mongoose";
 
 export interface OrderDocument extends Document {
+    orderId: string;
     name: string;
     email: string;
     phoneNumber: string;
@@ -52,6 +53,7 @@ const ItemSchema = new mongoose.Schema<CartItem>(
 
 const OrderSchema = new mongoose.Schema<OrderDocument>(
     {
+        orderId: { type: String, required: true },
         name: { type: String, required: true },
         email: { type: String, required: true },
         phoneNumber: { type: String, required: true },
@@ -63,4 +65,6 @@ const OrderSchema = new mongoose.Schema<OrderDocument>(
     { timestamps: true }
 );
 
-export const OrderModel = mongoose.models.Order || mongoose.model<OrderDocument>("Order", OrderSchema);
+const OrderModel: mongoose.Model<OrderDocument> = mongoose.models.Order || mongoose.model<OrderDocument>("Order", OrderSchema);
+
+export default OrderModel;
