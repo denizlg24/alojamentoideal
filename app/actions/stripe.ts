@@ -3,7 +3,7 @@
 import { verifySession } from '@/utils/verifySession';
 import { stripe } from '../../lib/stripe'
 
-export async function fetchClientSecret(amount: number, client_name: string, client_email: string, client_phone_number: string, notes: string, reservationIds: number[]) {
+export async function fetchClientSecret(amount: number, client_name: string, client_email: string, client_phone_number: string, notes: string | undefined, reservationIds: number[]) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
     }
@@ -18,7 +18,7 @@ export async function fetchClientSecret(amount: number, client_name: string, cli
                 client_email,
                 client_phone_number,
                 reservationIds: commaSeparatedReservationIds,
-                notes,
+                notes: notes || "",
             }
         });
 

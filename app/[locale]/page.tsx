@@ -19,7 +19,7 @@ export default function Home({
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full relative flex flex-col items-center">
         <VideoHolder />
-        <div className="absolute sm:flex hidden bottom-0 translate-y-1/2 w-full flex-col items-center z-90 px-4">
+        <div className="absolute sm:flex hidden bottom-0 translate-y-1/2 w-full flex-col items-center z-85 px-4">
           <Suspense
             fallback={<Skeleton className="w-full mx-auto h-[120px]" />}
           >
@@ -27,7 +27,7 @@ export default function Home({
           </Suspense>
         </div>
       </div>
-      <div className="sm:hidden w-full flex flex-col items-center z-90 px-4">
+      <div className="sm:hidden w-full flex flex-col items-center z-85 px-4">
         <h2 className="sm:hidden block text-base text-left w-full font-semibold mt-6">
           {t("searching")}
         </h2>

@@ -13,6 +13,8 @@ export interface OrderDocument extends Document {
     reservationReferences: string[];
     items: CartItem[];
     createdAt: Date;
+    payment_id: string;
+    transaction_id: string[];
 }
 
 const FeeSchema = new mongoose.Schema<FeeType>(
@@ -61,6 +63,8 @@ const OrderSchema = new mongoose.Schema<OrderDocument>(
         reservationIds: [{ type: String }],
         reservationReferences: [{ type: String }],
         items: [ItemSchema],
+        payment_id: { type: String },
+        transaction_id: [{ type: String }]
     },
     { timestamps: true }
 );

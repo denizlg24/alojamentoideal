@@ -24,6 +24,29 @@ export const ReservationInfoProvider = ({
     undefined
   );
 
+  const [thread, setThread] = useState<
+    | {
+        success: boolean;
+        thread: { id: string; channel_unread: number };
+        messages: {
+          id: number;
+          target_id: number;
+          message: string;
+          notes: string | null;
+          created: string;
+          image: string | null;
+          guest_name: string;
+          guest_thumb: string;
+          is_sms: number;
+          is_automatic: number;
+          pinned: number;
+          avatar: string | null;
+          guest_id: number;
+        }[];
+      }
+    | undefined
+  >();
+
   const guestInfoCustomField = customFields?.find(
     (a) => a.name == "hostkit_url"
   );
@@ -76,17 +99,46 @@ export const ReservationInfoProvider = ({
     }
   };
 
+  const getThread = async (message_id: number) => {
+    const info = await hostifyRequest<{
+      success: boolean;
+      thread: { id: string; channel_unread: number };
+      messages: {
+        id: number;
+        target_id: number;
+        message: string;
+        notes: string | null;
+        created: string;
+        image: string | null;
+        guest_name: string;
+        guest_thumb: string;
+        is_sms: number;
+        is_automatic: number;
+        pinned: number;
+        avatar: string | null;
+        guest_id: number;
+      }[];
+    }>(`inbox/${message_id}`, "GET");
+    if (info.success) {
+      return info;
+    } else {
+      return undefined;
+    }
+  };
+
   useEffect(() => {
     const getReservationWrapper = async () => {
       const reservationInfo = await getReservationInfo(reservation_id);
       if (reservationInfo) {
         setReservation(reservationInfo);
-        const [listingInfo, custom_fields] = await Promise.all([
+        const [listingInfo, custom_fields, thread] = await Promise.all([
           getListingInfo(reservationInfo.listing_id),
           getReservationCustomFields(reservation_id),
+          getThread(reservationInfo.message_id),
         ]);
         setListing(listingInfo);
         setCustomFields(custom_fields ?? []);
+        setThread(thread);
       }
     };
     if (reservation_id) {
@@ -114,6 +166,11 @@ export const ReservationInfoProvider = ({
       if (interval) clearInterval(interval);
     };
   }, [guestInfoCustomField, guestInfoCustomDoneField, reservation_id]);
+
+  const getThreadWrapper = async (id: number) => {
+    const thread = await getThread(id);
+    setThread(thread);
+  };
 
   if (!listing || !reservation) {
     return (
@@ -163,9 +220,13 @@ export const ReservationInfoProvider = ({
       </h1>
       <PropertyInfoCard
         listing={listing}
+        refreshMessages={() => {
+          getThreadWrapper(reservation.message_id);
+        }}
         reservation={reservation}
         setReservation={setReservation}
         custom_fields={customFields}
+        thread={thread}
       />
     </div>
   );

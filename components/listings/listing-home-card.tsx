@@ -49,7 +49,7 @@ export const ListingHomeCard = ({
               listing.nickname ||
               listing.integration_name ||
               listing.integration_nickname ||
-              `Property in ${listing.city}`}
+              `${t("property-in")} ${listing.city}`}
           </h1>
           <h2 className="w-full text-left text-sm font-sans truncate cursor-default -mt-2">
             {listing.street}

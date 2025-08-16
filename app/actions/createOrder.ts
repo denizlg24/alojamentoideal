@@ -14,6 +14,8 @@ type RegisterOrderInput = {
     reservationIds: string[];
     reservationReferences: string[];
     items: CartItem[];
+    payment_id: string;
+    transaction_id: string[];
 };
 
 export async function registerOrder(data: RegisterOrderInput) {
@@ -63,6 +65,8 @@ export async function registerOrder(data: RegisterOrderInput) {
             reservationIds: data.reservationIds,
             reservationReferences: data.reservationReferences,
             items: plainItems,
+            payment_id: data.payment_id,
+            transaction_id: data.transaction_id
         });
 
         await order.save();

@@ -52,17 +52,40 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "../ui/carousel";
+import { OrderChat } from "./order-chat";
 
 export const PropertyInfoCard = ({
   listing,
   reservation,
   custom_fields,
   setReservation,
+  thread,
+  refreshMessages,
 }: {
   listing: FullListingType;
   reservation: ReservationType;
   custom_fields: CustomFieldType[] | [];
   setReservation: Dispatch<SetStateAction<ReservationType | undefined>>;
+  refreshMessages: () => void;
+  thread?: {
+    success: boolean;
+    thread: { id: string; channel_unread: number };
+    messages: {
+      id: number;
+      target_id: number;
+      message: string;
+      notes: string | null;
+      created: string;
+      image: string | null;
+      guest_name: string;
+      guest_thumb: string;
+      is_sms: number;
+      is_automatic: number;
+      pinned: number;
+      avatar: string | null;
+      guest_id: number;
+    }[];
+  };
 }) => {
   const locale = useLocale();
   const t = useTranslations("propertyCard");
@@ -230,14 +253,21 @@ export const PropertyInfoCard = ({
         </div>
       );
     }
-    if (
-      reservation.status == "pending" ||
-      reservation.status == "awaiting_payment"
-    ) {
+    if (reservation.status == "pending") {
       return (
         <div className="w-full flex flex-row items-center gap-2">
           <div className="h-2.5 w-2.5 rounded-full bg-yellow-600"></div>
           <p className="text-xs font-semibold">{t("reservation-pending")}</p>
+        </div>
+      );
+    }
+    if (reservation.status == "awaiting_payment") {
+      return (
+        <div className="w-full flex flex-row items-center gap-2">
+          <div className="h-2.5 w-2.5 rounded-full bg-yellow-600"></div>
+          <p className="text-xs font-semibold">
+            {t("reservation-waiting-payment")}
+          </p>
         </div>
       );
     }
@@ -647,19 +677,28 @@ export const PropertyInfoCard = ({
               </Button>
             </DialogContent>
           </Dialog>
-          {reservation?.status != "accepted" ? (
-            <Button disabled className="grow" variant={"outline"}>
-              <MessageCircle />
-              {t("contact_host")}
-            </Button>
-          ) : (
-            <Button asChild className="grow" variant={"outline"}>
-              <Link href={`/chat/${reservation.message_id}`}>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="grow relative" variant={"outline"}>
                 <MessageCircle />
                 {t("contact_host")}
-              </Link>
-            </Button>
-          )}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="p-0! bg-transparent! border-none! outline-0! [&_svg]:text-white!">
+              <DialogHeader className="hidden">
+                <DialogTitle>Chat</DialogTitle>
+                <DialogDescription>Chat</DialogDescription>
+              </DialogHeader>
+              {thread && (
+                <OrderChat
+                  refreshMessages={refreshMessages}
+                  thread_id={thread.thread.id}
+                  guest_id={reservation.guest_id.toString()}
+                  messages={thread.messages}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

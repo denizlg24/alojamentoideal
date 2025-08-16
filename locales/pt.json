@@ -292,6 +292,7 @@
     "order-confirmed": "Reserva confirmada.",
     "reservation-canceled": "Reserva cancelada.",
     "reservation-pending": "Reserva pendente.",
+    "reservation-waiting-payment": "À espera do pagamento.",
     "waiting-for-guest-data": "Aguardando dados dos convidados.",
     "view-reservation-details": "Ver detalhes da reserva.",
     "loading-reservation": "A preparar detalhes da reserva",
@@ -663,5 +664,9 @@
   },
   "loading": {
     "loading": "A preparar as suas próximas férias."
+  },
+  "chat": {
+    "title": "Fale connosco",
+    "me": "EU"
   }
 }

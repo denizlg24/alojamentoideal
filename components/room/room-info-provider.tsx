@@ -1462,27 +1462,16 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         if (!date?.from || !date.to) {
                           return;
                         }
-                        localStorage.setItem(
-                          `room-${id}-start_date`,
-                          format(date.from, "yyyy-MM-dd")
+                        router.push(
+                          `/checkout/room/${id}?start=${format(
+                            date.from,
+                            "yyyy-MM-dd"
+                          )}&end=${format(date.to, "yyyy-MM-dd")}&adults=${
+                            guests.adults
+                          }&children=${guests.children}&infants=${
+                            guests.infants
+                          }&pets=${guests.pets}`
                         );
-                        localStorage.setItem(
-                          `room-${id}-end_date`,
-                          format(date.to, "yyyy-MM-dd")
-                        );
-                        localStorage.setItem(
-                          `room-${id}-adults`,
-                          guests.adults.toString()
-                        );
-                        localStorage.setItem(
-                          `room-${id}-children`,
-                          guests.children.toString()
-                        );
-                        localStorage.setItem(
-                          `room-${id}-infants`,
-                          guests.infants.toString()
-                        );
-                        router.push(`/checkout/room/${id}`);
                       }}
                     >
                       {roomInfoT("payment")}

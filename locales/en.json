@@ -292,6 +292,7 @@
     "waiting-for-guest-data": "Waiting for guest data.",
     "order-confirmed": "Reservation confirmed.",
     "reservation-pending": "Reservation pending.",
+    "reservation-waiting-payment": "Waiting for payment.",
     "reservation-canceled": "Reservation canceled.",
     "view-reservation-details": "View reservation details.",
     "loading-reservation": "Retrieving reservation details",
@@ -663,5 +664,9 @@
   },
   "loading": {
     "loading": "Loading your next holidays"
+  },
+  "chat": {
+    "title": "",
+    "me": "ME"
   }
 }

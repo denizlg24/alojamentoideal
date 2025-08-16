@@ -292,6 +292,7 @@
     "order-confirmed": "Reserva confirmada.",
     "reservation-canceled": "Reserva cancelada.",
     "reservation-pending": "Reserva pendiente.",
+    "reservation-waiting-payment": "Esperando lo pagamento.",
     "waiting-for-guest-data": "Esperando datos de huéspedes.",
     "view-reservation-details": "Ver detalles de la reserva.",
     "loading-reservation": "Obteniendo detalles de la reserva",
@@ -663,5 +664,9 @@
   },
   "loading": {
     "loading": "Cargando tus próximas vacaciones"
+  },
+  "chat": {
+    "title": "Habla con nosotros",
+    "me": "YO"
   }
 }

@@ -13,22 +13,22 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Hamburger from "hamburger-react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "../ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { Button } from "../ui/button";
 import { useTranslations } from "next-intl";
 import { Separator } from "../ui/separator";
 import { LocaleSwitcher } from "../ui/locale-switcher";
 import { Cart } from "../ui/cart";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../ui/accordion";
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setOpen] = useState(false);
-  const [isToursBurgerOpen, setToursBurgerOpen] = useState(false);
   const t = useTranslations("header");
 
   useEffect(() => {
@@ -172,14 +172,14 @@ export const Header = () => {
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
-        <div className="w-auto h-full aspect-square md:hidden flex items-center justify-center z-99">
+        <div className="w-auto h-full aspect-square md:hidden flex items-center justify-center z-96">
           {!isOpen && <Cart />}
           <Hamburger size={16} toggled={isOpen} toggle={setOpen} />
         </div>
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              className="md:hidden block right-0 top-0 h-screen w-full max-w-[300px]! absolute border shadow p-4 bg-background"
+              className="md:hidden block right-0 top-0 h-screen w-full max-w-[300px]! absolute border shadow p-4 bg-background z-95"
               initial={{ opacity: 1, x: 300 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 1, x: 300 }}
@@ -212,119 +212,120 @@ export const Header = () => {
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
-                    <Collapsible
-                      open={isToursBurgerOpen}
-                      onOpenChange={setToursBurgerOpen}
-                    >
-                      <CollapsibleTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-full px-2"
+                    <Accordion className="py-0!" type="single" collapsible>
+                      <AccordionItem value="tours">
+                        <AccordionTrigger
+                          asChild
+                          className="w-full py-0! justify-center gap-2 items-center"
                         >
-                          <Image
-                            width={128}
-                            height={128}
-                            src={"/tour_icon.png"}
-                            alt="house icon"
-                            priority
-                            className="h-full max-h-6 w-auto aspect-square object-contain"
-                          />
-                          {t("tours")}
-                          <ChevronDown
-                            className={cn(
-                              "rotate-0 transition-transform duration-300",
-                              isToursBurgerOpen ? "rotate-180" : ""
-                            )}
-                          />
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <ul className="grid w-full gap-2 text-center bg-accent rounded">
-                          <li>
-                            <NavigationMenuLink asChild>
-                              <Link
-                                onClick={() => {
-                                  setOpen(false);
-                                }}
-                                href="/tours/porto-city"
-                              >
-                                <div className="font-medium">
-                                  {t("porto-exp")}
-                                </div>
-                                <div className="text-muted-foreground">
-                                  {t("porto-desc")}
-                                </div>
-                              </Link>
-                            </NavigationMenuLink>
-                            <Separator className="my-1" />
-                            <NavigationMenuLink asChild>
-                              <Link
-                                onClick={() => {
-                                  setOpen(false);
-                                }}
-                                href="/tours/douro"
-                              >
-                                <div className="font-medium">
-                                  {t("douro-exp")}
-                                </div>
-                                <div className="text-muted-foreground">
-                                  {t("douro-desc")}
-                                </div>
-                              </Link>
-                            </NavigationMenuLink>
-                            <Separator className="my-1" />
-                            <NavigationMenuLink asChild>
-                              <Link
-                                onClick={() => {
-                                  setOpen(false);
-                                }}
-                                href="/tours/arouca"
-                              >
-                                <div className="font-medium">
-                                  {t("arouca-exp")}
-                                </div>
-                                <div className="text-muted-foreground">
-                                  {t("arouca-desc")}
-                                </div>
-                              </Link>
-                            </NavigationMenuLink>
-                            <Separator className="my-1" />
-                            <NavigationMenuLink asChild>
-                              <Link
-                                onClick={() => {
-                                  setOpen(false);
-                                }}
-                                href="/tours/geres"
-                              >
-                                <div className="font-medium">
-                                  {t("geres-exp")}
-                                </div>
-                                <div className="text-muted-foreground">
-                                  {t("geres-desc")}
-                                </div>
-                              </Link>
-                            </NavigationMenuLink>
-                            <Separator className="my-1" />
-                            <NavigationMenuLink asChild>
-                              <Link
-                                onClick={() => {
-                                  setOpen(false);
-                                }}
-                                href="/tours/others"
-                              >
-                                <div className="font-medium">
-                                  {t("other-exp")}
-                                </div>
-                                <div className="text-muted-foreground">
-                                  {t("other-desc")}
-                                </div>
-                              </Link>
-                            </NavigationMenuLink>
-                          </li>
-                        </ul>
-                      </CollapsibleContent>
-                    </Collapsible>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-full px-2"
+                          >
+                            <Image
+                              width={128}
+                              height={128}
+                              src={"/tour_icon.png"}
+                              alt="house icon"
+                              priority
+                              className="h-full max-h-6 w-auto aspect-square object-contain"
+                            />
+                            {t("tours")}
+                            <ChevronDown
+                              className={cn(
+                                "rotate-0 transition-transform duration-300"
+                              )}
+                            />
+                          </Button>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <ul className="grid w-full gap-2 text-center bg-accent rounded">
+                            <li>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  onClick={() => {
+                                    setOpen(false);
+                                  }}
+                                  href="/tours/porto-city"
+                                >
+                                  <div className="font-medium">
+                                    {t("porto-exp")}
+                                  </div>
+                                  <div className="text-muted-foreground">
+                                    {t("porto-desc")}
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                              <Separator className="my-1" />
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  onClick={() => {
+                                    setOpen(false);
+                                  }}
+                                  href="/tours/douro"
+                                >
+                                  <div className="font-medium">
+                                    {t("douro-exp")}
+                                  </div>
+                                  <div className="text-muted-foreground">
+                                    {t("douro-desc")}
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                              <Separator className="my-1" />
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  onClick={() => {
+                                    setOpen(false);
+                                  }}
+                                  href="/tours/arouca"
+                                >
+                                  <div className="font-medium">
+                                    {t("arouca-exp")}
+                                  </div>
+                                  <div className="text-muted-foreground">
+                                    {t("arouca-desc")}
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                              <Separator className="my-1" />
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  onClick={() => {
+                                    setOpen(false);
+                                  }}
+                                  href="/tours/geres"
+                                >
+                                  <div className="font-medium">
+                                    {t("geres-exp")}
+                                  </div>
+                                  <div className="text-muted-foreground">
+                                    {t("geres-desc")}
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                              <Separator className="my-1" />
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  onClick={() => {
+                                    setOpen(false);
+                                  }}
+                                  href="/tours/others"
+                                >
+                                  <div className="font-medium">
+                                    {t("other-exp")}
+                                  </div>
+                                  <div className="text-muted-foreground">
+                                    {t("other-desc")}
+                                  </div>
+                                </Link>
+                              </NavigationMenuLink>
+                            </li>
+                          </ul>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>

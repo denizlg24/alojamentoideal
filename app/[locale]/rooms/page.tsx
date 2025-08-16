@@ -45,7 +45,7 @@ export default function Home({
 
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16 px-4">
-      <div className="w-full fixed z-90 bg-background h-fit p-4 shadow">
+      <div className="w-full fixed z-85 bg-background h-fit p-4 shadow">
         <Suspense
           fallback={<Skeleton className="w-full max-w-7xl mx-auto h-[200px]" />}
         >

@@ -1,7 +1,6 @@
 "use client";
 
 import { calculateAmount } from "@/app/actions/calculateAmount";
-import { fetchClientSecret } from "@/app/actions/stripe";
 import { CartItem } from "@/hooks/cart-context";
 import { useRouter } from "@/i18n/navigation";
 import {
@@ -26,11 +25,9 @@ import {
   FormMessage,
 } from "../../ui/form";
 import { Input } from "../../ui/input";
-import { hostifyRequest } from "@/utils/hostify-request";
-import { ReservationType } from "@/schemas/reservation.schema";
-import { addDays, format } from "date-fns";
-import { registerOrder } from "@/app/actions/createOrder";
 import { useTranslations } from "next-intl";
+import { purchaseAccommodation } from "@/app/actions/createReservation";
+import { Loader2 } from "lucide-react";
 
 const elementStyle = {
   style: {
@@ -89,152 +86,50 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
     const clientEmail = data.email;
     const clientPhone = data.phone;
     const clientNotes = data.note;
-
-    const cardNumberElement = elements?.getElement(CardNumberElement);
-    const amount = await calculateAmount([property]);
     setLoadingMessage("loading_create_res");
-    const reservation = await hostifyRequest<{ reservation: ReservationType }>(
-      `reservations`,
-      "POST",
-      undefined,
-      {
-        listing_id: property.property_id,
-        start_date: property.start_date,
-        end_date: property.end_date,
-        name: clientName,
-        email: clientEmail,
-        phone: clientPhone,
-        total_price: amount / 100,
-        source: "alojamentoideal.pt",
-        status: "pending",
-        note: clientNotes,
-        guests: property.adults + property.children,
-        pets: property.pets,
-        fees: property.fees,
-      },
-      undefined,
-      undefined
-    );
-
-    if (!reservation.reservation.id) {
-      setError("error_reservation");
-      return;
-    }
-    setLoadingMessage("loading_process_pay");
-    const { success, client_secret, id } = await fetchClientSecret(
-      amount,
+    const {
+      success,
+      client_secret,
+      payment_id,
+      reservation,
+      transaction,
+      order_id,
+    } = await purchaseAccommodation({
+      property,
       clientName,
       clientEmail,
       clientPhone,
       clientNotes,
-      [reservation.reservation.id]
-    );
-
-    if (!success || !stripe || !cardNumberElement || !client_secret || !id) {
-      setLoadingMessage("loading_cancel_res");
-      await hostifyRequest<{ success: boolean }>(
-        `reservations/${reservation.reservation.id}`,
-        "PUT",
-        undefined,
-        {
-          status: "denied",
-        },
-        undefined,
-        undefined
-      );
-
+    });
+    if (
+      !success ||
+      !reservation?.reservation.id ||
+      !client_secret ||
+      !payment_id ||
+      !transaction
+    ) {
+      setError("error_reservation");
       setLoading(false);
-
       return;
     }
+    setLoadingMessage("loading_process_pay");
+    const cardNumberElement = elements?.getElement(CardNumberElement);
+    if (!stripe || !cardNumberElement) throw new Error("Stripe not ready");
     setLoadingMessage("loading_verify_pay");
     const result = await stripe.confirmCardPayment(client_secret, {
-      payment_method: {
-        card: cardNumberElement,
-      },
+      payment_method: { card: cardNumberElement },
     });
-
-    if (result?.error) {
-      setLoadingMessage("loading_cancel_res");
-      await hostifyRequest<{ success: boolean }>(
-        `reservations/${reservation.reservation.id}`,
-        "PUT",
-        undefined,
-        {
-          status: "denied",
-        },
-        undefined,
-        undefined
-      );
-
+    if (result.error) {
       setError(result.error.message || "Payment failed");
-    } else if (result?.paymentIntent?.status === "succeeded") {
-      setLoadingMessage("loading_confirm_tx");
-      const transaction = await hostifyRequest<{ success: boolean }>(
-        "transactions",
-        "POST",
-        undefined,
-        {
-          reservation_id: reservation.reservation.id,
-          amount: amount / 100,
-          currency: "EUR",
-          charge_date: format(new Date(), "yyyy-MM-dd"),
-          arrival_date: format(addDays(new Date(), 2), "yyyy-MM-dd"),
-          is_completed: 1,
-          type: "accommodation",
-        }
-      );
-
-      if (!transaction.success) {
-        setLoadingMessage("loading_cancel_res");
-
-        await hostifyRequest<{ success: boolean }>(
-          `reservations/${reservation.reservation.id}`,
-          "PUT",
-          undefined,
-          {
-            status: "denied",
-          },
-          undefined,
-          undefined
-        );
-
-        setError("error_transaction");
-
-        return;
-      }
-
-      setLoadingMessage("loading_confirm_res");
-
-      await hostifyRequest<{ success: boolean }>(
-        `reservations/${reservation.reservation.id}`,
-        "PUT",
-        undefined,
-        {
-          status: "accepted",
-        },
-        undefined,
-        undefined
-      );
-
-      setLoadingMessage("loading_save_order");
-      const { success, orderId } = await registerOrder({
-        name: clientName,
-        email: clientEmail,
-        phoneNumber: clientPhone,
-        notes: clientNotes,
-        reservationIds: [reservation.reservation.id.toString()],
-        reservationReferences: [reservation.reservation.confirmation_code],
-        items: [property],
-      });
-
-      if (success && orderId) {
-        localStorage.clear();
-        await router.push(`/orders/${orderId}`);
-      }
+      setLoading(false);
+      return;
     }
-
-    setLoading(false);
+    if (success && order_id) {
+      localStorage.clear();
+      router.push(`/orders/${order_id}`);
+    } else {
+      setLoading(false);
+    }
   };
 
   const FormSchema = z.object({
@@ -373,6 +268,7 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
               : loading
               ? t(loadingMessage)
               : `Pay ${_amount / 100}€`}
+            {loading && <Loader2 className="animate-spin" />}
           </Button>
           {error.includes("_")
             ? error && (
