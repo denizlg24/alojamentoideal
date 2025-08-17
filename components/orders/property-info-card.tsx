@@ -61,6 +61,7 @@ export const PropertyInfoCard = ({
   setReservation,
   thread,
   refreshMessages,
+  setThread,
 }: {
   listing: FullListingType;
   reservation: ReservationType;
@@ -86,6 +87,30 @@ export const PropertyInfoCard = ({
       guest_id: number;
     }[];
   };
+  setThread: Dispatch<
+    SetStateAction<
+      | {
+          success: boolean;
+          thread: { id: string; channel_unread: number };
+          messages: {
+            id: number;
+            target_id: number;
+            message: string;
+            notes: string | null;
+            created: string;
+            image: string | null;
+            guest_name: string;
+            guest_thumb: string;
+            is_sms: number;
+            is_automatic: number;
+            pinned: number;
+            avatar: string | null;
+            guest_id: number;
+          }[];
+        }
+      | undefined
+    >
+  >;
 }) => {
   const locale = useLocale();
   const t = useTranslations("propertyCard");
@@ -695,6 +720,7 @@ export const PropertyInfoCard = ({
                   thread_id={thread.thread.id}
                   guest_id={reservation.guest_id.toString()}
                   messages={thread.messages}
+                  setThread={setThread}
                 />
               )}
             </DialogContent>

@@ -227,6 +227,7 @@ export const ReservationInfoProvider = ({
         setReservation={setReservation}
         custom_fields={customFields}
         thread={thread}
+        setThread={setThread}
       />
     </div>
   );

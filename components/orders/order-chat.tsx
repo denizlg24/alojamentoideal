@@ -3,10 +3,9 @@ import { Button } from "../ui/button";
 import { Loader2, Send } from "lucide-react";
 import { Input } from "../ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { useTranslations } from "next-intl";
-
 type Message = {
   id: number;
   target_id: number;
@@ -28,11 +27,36 @@ export function OrderChat({
   guest_id,
   thread_id,
   refreshMessages,
+  setThread,
 }: {
   thread_id: string;
   messages: Message[];
   guest_id: string;
   refreshMessages: () => void;
+  setThread: Dispatch<
+    SetStateAction<
+      | {
+          success: boolean;
+          thread: { id: string; channel_unread: number };
+          messages: {
+            id: number;
+            target_id: number;
+            message: string;
+            notes: string | null;
+            created: string;
+            image: string | null;
+            guest_name: string;
+            guest_thumb: string;
+            is_sms: number;
+            is_automatic: number;
+            pinned: number;
+            avatar: string | null;
+            guest_id: number;
+          }[];
+        }
+      | undefined
+    >
+  >;
 }) {
   const t = useTranslations("chat");
   const [message, setMessage] = useState("");
@@ -42,14 +66,18 @@ export function OrderChat({
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [loading, setLoading] = useState(false);
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const prevLength = useRef(0);
 
+  useEffect(() => {
+    if (messages.length > prevLength.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    prevLength.current = messages.length;
+  }, [messages]);
   useEffect(() => {
     const interval = setInterval(() => {
       refreshMessages();
-    }, 1000);
+    }, 15000);
 
     return () => clearInterval(interval);
   }, [refreshMessages]);
@@ -140,13 +168,40 @@ export function OrderChat({
           disabled={loading}
           onClick={async () => {
             setLoading(true);
+
+            setThread((prev) => {
+              if (!prev) {
+                return prev;
+              }
+              return {
+                ...prev,
+                messages: [
+                  ...prev.messages,
+                  {
+                    id: Math.random() * 1000,
+                    target_id: Math.random() * 1000,
+                    message: `AL-WEBSITE:${message}`,
+                    notes: "",
+                    created: new Date().toString(),
+                    image: "",
+                    guest_name: "ME",
+                    guest_thumb: "",
+                    is_sms: 0,
+                    is_automatic: 0,
+                    pinned: 0,
+                    guest_id: parseInt(guest_id),
+                    avatar: "",
+                  },
+                ],
+              };
+            });
+            setMessage("");
+            setLoading(false);
             await hostifyRequest<unknown>(`inbox/reply`, "POST", undefined, {
               thread_id,
               message: `AL-WEBSITE:${message}`,
-              sent_by: guest_id,
+              sent_by: "channel",
             });
-            setLoading(false);
-            setMessage("");
             refreshMessages();
           }}
         >

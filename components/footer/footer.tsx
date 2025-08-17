@@ -37,9 +37,7 @@ export const Footer = () => {
       <div className="w-full max-w-7xl text-sm flex sm:flex-row flex-col gap-2 sm:items-center">
         <p>&copy; {new Date().getFullYear()} Alojamento Ideal</p>
         <div className="w-[2px] h-[2px] bg-accent-foreground rounded-full sm:block hidden"></div>
-        <Link href={""}>{t("terms")}</Link>
-        <div className="w-[2px] h-[2px] bg-accent-foreground rounded-full sm:block hidden"></div>
-        <Link href={""}>{t("privacy")}</Link>
+        <Link href={"/privacy"}>{t("privacy")}</Link>
       </div>
     </footer>
   );

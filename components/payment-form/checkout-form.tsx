@@ -136,6 +136,20 @@ export const CheckoutForm = () => {
     },
   });
 
+  useEffect(() => {
+    if (!loading) return;
+
+    function beforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault();
+    }
+
+    window.addEventListener("beforeunload", beforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnload);
+    };
+  }, [loading]);
+
   if (checking) return null;
 
   return (
