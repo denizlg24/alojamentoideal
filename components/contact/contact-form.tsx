@@ -16,9 +16,16 @@ import {
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { sendMail } from "@/app/actions/sendMail";
+import { toast } from "sonner";
+import { getHtml } from "@/app/actions/getHtml";
 
 export const ContactForm = () => {
   const t = useTranslations("contact");
+  const t_toast = useTranslations("toast");
+  const [sending, setSending] = useState(false);
   const formSchema = z.object({
     name: z.string().min(2, {
       message: t("name-error"),
@@ -41,8 +48,42 @@ export const ContactForm = () => {
       message: "",
     },
   });
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setSending(true);
+    const html = await getHtml("lib/emails/new-contact-email.html", [
+      { "{{full_name}}": values.name },
+      { "{{date}}": new Date().toLocaleDateString() },
+      { "{{email}}": values.email },
+      { "{{subject}}": values.subject },
+      { "{{message}}": values.message },
+    ]);
+    const { success } = await sendMail({
+      email: "site@alojamentoideal.pt",
+      html,
+      subject: "Novo contacto - alojamentoideal.pt",
+    });
+
+    const copyHtml = await getHtml("lib/emails/new-contact-copy-email.html", [
+      { "{{title}}": t("we-got-your-message-title", { name: values.name }) },
+      { "{{intro}}": t("intro", { name: values.name }) },
+      { "{{subject-title}}": t("subject") },
+      { "{{subject}}": values.subject },
+      { "{{we-got-your-message-desc}}": t("we-got-your-message-desc") },
+    ]);
+
+    await sendMail({
+      email: values.email,
+      html: copyHtml,
+      subject: "Alojamento Ideal - Support",
+    });
+
+    if (success) {
+      toast.success(t_toast("email-sent"));
+    } else {
+      toast.error(t_toast("email-fail"));
+    }
+    form.reset();
+    setSending(false);
   }
   return (
     <Form {...form}>
@@ -52,7 +93,7 @@ export const ContactForm = () => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Your name</FormLabel>
+              <FormLabel>{t("your-name")}</FormLabel>
               <FormControl>
                 <Input placeholder={t("name-placeholder")} {...field} />
               </FormControl>
@@ -65,7 +106,7 @@ export const ContactForm = () => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Your email</FormLabel>
+              <FormLabel>{t("your-email")}</FormLabel>
               <FormControl>
                 <Input placeholder={t("email-placeholder")} {...field} />
               </FormControl>
@@ -78,7 +119,7 @@ export const ContactForm = () => {
           name="subject"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Subject</FormLabel>
+              <FormLabel>{t("subject")}</FormLabel>
               <FormControl>
                 <Input placeholder={t("subject-placeholder")} {...field} />
               </FormControl>
@@ -91,7 +132,7 @@ export const ContactForm = () => {
           name="message"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Your message</FormLabel>
+              <FormLabel>{t("your-message")}</FormLabel>
               <FormControl>
                 <Textarea
                   className="resize-none h-[200px]"
@@ -107,7 +148,13 @@ export const ContactForm = () => {
           )}
         />
         <Button className="w-full" type="submit">
-          {t("get-in-touch")}
+          {sending ? (
+            <>
+              <Loader2 className="animate-spin" /> {t("sending")}
+            </>
+          ) : (
+            <>{t("get-in-touch")}</>
+          )}
         </Button>
       </form>
     </Form>

@@ -7,6 +7,7 @@ import { Header } from "@/components/header/header";
 import "../globals.css";
 import { Footer } from "@/components/footer/footer";
 import { CartProvider } from "@/hooks/cart-context";
+import { Toaster } from "@/components/ui/sonner";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -61,6 +62,7 @@ export default async function RootLayout({
           <NextIntlClientProvider>
             <Header />
             {children}
+            <Toaster position="bottom-right" />
             <Footer />
           </NextIntlClientProvider>
         </CartProvider>

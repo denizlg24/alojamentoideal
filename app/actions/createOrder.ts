@@ -4,6 +4,9 @@ import { connectDB } from "@/lib/mongodb";
 import { generateReservationID } from "@/lib/utils";
 import OrderModel from "@/models/Order";
 import { verifySession } from "@/utils/verifySession";
+import { getTranslations } from "next-intl/server";
+import { getHtml } from "./getHtml";
+import { sendMail } from "./sendMail";
 
 
 type RegisterOrderInput = {
@@ -23,6 +26,7 @@ export async function registerOrder(data: RegisterOrderInput) {
         throw new Error('Unauthorized');
     }
     try {
+        const t = await getTranslations("order-email");
         await connectDB();
 
         const plainItems = data.items.map((item) => {
@@ -70,6 +74,50 @@ export async function registerOrder(data: RegisterOrderInput) {
         });
 
         await order.save();
+
+        const total = plainItems.reduce((prev, i) => {
+            return i.type == "accommodation" ? prev + (i.front_end_price ?? 0) : prev + ((i.price ?? 0) * (i.quantity ?? 0))
+        }, 0)
+        let products_html = ""
+        let a = 0;
+        for (const i of plainItems) {
+            if (i.type == "accommodation") {
+                const nights =
+                    (new Date(i.end_date!).getTime() -
+                        new Date(i.start_date!).getTime()) /
+                    (1000 * 60 * 60 * 24);
+                const productHtml = await getHtml('/lib/emails/order-product.html', [{ '{{product_name}}': i.name }, {
+                    '{{product_description}}': t("nights", {
+                        count:
+                            nights,
+                        adults: i.adults!,
+                        children:
+                            i.children! > 0 ? t("children_text", { count: i.children! }) : "",
+                        infants:
+                            i.infants! > 0 ? t("infants_text", { count: i.infants! }) : "",
+                    })
+                }, { '{{product_quantity}}': t("reservation", { number: data.reservationReferences[a] }) }, { "{{product_price}}": `${i.front_end_price ?? 0}€` }, { "{{product_photo}}": i.photo }])
+                products_html += productHtml;
+                a++;
+            }
+
+        }
+        const orderHtml = await getHtml('/lib/emails/order-confirmed-email.html',
+            [{ "{{products_html}}": products_html },
+            { "{{your-order-is-in}}": t('your-order-is-in') },
+            { "{{view-your-order}}": t('view-your-order') },
+            { "{{order-title}}": t('order-title') },
+            { "{{order-number}}": t('order-number', { order_id: randomOrderId }) },
+            { "{{order-total}}": 'Total:' },
+            { "{{total_price}}": `${total}€` },
+            { '{{order_url}}': `https://alojamentoideal.pt/orders/${randomOrderId}` }
+            ])
+
+        await sendMail({
+            email: data.email,
+            html: orderHtml,
+            subject: t('order-number', { order_id: randomOrderId }),
+        });
         return { success: true, orderId: order.orderId };
     } catch (error) {
         console.error('Failed to register order:', error);

@@ -49,6 +49,11 @@
       "title": "Contáctenos | Alojamento Ideal",
       "description": "Póngase en contacto con Alojamento Ideal. Estamos disponibles para ayudar con reservas, preguntas y soporte.",
       "keywords": "contacto, soporte, reservas, ayuda, Alojamento Ideal"
+    },
+    "faq": {
+      "title": "Preguntas Frecuentes | Alojamiento Ideal",
+      "description": "Encuentra respuestas a las preguntas más comunes sobre reservas, cancelaciones, pagos y políticas en Alojamiento Ideal.",
+      "keywords": "faq, preguntas, reservas, cancelaciones, pagos, políticas, Alojamiento Ideal"
     }
   },
   "not-found": {
@@ -835,6 +840,78 @@
     "email-error": "Por favor, introduce una dirección de correo electrónico válida.",
     "subject-error": "El asunto debe tener al menos 2 caracteres.",
     "message-min-error": "El mensaje debe tener al menos 16 caracteres.",
-    "message-max-error": "El mensaje no puede superar los 2048 caracteres."
+    "message-max-error": "El mensaje no puede superar los 2048 caracteres.",
+    "sending": "A enviar...",
+    "your-name": "Su nombre",
+    "your-email": "Su correo electrónico",
+    "subject": "Asunto",
+    "your-message": "Su mensaje",
+    "we-got-your-message-title": "¡{name}, hemos recibido tu mensaje!",
+    "intro": "Hola, {name}",
+    "we-got-your-message-desc": "Gracias por contactarnos. Su mensaje ha sido recibido y será respondido en breve. Los detalles de su mensaje se muestran a continuación."
+  },
+  "cancellation": {
+    "free": "Cancelación gratuita durante 48 horas.",
+    "partial": "Cancele antes de las {deadline} para obtener un reembolso parcial.",
+    "afterPartial": "El período de reembolso parcial ha finalizado. Solo se reembolsarán proporcionalmente los impuestos; el importe total de las noches se cobrará en su totalidad.",
+    "read-more": "Leer más",
+    "p1": "Cancele dentro de las 48 horas posteriores a la reserva y al menos 14 días antes del check-in para recibir un reembolso completo, incluidos los impuestos.",
+    "p2": "Si cancela con 14 o más días de antelación, pero fuera de las primeras 48 horas después de la reserva, o entre 7 y 14 días antes del check-in recibirá un 50% de reembolso, incluidos los impuestos.",
+    "p3": "Las cancelaciones realizadas con menos de 7 días antes del check-in son no reembolsables, salvo por un reembolso proporcional de los impuestos."
+  },
+  "order-email": {
+    "your-order-is-in": "Su pedido ha sido realizado",
+    "view-your-order": "Ver su pedido",
+    "order-title": "¿Qué incluye su pedido?",
+    "order-number": "Número de pedido: {order_id}",
+    "nights": "{count} noches - {adults} adultos{children}{infants}",
+    "children_text": ", {count} niños",
+    "infants_text": ", {count} bebés",
+    "reservation": "Código de confirmación: {number}"
+  },
+  "toast": {
+    "email-sent": "¡Correo enviado con éxito!",
+    "email-fail": "Error al enviar el correo. Por favor, inténtelo de nuevo."
+  },
+  "faq": {
+    "booking": {
+      "title": "Reservas",
+      "q1": "¿Cómo hago una reserva?",
+      "a1": "Elija el alojamiento, seleccione fechas de check-in y check-out, número de huéspedes y complete el proceso de reserva de forma segura en nuestra web.",
+      "q2": "¿Tengo que pagar el importe total al reservar?",
+      "a2": "Sí, el importe total (incluidos impuestos y tasas) se cobra en el momento de la reserva para garantizar la estancia.",
+      "q3": "¿Puedo modificar mi reserva después de confirmarla?",
+      "a3": "Según la disponibilidad, es posible cambiar fechas o datos de los huéspedes. Le recomendamos que nos contacte lo antes posible."
+    },
+    "cancellation": {
+      "title": "Cancelaciones & Reembolsos",
+      "q1": "¿Cuál es la política de cancelación?",
+      "a1": "• Cancelar dentro de las 48h posteriores a la reserva y al menos 14 días antes del check-in → Reembolso completo\n• Cancelar con 14 o más días de antelación (fuera de las primeras 48h) → 50% de reembolso\n• Cancelar entre 7–14 días antes del check-in → 50% de reembolso\n• Cancelar con menos de 7 días antes del check-in → No reembolsable, salvo impuestos proporcionales",
+      "q2": "¿Cuánto tarda en llegar el reembolso?",
+      "a2": "Los reembolsos se procesan inmediatamente después de la cancelación, pero pueden tardar 5–10 días hábiles en aparecer en su método de pago."
+    },
+    "checkin": {
+      "title": "Check-in & Estancia",
+      "q1": "¿Cómo funciona el check-in?",
+      "a1": "La mayoría de los alojamientos ofrecen self check-in, con instrucciones enviadas antes de la llegada. Algunos pueden incluir recepción personal.",
+      "q2": "¿Cuál es el horario de check-in y check-out?",
+      "a2": "El check-in es a partir de las 15:00 y el check-out hasta las 11:00, salvo que se indique lo contrario.",
+      "q3": "¿Se incluyen sábanas y toallas?",
+      "a3": "Sí, todos los alojamientos incluyen sábanas limpias, toallas y comodidades básicas."
+    },
+    "payments": {
+      "title": "Pagos & Seguridad",
+      "q1": "¿Qué métodos de pago aceptan?",
+      "a1": "Aceptamos principales tarjetas de crédito y débito. Algunos alojamientos también aceptan billeteras digitales.",
+      "q2": "¿Es seguro mi pago?",
+      "a2": "Sí, todas las transacciones se procesan con cifrado y pasarelas seguras."
+    },
+    "support": {
+      "title": "Soporte",
+      "q1": "¿Qué hago si tengo un problema durante mi estancia?",
+      "a1": "Puede contactar directamente con el anfitrión o con nuestro equipo de soporte 24/7 en caso de urgencias.",
+      "q2": "¿Cómo puedo contactar con Alojamiento Ideal?",
+      "a2": "A través de correo electrónico, teléfono o chat en línea. Los detalles están en la página 'Contacto'."
+    }
   }
 }

@@ -28,7 +28,6 @@ export async function POST(req: Request) {
                 const foundOrder = await OrderModel.findOne({ payment_id });
                 if (foundOrder) {
                     for (const transactionId of foundOrder.transaction_id) {
-                        console.log("GOT TRANSACTION_ID: ", transactionId)
                         await hostifyRequest<{ success: boolean }>(
                             `transactions/${transactionId}`,
                             "PUT",
@@ -43,7 +42,6 @@ export async function POST(req: Request) {
                         );
                     }
                     for (const reservationId of foundOrder.reservationIds) {
-                        console.log("GOT RESERVATION_ID: ", reservationId)
                         await hostifyRequest<{ success: boolean }>(
                             `reservations/${reservationId}`,
                             "PUT",
@@ -75,6 +73,40 @@ export async function POST(req: Request) {
                     }
                 }
                 break;
+            case 'refund.created':
+                const refund = event.data.object;
+                const refund_payment_id = refund.payment_intent;
+                if (refund_payment_id) {
+                    const refund_foundOrder = await OrderModel.findOne({ payment_id: refund_payment_id });
+                    if (refund_foundOrder) {
+                        for (const reservationId of refund_foundOrder.reservationIds) {
+                            await hostifyRequest<{ success: boolean }>(
+                                `reservations/${reservationId}`,
+                                "PUT",
+                                undefined,
+                                {
+                                    status: "cancelled_by_guest",
+                                },
+                                undefined,
+                                undefined
+                            );
+                        }
+                        for (const transactionId of refund_foundOrder.transaction_id) {
+                            await hostifyRequest<{ success: boolean }>(
+                                `transactions/${transactionId}`,
+                                "PUT",
+                                undefined,
+                                {
+                                    arrival_date: "",
+                                    is_completed: 0,
+                                    details: `Stripe refunded refund_id: ${refund.id}`
+                                },
+                                undefined,
+                                undefined
+                            );
+                        }
+                    }
+                }
             default:
                 break;
         }

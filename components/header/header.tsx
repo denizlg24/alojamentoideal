@@ -347,7 +347,7 @@ export const Header = () => {
                           setOpen(false);
                         }}
                         className="font-medium"
-                        href="/about"
+                        href="/faq"
                       >
                         FAQ
                       </Link>
@@ -360,7 +360,7 @@ export const Header = () => {
                           setOpen(false);
                         }}
                         className="font-medium"
-                        href="/about"
+                        href="/contact"
                       >
                         {t("contact")}
                       </Link>

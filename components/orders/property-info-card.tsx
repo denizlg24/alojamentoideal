@@ -21,6 +21,7 @@ import { Input } from "../ui/input";
 import { Skeleton } from "../ui/skeleton";
 import { ReservationType } from "@/schemas/reservation.schema";
 import {
+  buildCancellationMessage,
   formatSecondsToHHMM,
   formatTime,
   isTimeBetweenAndValid,
@@ -114,6 +115,7 @@ export const PropertyInfoCard = ({
 }) => {
   const locale = useLocale();
   const t = useTranslations("propertyCard");
+  const cancellationT = useTranslations("cancellation");
 
   const [arrivalLoading, setArrivalLoading] = useState(false);
   const [departureLoading, setDepartureLoading] = useState(false);
@@ -415,11 +417,40 @@ export const PropertyInfoCard = ({
         </div>
         <div className="w-full flex flex-col gap-1 mt-4">
           <p className="md:text-base text-sm font-semibold">
-            {t("cancellation-policy")}{" "}
+            {t("cancellation-policy")}
           </p>
           <p className="md:text-base sm:text-sm text-xs">
-            {reservation.cancel_policy}
+            {buildCancellationMessage({
+              bookingAt: new Date(reservation.confirmed_at),
+              checkInAt: new Date(reservation.checkIn),
+              locale,
+              t: cancellationT,
+            })}
           </p>
+          <Dialog>
+            <DialogTrigger asChild>
+              <p className="md:text-base sm:text-sm text-xs underline font-medium hover:cursor-pointer">
+                {cancellationT("read-more")}
+              </p>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("cancellation-policy")}</DialogTitle>
+                <DialogDescription className="hidden">
+                  {t("cancellation-policy")}
+                </DialogDescription>
+              </DialogHeader>
+              <p className="md:text-base sm:text-sm text-xs">
+                {cancellationT("p1")}
+              </p>
+              <p className="md:text-base sm:text-sm text-xs">
+                {cancellationT("p2")}
+              </p>
+              <p className="md:text-base sm:text-sm text-xs">
+                {cancellationT("p3")}
+              </p>
+            </DialogContent>
+          </Dialog>
         </div>
         <div className="w-full flex flex-col gap-1 mt-4">
           <div className="w-full flex flex-row gap-1 items-center">

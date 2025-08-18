@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from "clsx"
 import { format } from "date-fns/format";
 import { enUS, es, pt } from "date-fns/locale";
 import { twMerge } from "tailwind-merge"
-
+import { addHours, subDays, isBefore, min as minDate } from "date-fns";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -118,4 +118,64 @@ export function generateReservationID() {
     randomPart += charset.charAt(Math.floor(Math.random() * charset.length));
   }
   return `${timestamp}-${randomPart}`;
+}
+
+type Options = {
+  bookingAt: Date;   // instante da reserva (UTC ou com TZ aplicado)
+  checkInAt: Date;
+  locale: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any
+};
+
+export function buildCancellationMessage({
+  bookingAt,
+  checkInAt,
+  locale,
+  t
+}: Options): string {
+  const now = new Date();
+
+  const freeUntilBy48h = addHours(bookingAt, 48);
+  const freeUntilBy14d = subDays(checkInAt, 14);
+  const freeUntil = minDate([freeUntilBy48h, freeUntilBy14d]);
+
+  const partialUntil = subDays(checkInAt, 7);
+
+  const fmtTimeDate = (d: Date) => {
+    if (locale === "pt") {
+      return `${format(d, "HH:mm", { locale: localeMap[locale as keyof typeof localeMap] })} de ${format(
+        d,
+        "d 'de' MMM",
+        { locale: localeMap[locale as keyof typeof localeMap] }
+      )}`;
+    }
+    if (locale === "es") {
+      return `${format(d, "HH:mm", { locale: localeMap[locale as keyof typeof localeMap] })} del ${format(
+        d,
+        "d 'de' MMM",
+        { locale: localeMap[locale as keyof typeof localeMap] }
+      )}`;
+    }
+    return `${format(d, "p", { locale: localeMap[locale as keyof typeof localeMap] })} on ${format(d, "MMM d", { locale: localeMap[locale as keyof typeof localeMap] })}`;
+  };
+
+
+
+  const parts: string[] = [];
+
+  if (isBefore(now, freeUntil)) {
+    parts.push(t("free-cancelation-48h"));
+  }
+
+  if (isBefore(now, partialUntil)) {
+    const deadline = partialUntil;
+    parts.push(
+      t("partial", { deadline: fmtTimeDate(deadline) })
+    );
+  } else {
+    parts.push(t("afterPartial"));
+  }
+
+  return parts.join(" ");
 }
