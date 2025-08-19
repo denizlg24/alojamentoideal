@@ -54,64 +54,24 @@ import {
   CarouselPrevious,
 } from "../ui/carousel";
 import { OrderChat } from "./order-chat";
+import { IMessage } from "@/models/Chat";
 
 export const PropertyInfoCard = ({
   listing,
   reservation,
   custom_fields,
   setReservation,
-  thread,
   refreshMessages,
-  setThread,
+  messages,
+  chat_id,
 }: {
   listing: FullListingType;
   reservation: ReservationType;
   custom_fields: CustomFieldType[] | [];
   setReservation: Dispatch<SetStateAction<ReservationType | undefined>>;
   refreshMessages: () => void;
-  thread?: {
-    success: boolean;
-    thread: { id: string; channel_unread: number };
-    messages: {
-      id: number;
-      target_id: number;
-      message: string;
-      notes: string | null;
-      created: string;
-      image: string | null;
-      guest_name: string;
-      guest_thumb: string;
-      is_sms: number;
-      is_automatic: number;
-      pinned: number;
-      avatar: string | null;
-      guest_id: number;
-    }[];
-  };
-  setThread: Dispatch<
-    SetStateAction<
-      | {
-          success: boolean;
-          thread: { id: string; channel_unread: number };
-          messages: {
-            id: number;
-            target_id: number;
-            message: string;
-            notes: string | null;
-            created: string;
-            image: string | null;
-            guest_name: string;
-            guest_thumb: string;
-            is_sms: number;
-            is_automatic: number;
-            pinned: number;
-            avatar: string | null;
-            guest_id: number;
-          }[];
-        }
-      | undefined
-    >
-  >;
+  messages: IMessage[];
+  chat_id: string;
 }) => {
   const locale = useLocale();
   const t = useTranslations("propertyCard");
@@ -745,15 +705,11 @@ export const PropertyInfoCard = ({
                 <DialogTitle>Chat</DialogTitle>
                 <DialogDescription>Chat</DialogDescription>
               </DialogHeader>
-              {thread && (
-                <OrderChat
-                  refreshMessages={refreshMessages}
-                  thread_id={thread.thread.id}
-                  guest_id={reservation.guest_id.toString()}
-                  messages={thread.messages}
-                  setThread={setThread}
-                />
-              )}
+              <OrderChat
+                refreshMessages={refreshMessages}
+                chat_id={chat_id}
+                messages={messages}
+              />
             </DialogContent>
           </Dialog>
         </div>

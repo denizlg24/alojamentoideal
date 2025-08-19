@@ -1,9 +1,14 @@
-import { Link } from "@/i18n/navigation";
+"use client";
+import { Link, usePathname } from "@/i18n/navigation";
 import { Separator } from "@radix-ui/react-separator";
 import { useTranslations } from "next-intl";
 
 export const Footer = () => {
   const t = useTranslations("header");
+  const pathname = usePathname();
+  if (pathname.startsWith("/admin/dashboard")) {
+    return null;
+  }
   return (
     <footer className="bg-accent p-4 sm:py-12 py-6 w-full flex flex-col items-center mt-auto">
       <div className="w-full sm:grid sm:gap-4 flex flex-col grid-cols-3 max-w-7xl mx-auto">

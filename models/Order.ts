@@ -17,6 +17,20 @@ export interface OrderDocument extends Document {
     transaction_id: string[];
 }
 
+export interface IOrder {
+    orderId: string;
+    name: string;
+    email: string;
+    phoneNumber: string;
+    notes?: string;
+    reservationIds: string[];
+    reservationReferences: string[];
+    items: CartItem[];
+    createdAt: Date;
+    payment_id: string;
+    transaction_id: string[];
+}
+
 const FeeSchema = new mongoose.Schema<FeeType>(
     {
         fee_id: Number,

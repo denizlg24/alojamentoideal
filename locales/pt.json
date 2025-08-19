@@ -54,6 +54,26 @@
       "title": "Perguntas Frequentes | Alojamento Ideal",
       "description": "Encontre respostas para as perguntas mais comuns sobre reservas, cancelamentos, pagamentos e políticas no Alojamento Ideal.",
       "keywords": "faq, perguntas, reservas, cancelamentos, pagamentos, políticas, Alojamento Ideal"
+    },
+    "adminLogin": {
+      "title": "Login de Administrador | Alojamento Ideal",
+      "description": "Aceda ao painel de administrador do Alojamento Ideal para gerir propriedades, reservas e definições da plataforma.",
+      "keywords": "login administrador, acesso administrador, gestão de propriedades, reservas, Alojamento Ideal"
+    },
+    "adminRegister": {
+      "title": "Registo de Administrador | Alojamento Ideal",
+      "description": "Crie uma nova conta de administrador para aceder às ferramentas de gestão do Alojamento Ideal.",
+      "keywords": "registo administrador, criar conta, acesso administrador, gestão de propriedades, Alojamento Ideal"
+    },
+    "adminDashboard": {
+      "title": "Painel de Administrador | Alojamento Ideal",
+      "description": "Aceda ao painel de administrador do Alojamento Ideal para acompanhar reservas, gerir propriedades e configurar as definições da plataforma.",
+      "keywords": "painel administrador, dashboard administrador, gestão de propriedades, reservas, definições, Alojamento Ideal"
+    },
+    "adminAccountCreated": {
+      "title": "Conta de Administrador Criada | Alojamento Ideal",
+      "description": "O seu pedido de conta de administrador foi submetido. A nossa equipa irá rever o pedido e aprovar ou recusar em breve.",
+      "keywords": "conta administrador criada, registo administrador, aprovação de conta, pedido administrador, Alojamento Ideal"
     }
   },
   "not-found": {
@@ -682,7 +702,10 @@
   },
   "chat": {
     "title": "Fale connosco",
-    "me": "EU"
+    "me": "EU",
+    "message-placeholder": "Digite a sua mensagem...",
+    "send": "Enviar",
+    "sending": "A enviar..."
   },
   "privacy": {
     "a-cookie-is-a-small-file-placed-on-your-device-you-can-instruct-your-browser-to-refuse-all-cookies-or-to-indicate-when-a-cookie-is-being-sent-however-if-you-do-not-accept-cookies-you-may-not-be-able-to-use-some-parts-of-our-service-unless-you-have-adjusted-your-browser-setting-so-that-it-will-refuse-cookies-our-service-may-use-cookies": "Um cookie é um pequeno arquivo colocado no seu dispositivo. \nVocê pode instruir seu navegador a recusar todos os cookies ou a indicar quando um cookie está sendo enviado. \nNo entanto, se você não aceitar cookies, talvez não consiga usar algumas partes do nosso serviço. \nA menos que você tenha ajustado a configuração do navegador para recusar cookies, nosso serviço poderá usar cookies.",
@@ -913,5 +936,43 @@
       "q2": "Como posso contactar o Alojamento Ideal?",
       "a2": "Através de email, telefone ou chat online. Os contactos estão disponíveis na página 'Contactos'."
     }
+  },
+  "login-register": {
+    "email": "Email",
+    "email-placeholder": "Introduza o seu email",
+    "email-invalid-error": "Por favor insira um endereço de email válido.",
+    "email-empty-error": "O email é obrigatório.",
+
+    "password": "Palavra-passe",
+    "password-placeholder": "Introduza a sua palavra-passe",
+    "password-min-error": "A palavra-passe deve ter pelo menos 6 caracteres.",
+    "password-uppercase-error": "A palavra-passe deve conter pelo menos uma letra maiúscula.",
+    "password-digit-error": "A palavra-passe deve conter pelo menos um número.",
+    "password-special-error": "A palavra-passe deve conter pelo menos um caractere especial.",
+
+    "repeat-password": "Repetir Palavra-passe",
+    "repeat-password-placeholder": "Introduza novamente a sua palavra-passe",
+    "password-match-error": "As palavras-passe não coincidem.",
+
+    "create-account": "Criar Conta de Administrador",
+    "create-account-desc": "Utilize este formulário para criar uma conta de administrador e gerir este sistema.",
+    "creating-account": "A criar conta de administrador...",
+    "login-account": "Login de Administrador",
+    "login-account-desc": "Utilize este formulário para aceder à sua conta de administrador e gerir o sistema.",
+    "loginin-account": "A entrar na Conta de Administrador..."
+  },
+  "account-created": {
+    "account-request-made": "Pedido de Conta de Administrador Submetido",
+    "account-request-made-description": "O seu pedido de conta de administrador foi submetido. A nossa equipa irá analisá-lo e notificá-lo assim que for aprovado ou recusado.",
+    "back-to-home": "Voltar à Página Inicial"
+  },
+  "admin-sidebar": {
+    "orders": "Encomendas",
+    "inbox": "Caixa de entrada",
+    "search": "Pesquisar",
+    "log-out": "Terminar sessão"
+  },
+  "admin-inbox": {
+    "inbox": "Caixa de entrada"
   }
 }

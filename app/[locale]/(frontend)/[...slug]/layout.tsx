@@ -4,7 +4,7 @@ import { routing } from "@/i18n/routing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Montserrat } from "next/font/google";
 import { Header } from "@/components/header/header";
-import "../globals.css";
+import "../../../globals.css";
 import { Footer } from "@/components/footer/footer";
 import { CartProvider } from "@/hooks/cart-context";
 import { Toaster } from "@/components/ui/sonner";

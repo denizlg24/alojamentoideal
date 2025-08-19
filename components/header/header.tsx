@@ -1,5 +1,5 @@
 "use client";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -39,6 +39,10 @@ export const Header = () => {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+  const pathname = usePathname();
+  if (pathname.startsWith("/admin/dashboard")) {
+    return null;
+  }
   return (
     <header
       className={cn(

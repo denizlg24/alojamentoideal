@@ -9,6 +9,10 @@ import { PropertyInfoCard } from "../orders/property-info-card";
 import Image from "next/image";
 import planeFlyingGif from "@/public/plane_flying_gif.gif";
 import { useTranslations } from "next-intl";
+import { syncAutomatedMessages } from "@/app/actions/syncAutomatedMessages";
+import { IMessage } from "@/models/Chat";
+import { getChatId } from "@/app/actions/getChatId";
+import { getChatMessages } from "@/app/actions/getChatMessages";
 
 export const ReservationInfoProvider = ({
   reservation_id,
@@ -24,28 +28,8 @@ export const ReservationInfoProvider = ({
     undefined
   );
 
-  const [thread, setThread] = useState<
-    | {
-        success: boolean;
-        thread: { id: string; channel_unread: number };
-        messages: {
-          id: number;
-          target_id: number;
-          message: string;
-          notes: string | null;
-          created: string;
-          image: string | null;
-          guest_name: string;
-          guest_thumb: string;
-          is_sms: number;
-          is_automatic: number;
-          pinned: number;
-          avatar: string | null;
-          guest_id: number;
-        }[];
-      }
-    | undefined
-  >();
+  const [chat_id, setChatId] = useState("");
+  const [messages, setMessages] = useState<IMessage[]>([]);
 
   const guestInfoCustomField = customFields?.find(
     (a) => a.name == "hostkit_url"
@@ -99,7 +83,7 @@ export const ReservationInfoProvider = ({
     }
   };
 
-  const getThread = async (message_id: number) => {
+  const getThread = async (message_id: number, guest_id?: string) => {
     const info = await hostifyRequest<{
       success: boolean;
       thread: { id: string; channel_unread: number };
@@ -120,10 +104,18 @@ export const ReservationInfoProvider = ({
       }[];
     }>(`inbox/${message_id}`, "GET");
     if (info.success) {
+      if (guest_id) {
+        await syncAutomatedMessages(reservation_id, guest_id, info.messages);
+      }
       return info;
     } else {
       return undefined;
     }
+  };
+
+  const getSms = async (chatId: string) => {
+    const sms = await getChatMessages(chatId);
+    setMessages(sms);
   };
 
   useEffect(() => {
@@ -131,19 +123,25 @@ export const ReservationInfoProvider = ({
       const reservationInfo = await getReservationInfo(reservation_id);
       if (reservationInfo) {
         setReservation(reservationInfo);
-        const [listingInfo, custom_fields, thread] = await Promise.all([
+        const [listingInfo, custom_fields, chat_id] = await Promise.all([
           getListingInfo(reservationInfo.listing_id),
           getReservationCustomFields(reservation_id),
-          getThread(reservationInfo.message_id),
+          getChatId(reservation_id),
         ]);
+        getThread(
+          reservationInfo.message_id,
+          reservationInfo.guest_id.toString()
+        );
+        getSms(chat_id);
+        setChatId(chat_id);
         setListing(listingInfo);
         setCustomFields(custom_fields ?? []);
-        setThread(thread);
       }
     };
     if (reservation_id) {
       getReservationWrapper();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reservation_id]);
 
   useEffect(() => {
@@ -166,11 +164,6 @@ export const ReservationInfoProvider = ({
       if (interval) clearInterval(interval);
     };
   }, [guestInfoCustomField, guestInfoCustomDoneField, reservation_id]);
-
-  const getThreadWrapper = async (id: number) => {
-    const thread = await getThread(id);
-    setThread(thread);
-  };
 
   if (!listing || !reservation) {
     return (
@@ -221,13 +214,13 @@ export const ReservationInfoProvider = ({
       <PropertyInfoCard
         listing={listing}
         refreshMessages={() => {
-          getThreadWrapper(reservation.message_id);
+          getThread(reservation.message_id, reservation.guest_id.toString());
         }}
+        messages={messages}
+        chat_id={chat_id}
         reservation={reservation}
         setReservation={setReservation}
         custom_fields={customFields}
-        thread={thread}
-        setThread={setThread}
       />
     </div>
   );

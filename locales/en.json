@@ -54,6 +54,26 @@
       "title": "Frequently Asked Questions | Alojamento Ideal",
       "description": "Find answers to the most common questions about reservations, cancellations, payments, and policies at Alojamento Ideal.",
       "keywords": "faq, questions, reservations, cancellations, payments, policies, Alojamento Ideal"
+    },
+    "adminLogin": {
+      "title": "Admin Login | Alojamento Ideal",
+      "description": "Access the administrator panel of Alojamento Ideal to manage properties, reservations, and platform settings.",
+      "keywords": "admin login, administrator access, property management, reservations, Alojamento Ideal"
+    },
+    "adminRegister": {
+      "title": "Admin Registration | Alojamento Ideal",
+      "description": "Create a new administrator account to access the management tools of Alojamento Ideal.",
+      "keywords": "admin registration, create account, administrator access, property management, Alojamento Ideal"
+    },
+    "adminDashboard": {
+      "title": "Admin Dashboard | Alojamento Ideal",
+      "description": "Access the administrator dashboard of Alojamento Ideal to monitor reservations, manage properties, and configure platform settings.",
+      "keywords": "admin dashboard, administrator panel, property management, reservations, settings, Alojamento Ideal"
+    },
+    "adminAccountCreated": {
+      "title": "Admin Account Created | Alojamento Ideal",
+      "description": "Your admin acc  ount request has been submitted. Our team will review it and approve or decline the request shortly.",
+      "keywords": "admin account created, admin registration, account approval, administrator request, Alojamento Ideal"
     }
   },
   "not-found": {
@@ -681,8 +701,11 @@
     "loading": "Loading your next holidays"
   },
   "chat": {
-    "title": "",
-    "me": "ME"
+    "title": "Talk to us",
+    "me": "ME",
+    "message-placeholder": "Type your message...",
+    "send": "Send",
+    "sending": "Sending..."
   },
   "privacy": {
     "privacy": "Privacy Policy",
@@ -913,5 +936,43 @@
       "q2": "How do I contact Alojamento Ideal?",
       "a2": "Via email, phone, or live chat. Details are available on the 'Contact Us' page."
     }
+  },
+  "login-register": {
+    "email": "Email",
+    "email-placeholder": "Enter your email",
+    "email-invalid-error": "Please enter a valid email address.",
+    "email-empty-error": "Email is required.",
+
+    "password": "Password",
+    "password-placeholder": "Enter your password",
+    "password-min-error": "Password must be at least 6 characters long.",
+    "password-uppercase-error": "Password must contain at least one uppercase letter.",
+    "password-digit-error": "Password must contain at least one number.",
+    "password-special-error": "Password must contain at least one special character.",
+
+    "repeat-password": "Repeat Password",
+    "repeat-password-placeholder": "Re-enter your password",
+    "password-match-error": "Passwords do not match.",
+
+    "create-account": "Create Admin Account",
+    "create-account-desc": "Use this form to create an admin account to manage this system.",
+    "creating-account": "Creating Admin Account...",
+    "login-account": "Admin Login",
+    "login-account-desc": "Use this form to access your administrator account and manage the system.",
+    "loginin-account": "Logging into Admin Account..."
+  },
+  "account-created": {
+    "account-request-made": "Admin Account Request Submitted",
+    "account-request-made-description": "Your request for an admin account has been submitted. Our team will review it and notify you once it is approved or declined.",
+    "back-to-home": "Back to Home"
+  },
+  "admin-sidebar": {
+    "orders": "Orders",
+    "inbox": "Inbox",
+    "search": "Search",
+    "log-out": "Log out"
+  },
+  "admin-inbox": {
+    "inbox": "Inbox"
   }
 }

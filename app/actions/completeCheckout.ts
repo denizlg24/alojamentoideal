@@ -8,6 +8,8 @@ import { hostifyRequest } from "@/utils/hostify-request";
 import { format } from "date-fns";
 import { registerOrder } from "./createOrder";
 import { fetchClientSecret } from "./stripe";
+import { generateUniqueId } from "@/lib/utils";
+import { ChatModel } from "@/models/Chat";
 
 export async function buyCart({ cart, clientName, clientEmail, clientPhone, clientNotes }: { cart: CartItem[], clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string }) {
     if (!(await verifySession())) {
@@ -60,6 +62,21 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
                 }
             );
             transactionIds.push(transaction.transaction.id);
+
+            const newChatId = generateUniqueId()
+
+            const newChat = new ChatModel({
+                chat_id: newChatId,
+                reservation_id: reservation.reservation.id.toString(),
+                booking_reference: reservation.reservation.confirmation_code,
+                lastMessage: "",
+                unread: 0,
+                automation_done: false,
+                guest_name: clientName,
+                status: "open"
+            });
+
+            await newChat.save();
         }
 
         const { success, client_secret, id } = await fetchClientSecret(

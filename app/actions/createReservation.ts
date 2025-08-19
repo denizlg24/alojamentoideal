@@ -8,6 +8,8 @@ import { AccommodationItem } from "@/hooks/cart-context";
 import { format } from "date-fns";
 import { registerOrder } from "./createOrder";
 import { verifySession } from "@/utils/verifySession";
+import { generateUniqueId } from "@/lib/utils";
+import { ChatModel } from "@/models/Chat";
 
 export async function purchaseAccommodation({ property, clientName, clientEmail, clientPhone, clientNotes }: { property: AccommodationItem, clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string }) {
     if (!(await verifySession())) {
@@ -74,7 +76,20 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
             transaction_id: [transaction.transaction.id.toString()]
         });
 
+        const newChatId = generateUniqueId();
 
+        const newChat = new ChatModel({
+            chat_id: newChatId,
+            reservation_id: reservation.reservation.id.toString(),
+            booking_reference: reservation.reservation.confirmation_code,
+            lastMessage: "",
+            unread: 0,
+            automation_done: false,
+            guest_name: clientName,
+            status: "open"
+        });
+
+        await newChat.save();
         return { success: success && order_success, client_secret, payment_id: id, reservation, transaction, order_id: orderId };
     } catch (error) {
         return { success: false, message: error };
