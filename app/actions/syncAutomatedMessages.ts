@@ -42,6 +42,6 @@ export async function syncAutomatedMessages(reservationId: string, guest_id: str
         }
 
     }
-    await ChatModel.findOneAndUpdate({ reservation_id: reservationId }, { unread: unreadCount, lastMessageAt: lastMessage?.created, lastMessage: lastMessage?.message });
+    await ChatModel.findOneAndUpdate({ reservation_id: reservationId }, { unread: unreadCount, lastMessageAt: lastMessage?.created, lastMessage: lastMessage?.message, automation_done: true });
     return true;
 }

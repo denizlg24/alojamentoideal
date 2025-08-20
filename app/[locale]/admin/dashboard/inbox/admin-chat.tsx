@@ -1,6 +1,6 @@
 "use client";
 import { Loader2, Send } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { IMessage } from "@/models/Chat";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,13 +21,21 @@ export function AdminChat({
   const [message, setMessage] = useState("");
   const [currentMessages, setMessages] = useState<IMessage[]>(messages);
 
-  const sorted = [...currentMessages].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  const sorted = useMemo(
+    () =>
+      [...currentMessages].sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      ),
+    [currentMessages]
   );
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [loading, setLoading] = useState(false);
   const prevLength = useRef(0);
+  const lastMessageTime = useRef<Date | null>(
+    messages.length > 0 ? messages[messages.length - 1].createdAt : null
+  );
 
   useEffect(() => {
     if (currentMessages.length > prevLength.current) {
@@ -36,15 +44,18 @@ export function AdminChat({
     prevLength.current = currentMessages.length;
   }, [currentMessages]);
 
-  const refreshInbox = async (chat_id: string) => {
-    const messages = await getChatMessages(chat_id, true);
-    setMessages(messages);
-  };
-
   useEffect(() => {
     const refreshInbox = async (chat_id: string) => {
-      const messages = await getChatMessages(chat_id, true);
-      setMessages(messages);
+      const newMessages = await getChatMessages(
+        chat_id,
+        true,
+        lastMessageTime.current || undefined
+      );
+
+      if (newMessages.length > 0) {
+        setMessages((prev) => [...prev, ...newMessages]);
+        lastMessageTime.current = newMessages[newMessages.length - 1].createdAt;
+      }
     };
 
     const interval = setInterval(() => {
@@ -55,8 +66,40 @@ export function AdminChat({
     return () => clearInterval(interval);
   }, [chat_id]);
 
+  const sendMessage = async () => {
+    setLoading(true);
+
+    const optimisticMessage: IMessage = {
+      sender: "admin",
+      createdAt: new Date(),
+      read: true,
+      chat_id,
+      message_id: generateUniqueId(),
+      message,
+    };
+    setMessages((prev) => [...prev, optimisticMessage]);
+    setMessage("");
+    setLoading(false);
+    try {
+      const savedMessage = await postMessage({
+        message,
+        chatId: chat_id,
+        sender: "admin",
+      });
+      if (savedMessage) {
+        setMessages((prev) => [
+          ...prev.filter((m) => m.message_id !== optimisticMessage.message_id),
+          savedMessage,
+        ]);
+        lastMessageTime.current = savedMessage.createdAt;
+      }
+    } catch {
+      console.log("error");
+    }
+  };
+
   return (
-    <div className="w-full mx-auto h-[calc(100vh-55px)] flex flex-col rounded-2xl overflow-hidden">
+    <div className="w-full mx-auto min-[525px]:h-[calc(100vh-152px)] h-[calc(100vh-260px)]  flex flex-col rounded-2xl overflow-hidden">
       <div className="flex-1 overflow-y-auto sm:p-4 p-2 space-y-4 bg-muted">
         {sorted.map((msg) => {
           const isMe = msg.sender == "admin";
@@ -118,30 +161,16 @@ export function AdminChat({
           type="text"
           placeholder={t("message-placeholder")}
           className="w-full"
-        />
-        <Button
-          disabled={loading}
-          onClick={async () => {
-            setLoading(true);
-            setMessages((prev) => {
-              return [
-                ...prev,
-                {
-                  sender: "guest",
-                  createdAt: new Date(),
-                  read: false,
-                  chat_id,
-                  message_id: generateUniqueId(),
-                  message,
-                },
-              ];
-            });
-            setMessage("");
-            setLoading(false);
-            await postMessage({ message, chatId: chat_id, sender: "admin" });
-            await refreshInbox(chat_id);
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              if (!loading && message.trim()) {
+                sendMessage();
+              }
+            }
           }}
-        >
+        />
+        <Button disabled={loading} onClick={sendMessage}>
           {loading ? (
             <>
               <Loader2 className="animate-spin" /> {t("sending")}

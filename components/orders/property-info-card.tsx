@@ -54,7 +54,6 @@ import {
   CarouselPrevious,
 } from "../ui/carousel";
 import { OrderChat } from "./order-chat";
-import { IMessage } from "@/models/Chat";
 
 export const PropertyInfoCard = ({
   listing,
@@ -62,7 +61,6 @@ export const PropertyInfoCard = ({
   custom_fields,
   setReservation,
   refreshMessages,
-  messages,
   chat_id,
 }: {
   listing: FullListingType;
@@ -70,7 +68,6 @@ export const PropertyInfoCard = ({
   custom_fields: CustomFieldType[] | [];
   setReservation: Dispatch<SetStateAction<ReservationType | undefined>>;
   refreshMessages: () => void;
-  messages: IMessage[];
   chat_id: string;
 }) => {
   const locale = useLocale();
@@ -705,11 +702,7 @@ export const PropertyInfoCard = ({
                 <DialogTitle>Chat</DialogTitle>
                 <DialogDescription>Chat</DialogDescription>
               </DialogHeader>
-              <OrderChat
-                refreshMessages={refreshMessages}
-                chat_id={chat_id}
-                messages={messages}
-              />
+              <OrderChat refreshMessages={refreshMessages} chat_id={chat_id} />
             </DialogContent>
           </Dialog>
         </div>

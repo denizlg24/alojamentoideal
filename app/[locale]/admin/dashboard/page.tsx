@@ -71,7 +71,7 @@ export default async function Home({
   const { thisWeek, previousTotal } = getTotals(orders);
 
   return (
-    <div className="w-full flex flex-col gap-4 items-start mt-4 px-4 pt-12">
+    <div className="w-full flex flex-col gap-4 items-start mt-4 px-4">
       <Card className="p-4 flex flex-col gap-2">
         <CardTitle className="text-sm font-normal">Total orders</CardTitle>
         <p className="lg:text-4xl md:text-3xl sm:text-2xl text-xl font-bold">

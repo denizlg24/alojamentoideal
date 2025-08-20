@@ -10,10 +10,7 @@ import Image from "next/image";
 import planeFlyingGif from "@/public/plane_flying_gif.gif";
 import { useTranslations } from "next-intl";
 import { syncAutomatedMessages } from "@/app/actions/syncAutomatedMessages";
-import { IMessage } from "@/models/Chat";
 import { getChatId } from "@/app/actions/getChatId";
-import { getChatMessages } from "@/app/actions/getChatMessages";
-
 export const ReservationInfoProvider = ({
   reservation_id,
 }: {
@@ -29,7 +26,6 @@ export const ReservationInfoProvider = ({
   );
 
   const [chat_id, setChatId] = useState("");
-  const [messages, setMessages] = useState<IMessage[]>([]);
 
   const guestInfoCustomField = customFields?.find(
     (a) => a.name == "hostkit_url"
@@ -113,11 +109,6 @@ export const ReservationInfoProvider = ({
     }
   };
 
-  const getSms = async (chatId: string) => {
-    const sms = await getChatMessages(chatId);
-    setMessages(sms);
-  };
-
   useEffect(() => {
     const getReservationWrapper = async () => {
       const reservationInfo = await getReservationInfo(reservation_id);
@@ -132,7 +123,6 @@ export const ReservationInfoProvider = ({
           reservationInfo.message_id,
           reservationInfo.guest_id.toString()
         );
-        getSms(chat_id);
         setChatId(chat_id);
         setListing(listingInfo);
         setCustomFields(custom_fields ?? []);
@@ -216,7 +206,6 @@ export const ReservationInfoProvider = ({
         refreshMessages={() => {
           getThread(reservation.message_id, reservation.guest_id.toString());
         }}
-        messages={messages}
         chat_id={chat_id}
         reservation={reservation}
         setReservation={setReservation}

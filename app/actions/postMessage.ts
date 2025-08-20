@@ -52,6 +52,6 @@ export async function postMessage({
     }
 
     await ChatModel.updateOne({ chat_id: chatId }, update);
-
-    return true;
+    const json = newMessage.toJSON()
+    return { ...json, _id: (json._id as string).toString() };
 }

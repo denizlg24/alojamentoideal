@@ -165,7 +165,7 @@ export function buildCancellationMessage({
   const parts: string[] = [];
 
   if (isBefore(now, freeUntil)) {
-    parts.push(t("free-cancelation-48h"));
+    parts.push(t("free"));
   }
 
   if (isBefore(now, partialUntil)) {
