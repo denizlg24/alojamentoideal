@@ -697,7 +697,7 @@ export const PropertyInfoCard = ({
                 {t("contact_host")}
               </Button>
             </DialogTrigger>
-            <DialogContent className="p-0! bg-transparent! border-none! outline-0! [&_svg]:text-white!">
+            <DialogContent className="p-0! bg-transparent! border-none! outline-0! text-white">
               <DialogHeader className="hidden">
                 <DialogTitle>Chat</DialogTitle>
                 <DialogDescription>Chat</DialogDescription>

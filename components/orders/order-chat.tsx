@@ -56,20 +56,26 @@ export function OrderChat({
 
   useEffect(() => {
     const fetchMessages = async (initial = false) => {
-      if (initial) {
-        setMessagesLoading(true);
-      }
-      const newMessages = await getChatMessages(
-        chat_id,
-        false,
-        lastMessageTime.current || undefined
-      );
+      try {
+        if (initial) {
+          setMessagesLoading(true);
+        }
+        const newMessages = await getChatMessages(
+          chat_id,
+          false,
+          lastMessageTime?.current || undefined
+        );
 
-      if (newMessages.length > 0) {
-        setMessages((prev) => [...prev, ...newMessages]);
-        lastMessageTime.current = newMessages[newMessages.length - 1].createdAt;
-      }
-      if (initial) {
+        if (newMessages.length > 0) {
+          setMessages((prev) => [...prev, ...newMessages]);
+          lastMessageTime.current =
+            newMessages[newMessages.length - 1].createdAt;
+        }
+        if (initial) {
+          setMessagesLoading(false);
+        }
+      } catch (error) {
+        console.log(error);
         setMessagesLoading(false);
       }
     };
@@ -122,7 +128,7 @@ export function OrderChat({
       <div className="p-3 bg-primary text-primary-foreground font-semibold">
         {t("title")}
       </div>
-      <div className="flex-1 overflow-y-auto sm:p-4 p-2 space-y-4 bg-muted">
+      <div className="flex-1 overflow-y-auto sm:p-4 p-2 space-y-4 bg-muted relative text-muted-foreground">
         {sorted.map((msg) => {
           const isMe = msg.sender == "guest";
           return (
@@ -172,8 +178,8 @@ export function OrderChat({
           );
         })}
         {messagesLoading && (
-          <div className="w-full flex justify-start items-center gap-2">
-            <Loader2 className="animate-spin w-4! h-4!" />
+          <div className="w-full flex justify-start items-center gap-2 [&_svg]:text-muted-foreground! mt-4">
+            <Loader2 className="animate-spin w-6! h-6! ![&_svg]:text-muted-foreground !text-muted-foreground" />
           </div>
         )}
         <div ref={messagesEndRef} className="h-0 w-0" />
