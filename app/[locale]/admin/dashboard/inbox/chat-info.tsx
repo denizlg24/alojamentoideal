@@ -1,3 +1,4 @@
+import { getOrderByReservationId } from "@/app/actions/getOrderByReference";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { localeMap } from "@/lib/utils";
@@ -23,7 +24,7 @@ export const ChatInfo = async ({
   reservationId: string;
   locale: string;
 }) => {
-  const [reservationInfo, customFields] = await Promise.all([
+  const [reservationInfo, customFields, { order }] = await Promise.all([
     hostifyRequest<{
       reservation: ReservationType;
     }>(`reservations/${reservationId}`, "GET", undefined, undefined, undefined),
@@ -31,7 +32,11 @@ export const ChatInfo = async ({
       success: boolean;
       custom_fields: CustomFieldType[];
     }>(`reservations/custom_fields/${reservationId}`, "GET"),
+    getOrderByReservationId(reservationId),
   ]);
+  if (!order || order === true) {
+    return;
+  }
   const checkingT = await getTranslations("propertyCard");
 
   const guestInfoCustomField = customFields.custom_fields.find(
@@ -115,7 +120,7 @@ export const ChatInfo = async ({
           asChild
           className="text-xs! h-fit! p-0! text-primary-foreground text-left justify-start"
         >
-          <Link href={"?chat_id="}>
+          <Link href={"/admin/dashboard/inbox"}>
             <ChevronLeft /> Back
           </Link>
         </Button>
@@ -173,7 +178,10 @@ export const ChatInfo = async ({
                 Adults:
               </p>
               <p className="text-sm font-normal">
-                {reservationInfo.reservation.adults ?? 0}
+                {order?.items
+                  .filter((itm) => itm.type == "accommodation")
+                  .find((item) => item.property_id == listingInfo.listing.id)
+                  ?.adults ?? 0}
               </p>
             </div>
           </div>
@@ -184,7 +192,10 @@ export const ChatInfo = async ({
                 Children:
               </p>
               <p className="text-sm font-normal">
-                {reservationInfo.reservation.children ?? 0}
+                {order?.items
+                  .filter((itm) => itm.type == "accommodation")
+                  .find((item) => item.property_id == listingInfo.listing.id)
+                  ?.children ?? 0}
               </p>
             </div>
             <div className="gap-1 flex flex-row p-1 px-3 bg-muted rounded-lg shadow min-[525px]:w-auto w-full">
@@ -193,7 +204,10 @@ export const ChatInfo = async ({
                 Infants:
               </p>
               <p className="text-sm font-normal">
-                {reservationInfo.reservation.infants ?? 0}
+                {order?.items
+                  .filter((itm) => itm.type == "accommodation")
+                  .find((item) => item.property_id == listingInfo.listing.id)
+                  ?.infants ?? 0}
               </p>
             </div>
           </div>

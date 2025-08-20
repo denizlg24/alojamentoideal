@@ -1,5 +1,6 @@
 "use client";
 
+import { closeChat } from "@/app/actions/closeChat";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { IChatDocument } from "@/models/Chat";
@@ -22,14 +23,26 @@ export const InboxesDisplay = ({
           return (
             <button
               onClick={() => {
-                router.push(`?chat_id=${inbox.chat_id}`);
+                router.push(`/admin/dashboard/inbox/${inbox.chat_id}`);
               }}
               className={cn(
-                "border-b shadow w-full p-1 relative flex flex-col items-start text-left hover:bg-accent",
+                "border-b shadow w-full p-1 flex flex-col items-start text-left hover:bg-accent relative group",
                 selected == inbox.chat_id && "bg-accent"
               )}
               key={inbox.chat_id}
             >
+              <div className="group-hover:flex hidden items-start justify-end p-1 z-10 w-full h-full absolute">
+                <p
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    await closeChat(inbox.chat_id);
+                    router.push(`/admin/dashboard/inbox`);
+                  }}
+                  className="rounded hover:cursor-pointer text-sm px-2 h-6 bg-destructive text-white font-bold items-center justify-center text-center flex"
+                >
+                  Close
+                </p>
+              </div>
               <div className="w-full flex flex-row gap-2 items-center justify-between">
                 <p className="truncate w-full text-sm font-medium">
                   {inbox.guest_name}

@@ -4,7 +4,6 @@ import { routing } from "@/i18n/routing";
 import { setRequestLocale } from "next-intl/server";
 import { Montserrat } from "next/font/google";
 import "../../globals.css";
-import { CartProvider } from "@/hooks/cart-context";
 import { Toaster } from "@/components/ui/sonner";
 
 export function generateStaticParams() {
@@ -34,12 +33,10 @@ export default async function RootLayout({
       <body
         className={`antialiased ${montserrat.variable} w-full min-h-screen flex flex-col items-center justify-start!`}
       >
-        <CartProvider>
-          <NextIntlClientProvider>
-            {children}
-            <Toaster position="bottom-right" />
-          </NextIntlClientProvider>
-        </CartProvider>
+        <NextIntlClientProvider>
+          {children}
+          <Toaster position="bottom-right" />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

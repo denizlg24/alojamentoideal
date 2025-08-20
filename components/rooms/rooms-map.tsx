@@ -9,7 +9,23 @@ import { ListingHomeCard } from "../listings/listing-home-card";
 import { useLocale, useTranslations } from "next-intl";
 import { ColorScheme } from "@vis.gl/react-google-maps";
 import { RenderingType } from "@vis.gl/react-google-maps";
-export const RoomsMap = ({ listings }: { listings: ListingType[] }) => {
+import { ListingStayCard } from "../listings/listing-stay-card";
+export const RoomsMap = ({
+  listings,
+  filters,
+  currentHref,
+}: {
+  listings: ListingType[];
+  filters: {
+    start?: Date;
+    end?: Date;
+    adults: number;
+    children: number;
+    infants: number;
+    pets: number;
+  };
+  currentHref: string;
+}) => {
   const t = useTranslations("home-map");
   const locale = useLocale();
   return (
@@ -42,12 +58,20 @@ export const RoomsMap = ({ listings }: { listings: ListingType[] }) => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[300px] p-2 flex flex-col gap-1 z-99 rounded-xl">
-                  <ListingHomeCard listing={l} />
-                  <Button asChild>
-                    <Link href={"/rooms/" + l.id}>
-                      {t("book")} <ArrowUpRightFromSquare />
-                    </Link>
-                  </Button>
+                  {filters.start && filters.end ? (
+                    <ListingStayCard href={currentHref} listing={l} />
+                  ) : (
+                    <ListingHomeCard listing={l} />
+                  )}
+                  {filters.start && filters.end ? (
+                    <></>
+                  ) : (
+                    <Button asChild>
+                      <Link href={"/rooms/" + l.id}>
+                        {t("book")} <ArrowUpRightFromSquare />
+                      </Link>
+                    </Button>
+                  )}
                 </PopoverContent>
               </Popover>
             </AdvancedMarker>

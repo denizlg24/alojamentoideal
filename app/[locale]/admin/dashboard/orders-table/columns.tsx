@@ -224,7 +224,9 @@ export const columns: ColumnDef<Order>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem asChild>
-              <Link href={`orders/${order.orderId}`}>View Order</Link>
+              <Link href={`/admin/dashboard/orders/${order.orderId}`}>
+                View Order
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             {order.reservationIds.length == 1 && (

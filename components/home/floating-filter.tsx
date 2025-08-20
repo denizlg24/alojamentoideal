@@ -42,6 +42,9 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
     pets: number;
   }>({ adults: 1, children: 0, infants: 0, pets: 0 });
 
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [mobileCalendarOpen, setMobileCalendarOpen] = useState(false);
+  const [mobileCalendarOpen1, setMobileCalendarOpen1] = useState(false);
   const [currentHref, updateHref] = useState("");
 
   useEffect(() => {
@@ -95,7 +98,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
         className
       )}
     >
-      <Popover>
+      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
@@ -137,6 +140,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
           <Calendar
             locale={localeMap[locale as keyof typeof localeMap]}
             mode="range"
+            showOutsideDays={false}
             disabled={(date) => date < new Date(new Date().toDateString())}
             today={undefined}
             defaultMonth={date?.from}
@@ -144,6 +148,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
             onSelect={(range) => {
               if (range?.from && range?.to && range.to != range.from) {
                 setDate(range);
+                setCalendarOpen(false);
               } else {
                 if (range?.from) {
                   setDate((prev) => {
@@ -153,6 +158,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
                   setDate((prev) => {
                     return { from: prev?.from, to: range.from };
                   });
+                  setCalendarOpen(false);
                 }
               }
             }}
@@ -170,7 +176,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
           </Button>
         </PopoverContent>
       </Popover>
-      <Popover>
+      <Popover onOpenChange={setMobileCalendarOpen} open={mobileCalendarOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
@@ -198,6 +204,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
           align="start"
         >
           <Calendar
+            showOutsideDays={false}
             locale={localeMap[locale as keyof typeof localeMap]}
             mode="single"
             disabled={(date) => date < new Date(new Date().toDateString())}
@@ -208,12 +215,13 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
               setDate((prev) => {
                 return { from: e, to: prev?.to };
               });
+              setMobileCalendarOpen(false);
             }}
             numberOfMonths={1}
           />
         </PopoverContent>
       </Popover>
-      <Popover>
+      <Popover open={mobileCalendarOpen1} onOpenChange={setMobileCalendarOpen1}>
         <PopoverTrigger asChild>
           <Button
             id="date"
@@ -241,6 +249,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
           align="start"
         >
           <Calendar
+            showOutsideDays={false}
             locale={localeMap[locale as keyof typeof localeMap]}
             mode="single"
             disabled={(date) => date < new Date(new Date().toDateString())}
@@ -251,6 +260,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
               setDate((prev) => {
                 return { from: prev?.from, to: e };
               });
+              setMobileCalendarOpen1(false);
             }}
             numberOfMonths={1}
           />

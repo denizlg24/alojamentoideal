@@ -19,14 +19,14 @@ export const OrderSearch = () => {
     const { order, reservation } = await getOrderByReference(bookingCode);
     if (order) {
       if (reservation) {
-        await router.push(`/reservations/${reservation}`);
+        router.push(`/reservations/${reservation}`);
       } else {
-        await router.push(`/orders/${order}`);
+        router.push(`/orders/${order}`);
       }
     } else {
       setError("not_found");
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

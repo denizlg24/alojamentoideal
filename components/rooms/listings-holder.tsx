@@ -239,7 +239,19 @@ export const ListingsHolder = () => {
           </h1>
         )}
         <div className="col-span-full w-full md:hidden flex flex-row items-start h-[300px] rounded-xl shadow overflow-hidden">
-          <RoomsMapHolder listings={listings} isLoading={isLoading} />
+          <RoomsMapHolder
+            currentHref={currentHref}
+            listings={listings}
+            isLoading={isLoading}
+            filters={{
+              start: date?.from,
+              end: date?.to,
+              adults: guests.adults,
+              children: guests.children,
+              infants: guests.infants,
+              pets: guests.pets,
+            }}
+          />
         </div>
         {!isLoading &&
           !(date?.from && date.to) &&
@@ -298,7 +310,19 @@ export const ListingsHolder = () => {
           })}
       </div>
       <div className="col-span-1 w-full sticky top-44 md:flex hidden flex-row items-start h-[calc(100vh-64px-70px-48px-72px)] mt-16 rounded-xl shadow overflow-hidden">
-        <RoomsMapHolder listings={listings} isLoading={isLoading} />
+        <RoomsMapHolder
+          currentHref={currentHref}
+          listings={listings}
+          isLoading={isLoading}
+          filters={{
+            start: date?.from,
+            end: date?.to,
+            adults: guests.adults,
+            children: guests.children,
+            infants: guests.infants,
+            pets: guests.pets,
+          }}
+        />
       </div>
     </div>
   );

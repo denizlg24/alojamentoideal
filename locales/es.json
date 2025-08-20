@@ -340,7 +340,7 @@
     "please-provide-this-information-to-help-coordinate-with-the-host": "Por favor, proporcione esta información para ayudar a coordinar con el anfitrión."
   },
   "orderSearch": {
-    "placeholder": "Ej: HMPKRDKBKY",
+    "placeholder": "Buscar por número de reserva o ID del pedido...",
     "searching": "Buscando...",
     "find": "Buscar Reserva",
     "not_found": "Reserva no encontrada."

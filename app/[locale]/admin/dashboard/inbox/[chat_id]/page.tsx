@@ -1,6 +1,12 @@
+import { getChatMessages } from "@/app/actions/getChatMessages";
 import { getInboxes } from "@/app/actions/getInboxes";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { InboxesDisplay } from "./inboxes-display";
+import { Suspense } from "react";
+import { AdminChat } from "../admin-chat";
+import { ChatInfo } from "../chat-info";
+import { InboxesDisplay } from "../inboxes-display";
+
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
 
@@ -13,7 +19,7 @@ export async function generateMetadata() {
     openGraph: {
       title: t("adminDashboard.title"),
       description: t("adminDashboard.description"),
-      url: "https://alojamentoideal.com/admin/dashboard/inbox",
+      url: "https://alojamentoideal.com/admin/dashboard/inbox/[chat_id]",
       type: "website",
     },
     twitter: {
@@ -23,17 +29,16 @@ export async function generateMetadata() {
     },
   };
 }
-
 export default async function Home({
   params,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params: any;
 }) {
-  const { locale } = await params;
+  const { locale, chat_id } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("admin-inbox");
 
+  const t = await getTranslations("admin-inbox");
   const inboxes = await getInboxes();
   const sortedInboxes = [...inboxes].sort((a, b) => {
     const aUnread = (a.unread ?? 0) > 0;
@@ -54,14 +59,34 @@ export default async function Home({
     );
   });
 
+  const messages = await getChatMessages(chat_id, true);
+  const chatIndx = sortedInboxes.findIndex((inbx) => inbx.chat_id == chat_id);
+  sortedInboxes[chatIndx].unread = 0;
   return (
     <div className="w-full flex flex-col gap-4 items-start">
-      <div className="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 w-full">
-        <div className="h-screen overflow-y-auto col-span-1 border-r shadow flex flex-col gap-1">
+      <div className="lg:grid grid-cols-5 w-full h-full">
+        <div className="col-span-1 border-r shadow lg:flex hidden flex-col gap-1">
           <h1 className="text-lg font-bold border-y-2 w-full px-1">
             {t("inbox")}
           </h1>
-          <InboxesDisplay sortedInboxes={sortedInboxes} selected={undefined} />
+          <InboxesDisplay sortedInboxes={sortedInboxes} selected={chat_id} />
+        </div>
+        <div className="flex flex-col overflow-hidden w-full col-span-4">
+          <div className="w-full p-4 border-2 shadow bg-primary">
+            <Suspense
+              fallback={
+                <Skeleton className="w-full min-[525px]:h-[116px] h-[224px]" />
+              }
+            >
+              <ChatInfo
+                reservationId={sortedInboxes[chatIndx].reservation_id}
+                locale={locale}
+              />
+            </Suspense>
+          </div>
+          <div className="w-full">
+            <AdminChat messages={messages} chat_id={chat_id} />
+          </div>
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ import {
 } from "../ui/accordion";
 import { OrderDocument } from "@/models/Order";
 import { PropertyItemCard } from "./property-item-card";
+import { ChevronDown } from "lucide-react";
 
 export const OrderInfo = ({
   order,
@@ -42,12 +43,13 @@ export const OrderInfo = ({
         >
           <AccordionItem value="item-1">
             <AccordionTrigger>
-              <div className="flex flex-row items-center justify-between text-sm w-full">
+              <div className="flex flex-row items-center justify-between text-sm w-full relative">
                 <p className="font-bold">{t("order_id")}</p>
                 <p className="font-normal max-w-[60%] truncate">
                   #{order.orderId}
                 </p>
               </div>
+              <ChevronDown className="transition-transform duration-200" />
             </AccordionTrigger>
             <AccordionContent asChild>
               <div className="col-span-3 w-full flex flex-col gap-4">

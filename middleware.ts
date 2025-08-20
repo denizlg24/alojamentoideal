@@ -28,7 +28,8 @@ export default async function middleware(req: NextRequest) {
     const res = intlMiddleware(req);
 
     if (!session) {
-        const payload = Date.now().toString();
+        const random = crypto.randomUUID();
+        const payload = `${Date.now()}.${random}`;
         const secret = process.env.SESSION_SECRET!;
         const signature = await createHmac(payload, secret);
         const token = `${payload}.${signature}`;
@@ -38,6 +39,7 @@ export default async function middleware(req: NextRequest) {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
+            maxAge: 60 * 60 * 24,
             path: '/',
         })
     }

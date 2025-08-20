@@ -1,13 +1,12 @@
-import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { notFound } from "next/navigation";
-import { routing } from "@/i18n/routing";
+import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Montserrat } from "next/font/google";
-import { Header } from "@/components/header/header";
-import "../../../globals.css";
-import { Footer } from "@/components/footer/footer";
+import { routing } from "@/i18n/routing";
+import "../../globals.css";
 import { CartProvider } from "@/hooks/cart-context";
+import { Header } from "@/components/header/header";
 import { Toaster } from "@/components/ui/sonner";
+import { Footer } from "@/components/footer/footer";
+import { Montserrat } from "next/font/google";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -15,26 +14,30 @@ export function generateStaticParams() {
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
-
   return {
-    title: t("home.title"),
-    description: t("home.description"),
-    keywords: t("home.keywords")
-      .split(",")
-      .map((k) => k.trim()),
+    title: t("not_found.title") || "Room Not Found | Alojamento Ideal",
+    description:
+      t("not_found.description") ||
+      "The room you’re looking for does not exist or is no longer available.",
+    robots: "noindex, nofollow",
     openGraph: {
-      title: t("home.title"),
-      description: t("home.description"),
-      url: "https://alojamentoideal.com",
+      title: t("not_found.title") || "Page Not Found - Alojamento Ideal",
+      description:
+        t("not_found.description") ||
+        "Sorry, we couldn’t find the accommodation you’re looking for.",
+      url: "https://alojamentoideal.com/rooms/not-found",
       type: "website",
     },
     twitter: {
-      card: "summary_large_image",
-      title: t("home.title"),
-      description: t("home.description"),
+      card: "summary",
+      title: t("not_found.title") || "Room Not Found - Alojamento Ideal",
+      description:
+        t("not_found.description") ||
+        "This room is no longer available or may have been removed.",
     },
   };
 }
+
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
@@ -50,7 +53,7 @@ export default async function RootLayout({
 }) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) {
-    notFound();
+    return;
   }
   setRequestLocale(locale);
   return (

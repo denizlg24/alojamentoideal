@@ -66,8 +66,14 @@ export function OrderChat({
           lastMessageTime?.current || undefined
         );
 
-        if (newMessages.length > 0) {
-          setMessages((prev) => [...prev, ...newMessages]);
+        if (newMessages?.length > 0) {
+          setMessages((prev) => {
+            const map = new Map<string, IMessage>();
+            [...prev, ...newMessages].forEach((msg) => {
+              map.set(msg.message_id, msg);
+            });
+            return Array.from(map.values());
+          });
           lastMessageTime.current =
             newMessages[newMessages.length - 1].createdAt;
         }
@@ -91,17 +97,20 @@ export function OrderChat({
     if (!message.trim()) return;
 
     setLoading(true);
-
+    const optimisticMessageId = generateUniqueId();
     const optimisticMessage: IMessage = {
       sender: "guest",
       createdAt: new Date(),
       read: false,
       chat_id,
-      message_id: generateUniqueId(),
+      message_id: optimisticMessageId,
       message,
     };
 
-    setMessages((prev) => [...prev, optimisticMessage]);
+    setMessages((prev) => [
+      ...prev.filter((m) => m.message_id !== optimisticMessageId),
+      optimisticMessage,
+    ]);
     setMessage("");
     setLoading(false);
 
@@ -110,10 +119,11 @@ export function OrderChat({
         message,
         chatId: chat_id,
         sender: "guest",
+        optimisticMessageId,
       });
       if (savedMessage) {
         setMessages((prev) => [
-          ...prev.filter((m) => m.message_id !== optimisticMessage.message_id),
+          ...prev.filter((m) => m.message_id !== optimisticMessageId),
           savedMessage,
         ]);
         lastMessageTime.current = savedMessage.createdAt;
@@ -193,7 +203,7 @@ export function OrderChat({
           value={message}
           type="text"
           placeholder={t("message-placeholder")}
-          className="w-full"
+          className="w-full text-foreground"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();

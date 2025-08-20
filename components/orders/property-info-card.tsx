@@ -54,9 +54,11 @@ import {
   CarouselPrevious,
 } from "../ui/carousel";
 import { OrderChat } from "./order-chat";
+import { OrderDocument } from "@/models/Order";
 
 export const PropertyInfoCard = ({
   listing,
+  order,
   reservation,
   custom_fields,
   setReservation,
@@ -64,6 +66,7 @@ export const PropertyInfoCard = ({
   chat_id,
 }: {
   listing: FullListingType;
+  order: OrderDocument | undefined;
   reservation: ReservationType;
   custom_fields: CustomFieldType[] | [];
   setReservation: Dispatch<SetStateAction<ReservationType | undefined>>;
@@ -352,14 +355,38 @@ export const PropertyInfoCard = ({
           </p>
           <p className="md:text-base sm:text-sm text-xs">
             {t("guests", {
-              adults: reservation?.adults,
+              adults:
+                order?.items
+                  .filter((itm) => itm.type == "accommodation")
+                  .find((item) => item.property_id == reservation.listing_id)
+                  ?.adults ?? 0,
               children:
-                reservation.children && reservation.children > 0
-                  ? t("children_text", { count: reservation?.children })
+                (order?.items
+                  .filter((itm) => itm.type == "accommodation")
+                  .find((item) => item.property_id == reservation.listing_id)
+                  ?.children ?? 0) > 0
+                  ? t("children_text", {
+                      count:
+                        order?.items
+                          .filter((itm) => itm.type == "accommodation")
+                          .find(
+                            (item) => item.property_id == reservation.listing_id
+                          )?.children ?? 0,
+                    })
                   : "",
               infants:
-                reservation.infants && reservation.infants > 0
-                  ? t("infants_text", { count: reservation?.infants })
+                (order?.items
+                  .filter((itm) => itm.type == "accommodation")
+                  .find((item) => item.property_id == reservation.listing_id)
+                  ?.infants ?? 0) > 0
+                  ? t("infants_text", {
+                      count:
+                        order?.items
+                          .filter((itm) => itm.type == "accommodation")
+                          .find(
+                            (item) => item.property_id == reservation.listing_id
+                          )?.infants ?? 0,
+                    })
                   : "",
             })}
           </p>

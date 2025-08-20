@@ -49,11 +49,17 @@ export function AdminChat({
       const newMessages = await getChatMessages(
         chat_id,
         true,
-        lastMessageTime.current || undefined
+        lastMessageTime?.current || undefined
       );
 
-      if (newMessages.length > 0) {
-        setMessages((prev) => [...prev, ...newMessages]);
+      if (newMessages?.length > 0) {
+        setMessages((prev) => {
+          const map = new Map<string, IMessage>();
+          [...prev, ...newMessages].forEach((msg) => {
+            map.set(msg.message_id, msg);
+          });
+          return Array.from(map.values());
+        });
         lastMessageTime.current = newMessages[newMessages.length - 1].createdAt;
       }
     };
@@ -68,16 +74,19 @@ export function AdminChat({
 
   const sendMessage = async () => {
     setLoading(true);
-
+    const optimisticMessageId = generateUniqueId();
     const optimisticMessage: IMessage = {
       sender: "admin",
       createdAt: new Date(),
       read: true,
       chat_id,
-      message_id: generateUniqueId(),
+      message_id: optimisticMessageId,
       message,
     };
-    setMessages((prev) => [...prev, optimisticMessage]);
+    setMessages((prev) => [
+      ...prev.filter((m) => m.message_id !== optimisticMessageId),
+      optimisticMessage,
+    ]);
     setMessage("");
     setLoading(false);
     try {
@@ -85,10 +94,11 @@ export function AdminChat({
         message,
         chatId: chat_id,
         sender: "admin",
+        optimisticMessageId,
       });
       if (savedMessage) {
         setMessages((prev) => [
-          ...prev.filter((m) => m.message_id !== optimisticMessage.message_id),
+          ...prev.filter((m) => m.message_id !== optimisticMessageId),
           savedMessage,
         ]);
         lastMessageTime.current = savedMessage.createdAt;

@@ -339,6 +339,7 @@ export function DataTable<TData, TValue>({
         {table.getFilteredSelectedRowModel().rows.length > 0 && (
           <>
             <Button
+              disabled={deleting}
               onClick={async () => {
                 setDeleting(true);
                 for (const orderRow of table.getFilteredSelectedRowModel()
@@ -355,7 +356,6 @@ export function DataTable<TData, TValue>({
                 </>
               ) : (
                 <>
-                  {" "}
                   <Trash />
                   Delete {table.getFilteredSelectedRowModel().rows.length}{" "}
                   orders.

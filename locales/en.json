@@ -340,7 +340,7 @@
     "please-provide-this-information-to-help-coordinate-with-the-host": "Please provide this information to help coordinate with the host."
   },
   "orderSearch": {
-    "placeholder": "Ex: HMPKRDKBKY",
+    "placeholder": "Search for reservation number or order id...",
     "searching": "Searching...",
     "find": "Find Reservation",
     "not_found": "Reservation not found."
@@ -942,18 +942,15 @@
     "email-placeholder": "Enter your email",
     "email-invalid-error": "Please enter a valid email address.",
     "email-empty-error": "Email is required.",
-
     "password": "Password",
     "password-placeholder": "Enter your password",
     "password-min-error": "Password must be at least 6 characters long.",
     "password-uppercase-error": "Password must contain at least one uppercase letter.",
     "password-digit-error": "Password must contain at least one number.",
     "password-special-error": "Password must contain at least one special character.",
-
     "repeat-password": "Repeat Password",
     "repeat-password-placeholder": "Re-enter your password",
     "password-match-error": "Passwords do not match.",
-
     "create-account": "Create Admin Account",
     "create-account-desc": "Use this form to create an admin account to manage this system.",
     "creating-account": "Creating Admin Account...",

@@ -9,10 +9,12 @@ export async function postMessage({
     chatId,
     sender,
     message,
+    optimisticMessageId
 }: {
     chatId: string;
     sender: "guest" | "admin";
     message: string;
+    optimisticMessageId?: string;
 }) {
     if (!(await verifySession())) {
         throw new Error("Unauthorized");
@@ -34,7 +36,7 @@ export async function postMessage({
         chat_id: chatId,
         sender,
         message,
-        message_id: generateUniqueId(),
+        message_id: optimisticMessageId ?? generateUniqueId(),
         read: sender === "admin",
     });
 

@@ -11,6 +11,8 @@ import planeFlyingGif from "@/public/plane_flying_gif.gif";
 import { useTranslations } from "next-intl";
 import { syncAutomatedMessages } from "@/app/actions/syncAutomatedMessages";
 import { getChatId } from "@/app/actions/getChatId";
+import { getOrderByReservationId } from "@/app/actions/getOrderByReference";
+import { OrderDocument } from "@/models/Order";
 export const ReservationInfoProvider = ({
   reservation_id,
 }: {
@@ -24,6 +26,7 @@ export const ReservationInfoProvider = ({
   const [reservation, setReservation] = useState<ReservationType | undefined>(
     undefined
   );
+  const [order, setOrder] = useState<OrderDocument | undefined>(undefined);
 
   const [chat_id, setChatId] = useState("");
 
@@ -111,7 +114,13 @@ export const ReservationInfoProvider = ({
 
   useEffect(() => {
     const getReservationWrapper = async () => {
-      const reservationInfo = await getReservationInfo(reservation_id);
+      const [reservationInfo, { order }] = await Promise.all([
+        getReservationInfo(reservation_id),
+        getOrderByReservationId(reservation_id),
+      ]);
+      if (order) {
+        setOrder(order as OrderDocument);
+      }
       if (reservationInfo) {
         setReservation(reservationInfo);
         const [listingInfo, custom_fields, chat_id] = await Promise.all([
@@ -206,6 +215,7 @@ export const ReservationInfoProvider = ({
         refreshMessages={() => {
           getThread(reservation.message_id, reservation.guest_id.toString());
         }}
+        order={order}
         chat_id={chat_id}
         reservation={reservation}
         setReservation={setReservation}

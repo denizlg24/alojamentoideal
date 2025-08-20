@@ -13,6 +13,7 @@ import {
   CircleMinus,
   CirclePlus,
   DoorOpen,
+  Loader2,
   Loader2Icon,
   NotepadText,
   Star,
@@ -75,6 +76,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
   const floatingFilterT = useTranslations("floating-filter");
 
   const [isLoading, setLoading] = useState(true);
+  const [directing, setDirecting] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [mobileCalendarOpen1, setMobileCalendarOpen1] = useState(false);
+  const [mobileCalendarOpen, setMobileCalendarOpen] = useState(false);
   const [listingInfo, setListingInfo] = useState<FullListingType | undefined>();
   const [listingTranslations, setListingTranslations] = useState<
     TranslationResponse | undefined
@@ -164,6 +169,8 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
     CalendarType[] | undefined
   >(undefined);
 
+  const [filtersLoading, setFiltersLoading] = useState(true);
+
   useEffect(() => {
     if (!listingCalendar) {
       return;
@@ -206,6 +213,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
       infants,
       pets,
     });
+    setFiltersLoading(false);
   }, [searchParams, listingCalendar]);
 
   const [listingError, setListingError] = useState("");
@@ -328,7 +336,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
 
   const router = useRouter();
 
-  if (isLoading || !listingInfo) {
+  if (isLoading || !listingInfo || filtersLoading) {
     return (
       <div className="w-full max-w-7xl px-4 flex flex-col gap-6 mt-6">
         <div className="md:grid hidden grid-cols-4 w-full rounded-2xl overflow-hidden gap-2">
@@ -952,7 +960,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
             <Label className="w-full col-span-full sm:block hidden">
               {floatingFilterT("checkin")} - {floatingFilterT("checkout")}
             </Label>
-            <Popover>
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
                   id="date"
@@ -993,6 +1001,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 align="start"
               >
                 <Calendar
+                  showOutsideDays={false}
                   locale={localeMap[locale as keyof typeof localeMap]}
                   mode="range"
                   disabled={(date) => {
@@ -1018,6 +1027,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                   onSelect={(range) => {
                     if (range?.from && range?.to && range.to != range.from) {
                       setDate(range);
+                      setCalendarOpen(false);
                     } else {
                       if (range?.from) {
                         setDate((prev) => {
@@ -1027,6 +1037,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         setDate((prev) => {
                           return { from: prev?.from, to: range.from };
                         });
+                        setCalendarOpen(false);
                       }
                     }
                   }}
@@ -1037,7 +1048,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
             <Label className="w-full col-span-full block sm:hidden">
               {floatingFilterT("checkin")}
             </Label>
-            <Popover>
+            <Popover
+              onOpenChange={setMobileCalendarOpen1}
+              open={mobileCalendarOpen1}
+            >
               <PopoverTrigger asChild>
                 <Button
                   id="date"
@@ -1065,6 +1079,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 align="start"
               >
                 <Calendar
+                  showOutsideDays={false}
                   locale={localeMap[locale as keyof typeof localeMap]}
                   mode="single"
                   disabled={(date) => {
@@ -1091,6 +1106,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                     setDate((prev) => {
                       return { from: e, to: prev?.to };
                     });
+                    setMobileCalendarOpen1(false);
                   }}
                   numberOfMonths={1}
                 />
@@ -1099,7 +1115,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
             <Label className="w-full col-span-full block sm:hidden">
               {floatingFilterT("checkout")}
             </Label>
-            <Popover>
+            <Popover
+              open={mobileCalendarOpen}
+              onOpenChange={setMobileCalendarOpen}
+            >
               <PopoverTrigger asChild>
                 <Button
                   id="date"
@@ -1127,6 +1146,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 align="start"
               >
                 <Calendar
+                  showOutsideDays={false}
                   locale={localeMap[locale as keyof typeof localeMap]}
                   mode="single"
                   disabled={(date) => {
@@ -1153,6 +1173,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                     setDate((prev) => {
                       return { from: prev?.from, to: e };
                     });
+                    setMobileCalendarOpen(false);
                   }}
                   numberOfMonths={1}
                 />
@@ -1458,8 +1479,11 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                       </div>
                     </div>
                     <Button
+                      disabled={directing}
                       onClick={() => {
+                        setDirecting(true);
                         if (!date?.from || !date.to) {
+                          setDirecting(false);
                           return;
                         }
                         router.push(
@@ -1474,7 +1498,14 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         );
                       }}
                     >
-                      {roomInfoT("payment")}
+                      {directing ? (
+                        <>
+                          <Loader2 className="animate-spin" />
+                          {roomInfoT("payment")}
+                        </>
+                      ) : (
+                        <>{roomInfoT("payment")}</>
+                      )}
                     </Button>
                     <Button
                       onClick={() => {
