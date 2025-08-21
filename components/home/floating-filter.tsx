@@ -46,7 +46,6 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
   const [mobileCalendarOpen, setMobileCalendarOpen] = useState(false);
   const [mobileCalendarOpen1, setMobileCalendarOpen1] = useState(false);
   const [currentHref, updateHref] = useState("");
-
   useEffect(() => {
     const params = new URLSearchParams();
 
@@ -445,7 +444,9 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
         </PopoverContent>
       </Popover>
       <Button asChild className="md:col-span-1 sm:col-span-5 col-span-1">
-        <Link href={"/rooms" + currentHref}>{t("search")}</Link>
+        <Link href={"/rooms" + currentHref}>
+          <>{t("search")}</>
+        </Link>
       </Button>
     </Card>
   );

@@ -15,7 +15,7 @@ export async function getAdminOrder(orderId: string) {
         throw new Error("Unauthorized")
     }
     await connectDB();
-    const order = await OrderModel.findOne({ orderId });
+    const order = await OrderModel.findOne({ orderId }).lean();
     if (!order) {
         return undefined;
     }

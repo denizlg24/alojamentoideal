@@ -57,7 +57,6 @@ export const AccommodationMapHolder = () => {
               variant={"link"}
             >
               <Loader2 className="animate-spin z-95" />
-              Fetching houses...
             </Button>
           </div>
         )}

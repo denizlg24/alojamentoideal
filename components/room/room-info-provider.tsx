@@ -42,14 +42,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "../ui/carousel";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "../ui/drawer";
 import { RoomInfoMap } from "./room-info-map";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { DateRange } from "react-day-picker";
@@ -75,6 +67,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
   const roomInfoT = useTranslations("room-info");
   const floatingFilterT = useTranslations("floating-filter");
 
+  const [photoZoomOpen, setPhotoZoomOpen] = useState(false);
   const [isLoading, setLoading] = useState(true);
   const [directing, setDirecting] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -409,7 +402,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               alt="photo 0"
               width={1920}
               height={1080}
-              className="w-full h-full object-cover"
+              onClick={() => {
+                setPhotoZoomOpen(true);
+              }}
+              className="w-full h-full object-cover hover:cursor-zoom-in"
             />
           )}
         </div>
@@ -425,7 +421,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               alt="photo 1"
               width={1920}
               height={1080}
-              className="w-full h-auto aspect-[2/1.5] object-cover"
+              onClick={() => {
+                setPhotoZoomOpen(true);
+              }}
+              className="w-full h-auto aspect-[2/1.5] object-cover hover:cursor-zoom-in"
             />
           )}
           {listingInfo.photos[2] && (
@@ -439,7 +438,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               alt="photo 1"
               width={1920}
               height={1080}
-              className="w-full h-auto aspect-[2/1.5] object-cover"
+              onClick={() => {
+                setPhotoZoomOpen(true);
+              }}
+              className="w-full h-auto aspect-[2/1.5] object-cover hover:cursor-zoom-in"
             />
           )}
         </div>
@@ -455,7 +457,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               alt="photo 1"
               width={1920}
               height={1080}
-              className="w-full h-auto aspect-[2/1.5] object-cover"
+              onClick={() => {
+                setPhotoZoomOpen(true);
+              }}
+              className="w-full h-auto aspect-[2/1.5] object-cover hover:cursor-zoom-in"
             />
           )}
           {listingInfo.photos[4] && (
@@ -469,31 +474,34 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               alt="photo 1"
               width={1920}
               height={1080}
-              className="w-full h-auto aspect-[2/1.5] object-cover"
+              onClick={() => {
+                setPhotoZoomOpen(true);
+              }}
+              className="w-full h-auto aspect-[2/1.5] object-cover hover:cursor-zoom-in"
             />
           )}
           <div className="absolute z-10 right-0 bottom-0 w-full h-auto aspect-[2/1.5] bg-foreground/50 flex flex-col justify-end items-center pb-4">
-            <Drawer>
-              <DrawerTrigger asChild>
+            <Dialog open={photoZoomOpen} onOpenChange={setPhotoZoomOpen}>
+              <DialogTrigger asChild>
                 <Button
                   variant="outline"
                   className="rounded-full lg:text-sm text-xs hover:scale-[1.01] transition-transform"
                 >
                   {roomInfoT("show-photos")} ({listingInfo.photos.length})
                 </Button>
-              </DrawerTrigger>
-              <DrawerContent>
-                <DrawerHeader>
-                  <DrawerTitle>
+              </DialogTrigger>
+              <DialogContent className="max-w-[calc(100vw-32px)]! w-full!">
+                <DialogHeader className="items-center! text-center!">
+                  <DialogTitle className="items-center! text-center!">
                     {listingInfo.listing.name || listingInfo.listing.nickname}
-                  </DrawerTitle>
-                  <DrawerDescription>
+                  </DialogTitle>
+                  <DialogDescription className="items-center! text-center!">
                     {roomInfoT("photo-tour")}
-                  </DrawerDescription>
-                </DrawerHeader>
+                  </DialogDescription>
+                </DialogHeader>
                 {listingInfo.photos && (
-                  <Carousel className="w-full max-w-3xl px-12 mx-auto mb-12 rounded-2xl">
-                    <CarouselContent className="rounded-2xl">
+                  <Carousel className="w-full mx-auto rounded-2xl overflow-hidden">
+                    <CarouselContent className="rounded-2xl mx-auto">
                       {listingInfo.photos.map((photo, index) => (
                         <CarouselItem key={index}>
                           <Image
@@ -504,17 +512,17 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                             alt={"photo-" + index}
                             width={1920}
                             height={1080}
-                            className="w-full h-auto aspect-video object-cover rounded-2xl"
+                            className="h-full w-full object-contain rounded-2xl max-h-[80vh]"
                           />
                         </CarouselItem>
                       ))}
                     </CarouselContent>
-                    <CarouselPrevious className="left-2" />
-                    <CarouselNext className="right-2" />
+                    <CarouselPrevious className="left-0" />
+                    <CarouselNext className="right-0" />
                   </Carousel>
                 )}
-              </DrawerContent>
-            </Drawer>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>

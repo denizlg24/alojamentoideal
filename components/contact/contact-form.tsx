@@ -21,6 +21,7 @@ import { useState } from "react";
 import { sendMail } from "@/app/actions/sendMail";
 import { toast } from "sonner";
 import { getHtml } from "@/app/actions/getHtml";
+import { cn } from "@/lib/utils";
 
 export const ContactForm = () => {
   const t = useTranslations("contact");
@@ -140,7 +141,9 @@ export const ContactForm = () => {
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
+              <FormDescription
+                className={cn(field.value.length > 2048 && "text-destructive")}
+              >
                 {field.value.length}/2048 {t("chars-left")}
               </FormDescription>
               <FormMessage />
