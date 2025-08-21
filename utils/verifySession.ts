@@ -6,10 +6,10 @@ export async function verifySession() {
     const token = cookieStore.get('session_id')
     if (!token) return false;
 
-    const [payload, signature] = token.value.split('.');
+    const [random, payload, signature] = token.value.split('.');
     const expectedSig = crypto
         .createHmac('sha256', process.env.SESSION_SECRET!)
-        .update(payload)
+        .update(`${random}.${payload}`)
         .digest('hex');
 
     return crypto.timingSafeEqual(
