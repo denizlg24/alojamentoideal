@@ -13,13 +13,11 @@ export async function POST(req: Request) {
 
     let event: Stripe.Event;
     try {
-        if (!sig || !webhookSecret) return;
+        if (!sig || !webhookSecret) return new Response(`Webhook error.`, { status: 400 });;
         event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
     } catch {
         return new Response(`Webhook error.`, { status: 400 });
     }
-
-    console.log("GOT WEBHOOK EVENT: ", event.type);
 
     try {
         switch (event.type) {

@@ -1,4 +1,4 @@
-import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { Locale, NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -9,32 +9,45 @@ import { Footer } from "@/components/footer/footer";
 import { CartProvider } from "@/hooks/cart-context";
 import { Toaster } from "@/components/ui/sonner";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+
+  const t = await getTranslations({
+    locale: locale as Locale,
+    namespace: "metadata",
+  });
+  return {
+    title: t("not_found.title") || "Room Not Found | Alojamento Ideal",
+    description:
+      t("not_found.description") ||
+      "The room you’re looking for does not exist or is no longer available.",
+    robots: "noindex, nofollow",
+    openGraph: {
+      title: t("not_found.title") || "Page Not Found - Alojamento Ideal",
+      description:
+        t("not_found.description") ||
+        "Sorry, we couldn’t find the accommodation you’re looking for.",
+      url: "https://alojamentoideal.com/rooms/not-found",
+      type: "website",
+    },
+    twitter: {
+      card: "summary",
+      title: t("not_found.title") || "Room Not Found - Alojamento Ideal",
+      description:
+        t("not_found.description") ||
+        "This room is no longer available or may have been removed.",
+    },
+  };
+}
+
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
-export async function generateMetadata() {
-  const t = await getTranslations("metadata");
-
-  return {
-    title: t("home.title"),
-    description: t("home.description"),
-    keywords: t("home.keywords")
-      .split(",")
-      .map((k) => k.trim()),
-    openGraph: {
-      title: t("home.title"),
-      description: t("home.description"),
-      url: "https://alojamentoideal.com",
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: t("home.title"),
-      description: t("home.description"),
-    },
-  };
-}
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",

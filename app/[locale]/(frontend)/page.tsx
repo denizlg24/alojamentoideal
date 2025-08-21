@@ -1,4 +1,4 @@
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense, use } from "react";
 import { FloatingFilter } from "@/components/home/floating-filter";
 import { AccommodationMapHolder } from "@/components/home/accommodation-map-holder";
@@ -6,6 +6,30 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { VideoHolder } from "@/components/home/video-holder";
 import { OrderSearch } from "@/components/home/order-search";
 import { useTranslations } from "next-intl";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("home.title"),
+    description: t("home.description"),
+    keywords: t("home.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("home.title"),
+      description: t("home.description"),
+      url: "https://alojamentoideal.com",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("home.title"),
+      description: t("home.description"),
+    },
+  };
+}
+
 export default function Home({
   params,
 }: {
