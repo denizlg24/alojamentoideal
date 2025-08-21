@@ -1,4 +1,4 @@
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { RoomCheckoutProvider } from "@/components/room/checkout/room-checkout-provider";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { CalendarType } from "@/schemas/calendar.schema";
@@ -6,6 +6,37 @@ import { eachDayOfInterval, format } from "date-fns";
 import { FullListingType } from "@/schemas/full-listings.schema";
 import { PriceType } from "@/schemas/price.schema";
 import { redirect } from "@/i18n/navigation";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+  return {
+    title:
+      t("checkout.title") ||
+      "Checkout - Confirm Your Booking | Alojamento Ideal",
+    description:
+      t("checkout.description") ||
+      "Review and confirm your selected accommodations before completing your reservation.",
+    keywords: t("room_detail.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    robots: "index, follow",
+    openGraph: {
+      title: t("checkout.title") || "Checkout - Alojamento Ideal",
+      description:
+        t("checkout.description") ||
+        "Finalize your accommodation booking securely and quickly.",
+      url: "https://alojamentoideal.com/checkout",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("checkout.title") || "Checkout - Alojamento Ideal",
+      description:
+        t("checkout.description") ||
+        "Securely confirm your accommodation selection before completing your purchase.",
+    },
+  };
+}
 
 export default async function Page({
   params,
