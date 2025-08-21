@@ -281,7 +281,7 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
               ? t("loading")
               : loading
               ? t(loadingMessage)
-              : `Pay ${_amount / 100}€`}
+              : t("pay", { amount: _amount / 100 })}
             {loading && <Loader2 className="animate-spin" />}
           </Button>
           {error.includes("_")

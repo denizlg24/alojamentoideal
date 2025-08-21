@@ -5,6 +5,11 @@
       "description": "Descubre y reserva los mejores alojamientos para tu viaje. Comodidad, conveniencia y confianza en un solo lugar.",
       "keywords": "alojamientos,hoteles,reservas,viajes,estancias en Portugal,alojamiento ideal"
     },
+    "about": {
+      "title": "Sobre Nosotros | Alojamento Ideal",
+      "description": "Descubra Alojamento Ideal – apartamentos modernos y acogedores en Oporto, Póvoa de Varzim, Leça da Palmeira y Canidelo. Viva el auténtico encanto del norte de Portugal con comodidad, estilo y hospitalidad local.",
+      "keywords": "Alojamento Ideal, sobre nosotros, apartamentos en Oporto, estancias en Póvoa de Varzim, alquileres en Leça da Palmeira, apartamentos en Canidelo, estancias en el norte de Portugal, guest house Portugal, apartamentos acogedores Portugal"
+    },
     "checkout": {
       "title": "Finalizar reserva - Confirma tu alojamiento | Alojamento Ideal",
       "description": "Revisa y confirma los alojamientos seleccionados antes de completar tu reserva.",
@@ -264,6 +269,7 @@
     "infant_suffix": ", {count} bebés"
   },
   "checkout_form": {
+    "pay": "Pagar {amount}€",
     "name": "Nombre",
     "name_placeholder": "Juan",
     "email": "Correo electrónico",
@@ -871,6 +877,7 @@
     "your-message": "Su mensaje",
     "we-got-your-message-title": "¡{name}, hemos recibido tu mensaje!",
     "intro": "Hola, {name}",
+    "read-more": "Leer más",
     "we-got-your-message-desc": "Gracias por contactarnos. Su mensaje ha sido recibido y será respondido en breve. Los detalles de su mensaje se muestran a continuación."
   },
   "cancellation": {
@@ -974,5 +981,22 @@
   },
   "admin-inbox": {
     "inbox": "Bandeja de entrada"
+  },
+  "about": {
+    "about-title": "¡Bienvenido a Alojamento Ideal!",
+    "about-desc": "Alojamento Ideal es una colección de apartamentos acogedores y cuidadosamente diseñados a lo largo de la Costa Norte de Portugal. Desde las vibrantes calles de Oporto hasta el encanto costero de Póvoa de Varzim, Leça da Palmeira y Canidelo, creamos estancias que se sienten como en casa: cómodas, modernas y con el auténtico encanto local.",
+    "who-are-we": "¿Quiénes somos?",
+    "our-story": "Nuestra historia.",
+    "story-desc": "Fundado con pasión por la hospitalidad y la vida local auténtica, Alojamento Ideal nació para conectar a los viajeros con lo mejor del norte de Portugal. Creemos en ofrecer más que un simple lugar para dormir: brindamos espacios acogedores donde el confort se une con la cultura y cada huésped se siente como en casa.",
+    "where-are-we": "¿Dónde estamos?",
+    "where-desc": "Ya sea explorando la rica historia de Oporto, relajándose en las playas de Póvoa de Varzim, disfrutando de la brisa marina en Leça da Palmeira o descubriendo el encanto de Canidelo, tenemos una estancia que se adapta a su viaje.",
+    "why-stay": "¿Por qué alojarse en Alojamento Ideal?",
+    "why-stay-l1": "Ubicaciones céntricas y convenientes en el norte de Portugal",
+    "why-stay-l2": "Apartamentos elegantes, modernos y totalmente equipados",
+    "why-stay-l3": "Espacios limpios y acogedores, pensados para el descanso",
+    "why-stay-l4": "Hospitalidad centrada en el huésped y atención personalizada",
+    "ready-part-1": "¿Listo para descubrir Portugal con nosotros?",
+    "ready-part-2": "Explore nuestros apartamentos y reserve su estancia hoy mismo.",
+    "find-your-stay": "¡Encuentre su estancia ahora!"
   }
 }

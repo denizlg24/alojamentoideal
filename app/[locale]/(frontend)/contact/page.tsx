@@ -1,9 +1,9 @@
 import { ContactForm } from "@/components/contact/contact-form";
 import { ContactSearchBar } from "@/components/contact/contact-search-bar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
+import { PopularArticles } from "./popular-articles";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -44,19 +44,17 @@ export default function Home({
           {t("how-can-we-help")}
         </h1>
         <div className="w-full mx-auto max-w-3xl">
-          <ContactSearchBar placeholder={t("search-bar-placeholder")} />
+          <ContactSearchBar
+            placeholder={t("search-bar-placeholder")}
+            readMore={t("read-more")}
+          />
         </div>
         <div className="flex flex-col gap-2 w-full items-start">
           <h2 className="lg:text-2xl md:text-xl text-lg font-semibold">
             {t("popular-articles")}
           </h2>
-          <div className="w-full grid lg:grid-cols-6 md:grid-cols-5 sm:grid-cols-4 grid-cols-3 sm:gap-4 gap-2">
-            <Skeleton className="w-full col-span-1 h-auto aspect-square" />
-            <Skeleton className="w-full col-span-1 h-auto aspect-square" />
-            <Skeleton className="w-full col-span-1 h-auto aspect-square" />
-            <Skeleton className="w-full col-span-1 h-auto aspect-square" />
-            <Skeleton className="w-full col-span-1 h-auto aspect-square" />
-            <Skeleton className="w-full col-span-1 h-auto aspect-square" />
+          <div className="w-full grid lg:grid-cols-4 sm:grid-cols-3 grid-cols-2 sm:gap-4 gap-2">
+            <PopularArticles />
           </div>
         </div>
         <div className="flex flex-col gap-1 w-full items-start">
