@@ -7,12 +7,23 @@ export async function fetchClientSecret(amount: number, client_name: string, cli
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
     }
+    const customer = await stripe.customers.create({
+        name: client_name,
+        email: client_email,
+        phone: client_phone_number
+    });
     const commaSeparatedReservationIds = reservationIds.join(",");
     try {
         const paymentIntent = await stripe.paymentIntents.create({
             amount,
             currency: "eur",
+            automatic_payment_methods: {
+                enabled: true,
+            },
+            statement_descriptor: "WWW.ALOJAMENTOIDEAL.PT",
             receipt_email: client_email,
+            customer: customer.id,
+            description: `${client_name} - ${commaSeparatedReservationIds} - accommodation`,
             metadata: {
                 client_name,
                 client_email,
