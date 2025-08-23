@@ -22,7 +22,7 @@ export async function fetchClientSecret(amount: number, client_name: string, cli
             automatic_payment_methods: {
                 enabled: true,
             },
-            statement_descriptor: "WWW.ALOJAMENTOIDEAL.PT",
+            statement_descriptor_suffix: "WWW.ALOJAMENTOIDEAL.PT",
             receipt_email: client_email,
             customer: customer.id,
             description: `${client_name} - ${commaSeparatedReservationIds} - accommodation`,
