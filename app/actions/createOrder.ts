@@ -86,7 +86,7 @@ export async function registerOrder(data: RegisterOrderInput) {
                     (new Date(i.end_date!).getTime() -
                         new Date(i.start_date!).getTime()) /
                     (1000 * 60 * 60 * 24);
-                const productHtml = await getHtml('/lib/emails/order-product.html', [{ '{{product_name}}': i.name }, {
+                const productHtml = await getHtml('public/emails/order-product.html', [{ '{{product_name}}': i.name }, {
                     '{{product_description}}': t("nights", {
                         count:
                             nights,
@@ -102,7 +102,7 @@ export async function registerOrder(data: RegisterOrderInput) {
             }
 
         }
-        const orderHtml = await getHtml('/lib/emails/order-confirmed-email.html',
+        const orderHtml = await getHtml('public/emails/order-confirmed-email.html',
             [{ "{{products_html}}": products_html },
             { "{{your-order-is-in}}": t('your-order-is-in') },
             { "{{view-your-order}}": t('view-your-order') },
