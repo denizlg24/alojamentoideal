@@ -51,7 +51,7 @@ export const ContactForm = () => {
   });
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setSending(true);
-    const html = await getHtml("public/emails/new-contact-email.html", [
+    const html = await getHtml("emails/new-contact-email.html", [
       { "{{full_name}}": values.name },
       { "{{date}}": new Date().toLocaleDateString() },
       { "{{email}}": values.email },
@@ -64,16 +64,13 @@ export const ContactForm = () => {
       subject: "Novo contacto - alojamentoideal.pt",
     });
 
-    const copyHtml = await getHtml(
-      "public/emails/new-contact-copy-email.html",
-      [
-        { "{{title}}": t("we-got-your-message-title", { name: values.name }) },
-        { "{{intro}}": t("intro", { name: values.name }) },
-        { "{{subject-title}}": t("subject") },
-        { "{{subject}}": values.subject },
-        { "{{we-got-your-message-desc}}": t("we-got-your-message-desc") },
-      ]
-    );
+    const copyHtml = await getHtml("emails/new-contact-copy-email.html", [
+      { "{{title}}": t("we-got-your-message-title", { name: values.name }) },
+      { "{{intro}}": t("intro", { name: values.name }) },
+      { "{{subject-title}}": t("subject") },
+      { "{{subject}}": values.subject },
+      { "{{we-got-your-message-desc}}": t("we-got-your-message-desc") },
+    ]);
 
     await sendMail({
       email: values.email,

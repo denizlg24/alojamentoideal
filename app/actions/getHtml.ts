@@ -1,9 +1,12 @@
 "use server"
 
-import { readFileSync } from "fs";
-
 export async function getHtml(url: string, replace: Record<string, string>[]) {
-    let html = readFileSync(url, "utf8");
+    const res = await fetch(`${process.env.SITE_URL || ""}/${url}`);
+    if (!res.ok) {
+        throw new Error(`Failed to load HTML template: ${url}`);
+    }
+
+    let html = await res.text();
     for (const map of replace) {
         for (const [key, value] of Object.entries(map)) {
             const regex = new RegExp(key, "g");
