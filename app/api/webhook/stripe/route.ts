@@ -27,31 +27,34 @@ export async function POST(req: Request) {
                 const payment_id = event.data.object.id;
                 const foundOrder = await OrderModel.findOne({ payment_id });
                 if (foundOrder) {
-                    for (const transactionId of foundOrder.transaction_id) {
-                        await hostifyRequest<{ success: boolean }>(
-                            `transactions/${transactionId}`,
-                            "PUT",
-                            undefined,
-                            {
-                                arrival_date: format(new Date(), "yyyy-MM-dd"),
-                                is_completed: 1,
-                                details: `Stripe completed payment_id: ${payment_id}`
-                            },
-                            undefined,
-                            undefined
-                        );
-                    }
-                    for (const reservationId of foundOrder.reservationIds) {
-                        await hostifyRequest<{ success: boolean }>(
-                            `reservations/${reservationId}`,
-                            "PUT",
-                            undefined,
-                            {
-                                status: "accepted",
-                            },
-                            undefined,
-                            undefined
-                        );
+                    for (let index = 0; index < foundOrder.reservationIds.length; index++) {
+                        const reservation_id = foundOrder.reservationIds[index];
+                        const transaction_id = foundOrder.transaction_id[index];
+
+                        const [reservation_request, transaction_request] = await Promise.all([
+                            hostifyRequest<{ success: boolean }>(
+                                `reservations/${reservation_id}`,
+                                "PUT",
+                                undefined,
+                                {
+                                    status: "accepted",
+                                },
+                                undefined,
+                                undefined
+                            ), hostifyRequest<{ success: boolean }>(
+                                `transactions/${transaction_id}`,
+                                "PUT",
+                                undefined,
+                                {
+                                    arrival_date: format(new Date(), "yyyy-MM-dd"),
+                                    is_completed: 1,
+                                    details: `Stripe completed payment_id: ${payment_id}`
+                                },
+                                undefined,
+                                undefined
+                            )
+                        ])
+                        console.log("reservation update: ", reservation_request, " transaction_update", transaction_request);
                     }
                 }
                 break;
