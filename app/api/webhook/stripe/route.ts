@@ -23,7 +23,7 @@ export async function POST(req: Request) {
         switch (event.type) {
             case 'payment_intent.succeeded':
                 const payment_id = event.data.object.id;
-                const foundOrder = await OrderModel.findOne({ payment_id });
+                const foundOrder = await OrderModel.findOne({ payment_id }).maxTimeMS(25000);
                 if (foundOrder) {
                     for (const transactionId of foundOrder.transaction_id) {
                         await hostifyRequest<{ success: boolean }>(

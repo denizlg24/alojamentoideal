@@ -69,15 +69,15 @@ const ItemSchema = new mongoose.Schema<CartItem>(
 
 const OrderSchema = new mongoose.Schema<OrderDocument>(
     {
-        orderId: { type: String, required: true },
+        orderId: { type: String, required: true, unique: true },
         name: { type: String, required: true },
         email: { type: String, required: true },
         phoneNumber: { type: String, required: true },
         notes: { type: String },
-        reservationIds: [{ type: String }],
-        reservationReferences: [{ type: String }],
+        reservationIds: [{ type: String, index: true }],
+        reservationReferences: [{ type: String, index: true }],
         items: [ItemSchema],
-        payment_id: { type: String },
+        payment_id: { type: String, index: true },
         transaction_id: [{ type: String }]
     },
     { timestamps: true }
