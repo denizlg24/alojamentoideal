@@ -15,26 +15,20 @@ import { Calendar } from "../ui/calendar";
 import { DateRange } from "react-day-picker";
 import { useEffect, useState } from "react";
 import { format, isValid, parseISO } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, localeMap } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "../ui/hover-card";
-
-import { pt, enUS, es } from "date-fns/locale";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const FloatingFilter = ({ className }: { className?: string }) => {
   const locale = useLocale();
-
-  const localeMap = {
-    en: enUS,
-    pt: pt,
-    es: es,
-  };
+  const isMobile = useIsMobile();
   const t = useTranslations("floating-filter");
   const [date, setDate] = useState<DateRange | undefined>({
     from: undefined,
@@ -48,8 +42,10 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
     pets: number;
   }>({ adults: 1, children: 0, infants: 0, pets: 0 });
 
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [mobileCalendarOpen, setMobileCalendarOpen] = useState(false);
+  const [mobileCalendarOpen1, setMobileCalendarOpen1] = useState(false);
   const [currentHref, updateHref] = useState("");
-
   useEffect(() => {
     const params = new URLSearchParams();
 
@@ -101,7 +97,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
         className
       )}
     >
-      <Popover>
+      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
@@ -115,10 +111,18 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, "LLL dd")} - {format(date.to, "LLL dd")}
+                  {format(date.from, "LLL dd", {
+                    locale: localeMap[locale as keyof typeof localeMap],
+                  })}{" "}
+                  -{" "}
+                  {format(date.to, "LLL dd", {
+                    locale: localeMap[locale as keyof typeof localeMap],
+                  })}
                 </>
               ) : (
-                format(date.from, "LLL dd")
+                format(date.from, "LLL dd", {
+                  locale: localeMap[locale as keyof typeof localeMap],
+                })
               )
             ) : (
               <span>
@@ -135,6 +139,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
           <Calendar
             locale={localeMap[locale as keyof typeof localeMap]}
             mode="range"
+            showOutsideDays={false}
             disabled={(date) => date < new Date(new Date().toDateString())}
             today={undefined}
             defaultMonth={date?.from}
@@ -142,6 +147,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
             onSelect={(range) => {
               if (range?.from && range?.to && range.to != range.from) {
                 setDate(range);
+                setCalendarOpen(false);
               } else {
                 if (range?.from) {
                   setDate((prev) => {
@@ -151,6 +157,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
                   setDate((prev) => {
                     return { from: prev?.from, to: range.from };
                   });
+                  setCalendarOpen(false);
                 }
               }
             }}
@@ -164,11 +171,11 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
             variant="ghost"
           >
             <X className="text-foreground" />
-            Clear
+            {t("clear")}
           </Button>
         </PopoverContent>
       </Popover>
-      <Popover>
+      <Popover onOpenChange={setMobileCalendarOpen} open={mobileCalendarOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
@@ -180,7 +187,11 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {date?.from ? (
-              <>{format(date.from, "LLL dd")}</>
+              <>
+                {format(date.from, "LLL dd", {
+                  locale: localeMap[locale as keyof typeof localeMap],
+                })}
+              </>
             ) : (
               <span>{t("checkin")}</span>
             )}
@@ -192,6 +203,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
           align="start"
         >
           <Calendar
+            showOutsideDays={false}
             locale={localeMap[locale as keyof typeof localeMap]}
             mode="single"
             disabled={(date) => date < new Date(new Date().toDateString())}
@@ -202,12 +214,13 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
               setDate((prev) => {
                 return { from: e, to: prev?.to };
               });
+              setMobileCalendarOpen(false);
             }}
             numberOfMonths={1}
           />
         </PopoverContent>
       </Popover>
-      <Popover>
+      <Popover open={mobileCalendarOpen1} onOpenChange={setMobileCalendarOpen1}>
         <PopoverTrigger asChild>
           <Button
             id="date"
@@ -219,7 +232,11 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {date?.to ? (
-              <>{format(date.to, "LLL dd")}</>
+              <>
+                {format(date.to, "LLL dd", {
+                  locale: localeMap[locale as keyof typeof localeMap],
+                })}
+              </>
             ) : (
               <span>{t("checkout")}</span>
             )}
@@ -231,6 +248,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
           align="start"
         >
           <Calendar
+            showOutsideDays={false}
             locale={localeMap[locale as keyof typeof localeMap]}
             mode="single"
             disabled={(date) => date < new Date(new Date().toDateString())}
@@ -241,6 +259,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
               setDate((prev) => {
                 return { from: prev?.from, to: e };
               });
+              setMobileCalendarOpen1(false);
             }}
             numberOfMonths={1}
           />
@@ -372,14 +391,25 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
           <div className="grid grid-cols-5 w-full items-center">
             <div className="flex flex-row items-center justify-start gap-1 col-span-2">
               <p className="text-sm">{t("pets")}</p>
-              <HoverCard>
-                <HoverCardTrigger>
-                  <CircleAlert className=" w-4 h-4" />
-                </HoverCardTrigger>
-                <HoverCardContent className="z-99 text-sm p-2 w-fit">
-                  {t("pets-warning")}
-                </HoverCardContent>
-              </HoverCard>
+              {isMobile ? (
+                <Popover>
+                  <PopoverTrigger>
+                    <CircleAlert className=" w-4 h-4" />
+                  </PopoverTrigger>
+                  <PopoverContent className="z-99 text-sm p-2 w-fit">
+                    {t("pets-warning")}
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <HoverCard>
+                  <HoverCardTrigger>
+                    <CircleAlert className=" w-4 h-4" />
+                  </HoverCardTrigger>
+                  <HoverCardContent className="z-99 text-sm p-2 w-fit">
+                    {t("pets-warning")}
+                  </HoverCardContent>
+                </HoverCard>
+              )}
             </div>
             <div className="w-full flex flex-row justify-between items-center col-span-3">
               <Button
@@ -414,7 +444,9 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
         </PopoverContent>
       </Popover>
       <Button asChild className="md:col-span-1 sm:col-span-5 col-span-1">
-        <Link href={"/rooms" + currentHref}>{t("search")}</Link>
+        <Link href={"/rooms" + currentHref}>
+          <>{t("search")}</>
+        </Link>
       </Button>
     </Card>
   );

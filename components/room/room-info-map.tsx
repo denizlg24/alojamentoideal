@@ -40,8 +40,12 @@ export const RoomInfoMap = ({
         <AdvancedMarker key={lat} position={{ lat: lat, lng: long }}>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="default" className="aspect-square">
+              <Button
+                variant="default"
+                className="rounded-full p-1.5! h-fit! relative"
+              >
                 <MapPinHouse />
+                <div className="absolute w-4 h-4 bg-primary bottom-0 rotate-45 -z-10"></div>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full max-w-[300px] p-2 flex flex-col gap-1 z-99">

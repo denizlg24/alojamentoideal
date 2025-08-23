@@ -1,9 +1,14 @@
-import { Link } from "@/i18n/navigation";
+"use client";
+import { Link, usePathname } from "@/i18n/navigation";
 import { Separator } from "@radix-ui/react-separator";
 import { useTranslations } from "next-intl";
 
 export const Footer = () => {
   const t = useTranslations("header");
+  const pathname = usePathname();
+  if (pathname.startsWith("/admin/dashboard")) {
+    return null;
+  }
   return (
     <footer className="bg-accent p-4 sm:py-12 py-6 w-full flex flex-col items-center mt-auto">
       <div className="w-full sm:grid sm:gap-4 flex flex-col grid-cols-3 max-w-7xl mx-auto">
@@ -37,9 +42,7 @@ export const Footer = () => {
       <div className="w-full max-w-7xl text-sm flex sm:flex-row flex-col gap-2 sm:items-center">
         <p>&copy; {new Date().getFullYear()} Alojamento Ideal</p>
         <div className="w-[2px] h-[2px] bg-accent-foreground rounded-full sm:block hidden"></div>
-        <Link href={""}>{t("terms")}</Link>
-        <div className="w-[2px] h-[2px] bg-accent-foreground rounded-full sm:block hidden"></div>
-        <Link href={""}>{t("privacy")}</Link>
+        <Link href={"/privacy"}>{t("privacy")}</Link>
       </div>
     </footer>
   );

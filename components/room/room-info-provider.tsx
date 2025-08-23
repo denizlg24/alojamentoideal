@@ -13,13 +13,14 @@ import {
   CircleMinus,
   CirclePlus,
   DoorOpen,
+  Loader2,
   Loader2Icon,
   NotepadText,
   Star,
   User,
   X,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, localeMap } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   listingTypeMap,
@@ -32,7 +33,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import { Card } from "../ui/card";
 import { Separator } from "../ui/separator";
-import { Amenitie } from "../ui/amenitie";
+import { Amenitie, amenityIconMap } from "../ui/amenitie";
 import { ReviewCard } from "../ui/review-card";
 import {
   Carousel,
@@ -41,31 +42,37 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "../ui/carousel";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "../ui/drawer";
 import { RoomInfoMap } from "./room-info-map";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { enUS, es, pt } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
-import { format, isValid, parseISO } from "date-fns";
+import { eachDayOfInterval, format, isValid, parseISO } from "date-fns";
 import { Calendar } from "../ui/calendar";
 import { CalendarType } from "@/schemas/calendar.schema";
 import { Label } from "../ui/label";
 import { PriceType } from "@/schemas/price.schema";
 import { useSearchParams } from "next/navigation";
+import { AccommodationItem, useCart } from "@/hooks/cart-context";
+import { useRouter } from "@/i18n/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 export const RoomInfoProvider = ({ id }: { id: string }) => {
   const locale = useLocale();
 
   const roomInfoT = useTranslations("room-info");
   const floatingFilterT = useTranslations("floating-filter");
 
+  const [photoZoomOpen, setPhotoZoomOpen] = useState(false);
   const [isLoading, setLoading] = useState(true);
+  const [directing, setDirecting] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [mobileCalendarOpen1, setMobileCalendarOpen1] = useState(false);
+  const [mobileCalendarOpen, setMobileCalendarOpen] = useState(false);
   const [listingInfo, setListingInfo] = useState<FullListingType | undefined>();
   const [listingTranslations, setListingTranslations] = useState<
     TranslationResponse | undefined
@@ -91,8 +98,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
         undefined
       );
       setListingInfo(info);
-    } catch (error) {
-      console.log(error);
+    } catch {
       setListingInfo(undefined);
     } finally {
       setLoading(false);
@@ -110,8 +116,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
         undefined
       );
       setListingTranslations(translations);
-    } catch (error) {
-      console.log(error);
+    } catch {
       setListingTranslations(undefined);
     } finally {
       setTranslationsLoading(false);
@@ -132,20 +137,13 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
         { page: 1, perPage: 365 }
       );
       updateListingCalendar(calendar.calendar);
-      console.log(calendar);
-    } catch (error) {
-      console.log(error);
+    } catch {
       updateListingCalendar(undefined);
     } finally {
       setLoading(false);
     }
   };
 
-  const localeMap = {
-    en: enUS,
-    pt: pt,
-    es: es,
-  };
   const [date, setDate] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
@@ -160,7 +158,16 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
 
   const searchParams = useSearchParams();
 
+  const [listingCalendar, updateListingCalendar] = useState<
+    CalendarType[] | undefined
+  >(undefined);
+
+  const [filtersLoading, setFiltersLoading] = useState(true);
+
   useEffect(() => {
+    if (!listingCalendar) {
+      return;
+    }
     const fromParam = searchParams.get("from");
     const toParam = searchParams.get("to");
 
@@ -168,10 +175,24 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
     const newTo = toParam ? parseISO(toParam) : undefined;
 
     if (newFrom && isValid(newFrom) && newTo && isValid(newTo)) {
-      setDate({
-        to: newTo,
-        from: newFrom,
-      });
+      const dateRange = eachDayOfInterval({ start: newFrom, end: newTo }).map(
+        (date) => date.toISOString().split("T")[0]
+      );
+
+      const isRangeBooked = dateRange.some((date) =>
+        listingCalendar.some(
+          (entry) =>
+            entry.date === date &&
+            (entry.status === "booked" || entry.status === "unavailable")
+        )
+      );
+
+      if (!isRangeBooked) {
+        setDate({
+          to: newTo,
+          from: newFrom,
+        });
+      }
     }
 
     const adults = parseInt(searchParams.get("adults") || "1", 10);
@@ -185,11 +206,8 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
       infants,
       pets,
     });
-  }, [searchParams]);
-
-  const [listingCalendar, updateListingCalendar] = useState<
-    CalendarType[] | undefined
-  >(undefined);
+    setFiltersLoading(false);
+  }, [searchParams, listingCalendar]);
 
   const [listingError, setListingError] = useState("");
   const [priceLoading, setPriceLoading] = useState(false);
@@ -278,8 +296,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
       });
       price.price.total -= overchargeToDeduct;
       updateStayPrice(price.price);
-    } catch (error) {
-      console.log(error);
+    } catch {
       updateStayPrice(undefined);
     } finally {
       setPriceLoading(false);
@@ -307,7 +324,12 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date, guests, listingInfo?.listing.min_nights]);
 
-  if (isLoading || !listingInfo) {
+  const { addItem } = useCart();
+  const [added, setAdded] = useState(false);
+
+  const router = useRouter();
+
+  if (isLoading || !listingInfo || filtersLoading) {
     return (
       <div className="w-full max-w-7xl px-4 flex flex-col gap-6 mt-6">
         <div className="md:grid hidden grid-cols-4 w-full rounded-2xl overflow-hidden gap-2">
@@ -380,7 +402,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               alt="photo 0"
               width={1920}
               height={1080}
-              className="w-full h-full object-cover"
+              onClick={() => {
+                setPhotoZoomOpen(true);
+              }}
+              className="w-full h-full object-cover hover:cursor-zoom-in"
             />
           )}
         </div>
@@ -396,7 +421,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               alt="photo 1"
               width={1920}
               height={1080}
-              className="w-full h-auto aspect-[2/1.5] object-cover"
+              onClick={() => {
+                setPhotoZoomOpen(true);
+              }}
+              className="w-full h-auto aspect-[2/1.5] object-cover hover:cursor-zoom-in"
             />
           )}
           {listingInfo.photos[2] && (
@@ -410,7 +438,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               alt="photo 1"
               width={1920}
               height={1080}
-              className="w-full h-auto aspect-[2/1.5] object-cover"
+              onClick={() => {
+                setPhotoZoomOpen(true);
+              }}
+              className="w-full h-auto aspect-[2/1.5] object-cover hover:cursor-zoom-in"
             />
           )}
         </div>
@@ -426,7 +457,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               alt="photo 1"
               width={1920}
               height={1080}
-              className="w-full h-auto aspect-[2/1.5] object-cover"
+              onClick={() => {
+                setPhotoZoomOpen(true);
+              }}
+              className="w-full h-auto aspect-[2/1.5] object-cover hover:cursor-zoom-in"
             />
           )}
           {listingInfo.photos[4] && (
@@ -440,31 +474,34 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               alt="photo 1"
               width={1920}
               height={1080}
-              className="w-full h-auto aspect-[2/1.5] object-cover"
+              onClick={() => {
+                setPhotoZoomOpen(true);
+              }}
+              className="w-full h-auto aspect-[2/1.5] object-cover hover:cursor-zoom-in"
             />
           )}
           <div className="absolute z-10 right-0 bottom-0 w-full h-auto aspect-[2/1.5] bg-foreground/50 flex flex-col justify-end items-center pb-4">
-            <Drawer>
-              <DrawerTrigger asChild>
+            <Dialog open={photoZoomOpen} onOpenChange={setPhotoZoomOpen}>
+              <DialogTrigger asChild>
                 <Button
                   variant="outline"
                   className="rounded-full lg:text-sm text-xs hover:scale-[1.01] transition-transform"
                 >
                   {roomInfoT("show-photos")} ({listingInfo.photos.length})
                 </Button>
-              </DrawerTrigger>
-              <DrawerContent>
-                <DrawerHeader>
-                  <DrawerTitle>
+              </DialogTrigger>
+              <DialogContent className="max-w-[calc(100vw-32px)]! w-full!">
+                <DialogHeader className="items-center! text-center!">
+                  <DialogTitle className="items-center! text-center!">
                     {listingInfo.listing.name || listingInfo.listing.nickname}
-                  </DrawerTitle>
-                  <DrawerDescription>
+                  </DialogTitle>
+                  <DialogDescription className="items-center! text-center!">
                     {roomInfoT("photo-tour")}
-                  </DrawerDescription>
-                </DrawerHeader>
+                  </DialogDescription>
+                </DialogHeader>
                 {listingInfo.photos && (
-                  <Carousel className="w-full max-w-3xl px-12 mx-auto mb-12 rounded-2xl">
-                    <CarouselContent className="rounded-2xl">
+                  <Carousel className="w-full mx-auto rounded-2xl overflow-hidden">
+                    <CarouselContent className="rounded-2xl mx-auto">
                       {listingInfo.photos.map((photo, index) => (
                         <CarouselItem key={index}>
                           <Image
@@ -475,17 +512,17 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                             alt={"photo-" + index}
                             width={1920}
                             height={1080}
-                            className="w-full h-auto aspect-video object-cover rounded-2xl"
+                            className="h-full w-full object-contain rounded-2xl max-h-[80vh]"
                           />
                         </CarouselItem>
                       ))}
                     </CarouselContent>
-                    <CarouselPrevious className="left-2" />
-                    <CarouselNext className="right-2" />
+                    <CarouselPrevious className="left-0" />
+                    <CarouselNext className="right-0" />
                   </Carousel>
                 )}
-              </DrawerContent>
-            </Drawer>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
@@ -810,15 +847,85 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         listingTranslated?.notes) && (
                         <Separator className="w-full" />
                       )}
-                      <div className="w-full grid xl:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-2">
+                      <div className="w-full grid sm:grid-cols-2 grid-cols-1 gap-2">
                         <p className="text-xl font-semibold mb-2 col-span-full">
                           {roomInfoT("amenities")}
                         </p>
-                        {listingInfo.amenities.map((amenities) => {
-                          return (
-                            <Amenitie key={amenities.id} amenitie={amenities} />
-                          );
-                        })}
+                        {listingInfo.amenities
+                          .sort((a, b) => {
+                            const aHas = amenityIconMap[a.name.toLowerCase()];
+                            const bHas = amenityIconMap[b.name.toLowerCase()];
+                            if ((bHas && aHas) || (!bHas && !aHas)) {
+                              return 0;
+                            }
+                            if (aHas && !bHas) {
+                              return -1;
+                            } else {
+                              return 1;
+                            }
+                          })
+                          .map((amenities, indx) => {
+                            if (indx > 9) {
+                              return null;
+                            }
+                            return (
+                              <Amenitie
+                                key={amenities.id}
+                                amenitie={amenities}
+                              />
+                            );
+                          })}
+                        {listingInfo.amenities.length > 10 && (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant={"secondary"}
+                                className="sm:w-fit! sm:mr-auto"
+                              >
+                                {roomInfoT("show-all-amenities", {
+                                  count: listingInfo.amenities.length,
+                                })}
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>
+                                  <p className="text-xl font-semibold mb-2 col-span-full">
+                                    {roomInfoT("amenities")}
+                                  </p>
+                                </DialogTitle>
+                                <DialogDescription className="hidden">
+                                  {roomInfoT("amenities")}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="w-full grid sm:grid-cols-2 grid-cols-1 gap-2 h-full overflow-y-auto max-h-[500px]">
+                                {listingInfo.amenities
+                                  .sort((a, b) => {
+                                    const aHas =
+                                      amenityIconMap[a.name.toLowerCase()];
+                                    const bHas =
+                                      amenityIconMap[b.name.toLowerCase()];
+                                    if ((bHas && aHas) || (!bHas && !aHas)) {
+                                      return 0;
+                                    }
+                                    if (aHas && !bHas) {
+                                      return -1;
+                                    } else {
+                                      return 1;
+                                    }
+                                  })
+                                  .map((amenities) => {
+                                    return (
+                                      <Amenitie
+                                        key={amenities.id}
+                                        amenitie={amenities}
+                                      />
+                                    );
+                                  })}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        )}
                       </div>
                       <div className="w-full flex flex-col gap-4">
                         <p className="text-xl font-semibold mb-2 col-span-full">
@@ -861,7 +968,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
             <Label className="w-full col-span-full sm:block hidden">
               {floatingFilterT("checkin")} - {floatingFilterT("checkout")}
             </Label>
-            <Popover>
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
                   id="date"
@@ -875,11 +982,18 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                   {date?.from ? (
                     date.to ? (
                       <>
-                        {format(date.from, "LLL dd")} -{" "}
-                        {format(date.to, "LLL dd")}
+                        {format(date.from, "LLL dd", {
+                          locale: localeMap[locale as keyof typeof localeMap],
+                        })}{" "}
+                        -{" "}
+                        {format(date.to, "LLL dd", {
+                          locale: localeMap[locale as keyof typeof localeMap],
+                        })}
                       </>
                     ) : (
-                      format(date.from, "LLL dd")
+                      format(date.from, "LLL dd", {
+                        locale: localeMap[locale as keyof typeof localeMap],
+                      })
                     )
                   ) : (
                     <span>
@@ -895,6 +1009,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 align="start"
               >
                 <Calendar
+                  showOutsideDays={false}
                   locale={localeMap[locale as keyof typeof localeMap]}
                   mode="range"
                   disabled={(date) => {
@@ -907,7 +1022,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
 
                     const isBooked = listingCalendar.some(
                       (entry) =>
-                        entry.status === "booked" && entry.date === dateStr
+                        (entry.status === "booked" ||
+                          entry.status === "unavailable") &&
+                        entry.date === dateStr
                     );
 
                     return date < today || isBooked;
@@ -918,6 +1035,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                   onSelect={(range) => {
                     if (range?.from && range?.to && range.to != range.from) {
                       setDate(range);
+                      setCalendarOpen(false);
                     } else {
                       if (range?.from) {
                         setDate((prev) => {
@@ -927,6 +1045,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         setDate((prev) => {
                           return { from: prev?.from, to: range.from };
                         });
+                        setCalendarOpen(false);
                       }
                     }
                   }}
@@ -937,7 +1056,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
             <Label className="w-full col-span-full block sm:hidden">
               {floatingFilterT("checkin")}
             </Label>
-            <Popover>
+            <Popover
+              onOpenChange={setMobileCalendarOpen1}
+              open={mobileCalendarOpen1}
+            >
               <PopoverTrigger asChild>
                 <Button
                   id="date"
@@ -949,7 +1071,11 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {date?.from ? (
-                    <>{format(date.from, "LLL dd")}</>
+                    <>
+                      {format(date.from, "LLL dd", {
+                        locale: localeMap[locale as keyof typeof localeMap],
+                      })}
+                    </>
                   ) : (
                     <span>{floatingFilterT("checkin")}</span>
                   )}
@@ -961,6 +1087,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 align="start"
               >
                 <Calendar
+                  showOutsideDays={false}
                   locale={localeMap[locale as keyof typeof localeMap]}
                   mode="single"
                   disabled={(date) => {
@@ -973,7 +1100,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
 
                     const isBooked = listingCalendar.some(
                       (entry) =>
-                        entry.status === "booked" && entry.date === dateStr
+                        (entry.status === "booked" ||
+                          entry.status === "unavailable") &&
+                        entry.date === dateStr
                     );
 
                     return date < today || isBooked;
@@ -985,6 +1114,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                     setDate((prev) => {
                       return { from: e, to: prev?.to };
                     });
+                    setMobileCalendarOpen1(false);
                   }}
                   numberOfMonths={1}
                 />
@@ -993,7 +1123,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
             <Label className="w-full col-span-full block sm:hidden">
               {floatingFilterT("checkout")}
             </Label>
-            <Popover>
+            <Popover
+              open={mobileCalendarOpen}
+              onOpenChange={setMobileCalendarOpen}
+            >
               <PopoverTrigger asChild>
                 <Button
                   id="date"
@@ -1005,7 +1138,11 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {date?.to ? (
-                    <>{format(date.to, "LLL dd")}</>
+                    <>
+                      {format(date.to, "LLL dd", {
+                        locale: localeMap[locale as keyof typeof localeMap],
+                      })}
+                    </>
                   ) : (
                     <span>{floatingFilterT("checkout")}</span>
                   )}
@@ -1017,6 +1154,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 align="start"
               >
                 <Calendar
+                  showOutsideDays={false}
                   locale={localeMap[locale as keyof typeof localeMap]}
                   mode="single"
                   disabled={(date) => {
@@ -1029,7 +1167,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
 
                     const isBooked = listingCalendar.some(
                       (entry) =>
-                        entry.status === "booked" && entry.date === dateStr
+                        (entry.status === "booked" ||
+                          entry.status === "unavailable") &&
+                        entry.date === dateStr
                     );
 
                     return date < today || isBooked;
@@ -1041,6 +1181,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                     setDate((prev) => {
                       return { from: prev?.from, to: e };
                     });
+                    setMobileCalendarOpen(false);
                   }}
                   numberOfMonths={1}
                 />
@@ -1345,7 +1486,65 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         </p>
                       </div>
                     </div>
-                    <Button>{roomInfoT("payment")}</Button>
+                    <Button
+                      disabled={directing}
+                      onClick={() => {
+                        setDirecting(true);
+                        if (!date?.from || !date.to) {
+                          setDirecting(false);
+                          return;
+                        }
+                        router.push(
+                          `/checkout/room/${id}?start=${format(
+                            date.from,
+                            "yyyy-MM-dd"
+                          )}&end=${format(date.to, "yyyy-MM-dd")}&adults=${
+                            guests.adults
+                          }&children=${guests.children}&infants=${
+                            guests.infants
+                          }&pets=${guests.pets}`
+                        );
+                      }}
+                    >
+                      {directing ? (
+                        <>
+                          <Loader2 className="animate-spin" />
+                          {roomInfoT("payment")}
+                        </>
+                      ) : (
+                        <>{roomInfoT("payment")}</>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (!date?.to || !date?.from) {
+                          return;
+                        }
+                        setAdded(true);
+                        setTimeout(() => setAdded(false), 1000);
+                        const propertyItem: AccommodationItem = {
+                          type: "accommodation",
+                          property_id: listingInfo.listing.id,
+                          name:
+                            listingInfo.listing.name ||
+                            listingInfo.listing.nickname,
+                          start_date: format(date?.from, "yyyy-MM-dd"),
+                          end_date: format(date?.to, "yyyy-MM-dd"),
+                          adults: guests.adults,
+                          children: guests.children,
+                          infants: guests.infants,
+                          pets: guests.pets,
+                          front_end_price: stayPrice.total,
+                          photo: listingInfo.listing.thumbnail_file,
+                          fees: stayPrice.fees,
+                        };
+                        addItem(propertyItem);
+                      }}
+                      variant="secondary"
+                      className="-mt-3 border"
+                    >
+                      {roomInfoT(added ? "added" : "add_to_cart")}
+                    </Button>
                   </div>
                 )}
               </div>

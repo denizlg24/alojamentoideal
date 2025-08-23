@@ -1,7 +1,10 @@
+"use client";
+
 import { Card } from "./card";
 import { FaRegStar, FaStar } from "react-icons/fa";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
+import { useTranslations } from "next-intl";
 export const ReviewCard = ({
   review,
 }: {
@@ -13,6 +16,7 @@ export const ReviewCard = ({
     rating: number;
   };
 }) => {
+  const t = useTranslations("review-card");
   return (
     <Card className="p-4 flex flex-col w-full col-span-full">
       <div className="flex flex-row gap-2 w-full truncate">
@@ -43,7 +47,7 @@ export const ReviewCard = ({
       <div className="w-full flex flex-col gap-2">
         <p>{review.comments}</p>
         <p className="text-xs">
-          Written {format(new Date(review.created), "yyyy/MM/dd")}
+          {t("written")} {format(new Date(review.created), "yyyy/MM/dd")}
         </p>
       </div>
     </Card>
