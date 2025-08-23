@@ -19,7 +19,7 @@ export async function getAllOrders() {
         OrderModel.find().lean(), OrderModel.countDocuments()
     ])
     const final = await Promise.all(orders.map(async (order) => ({
-        ...order, _id: order._id.toString(), payment_id: { payment_id: order.payment_id, status: await getPaymentStatus(order.payment_id) }
+        ...order, _id: order._id.toString(), payment_id: { payment_id: order.payment_id, status: order.payment_id ? await getPaymentStatus(order.payment_id) : "not-found" }
     })));
     return {
         orders: final, total

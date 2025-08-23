@@ -7,13 +7,15 @@ export async function fetchClientSecret(amount: number, client_name: string, cli
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
     }
-    const customer = await stripe.customers.create({
-        name: client_name,
-        email: client_email,
-        phone: client_phone_number
-    });
+
     const commaSeparatedReservationIds = reservationIds.join(",");
     try {
+        const customer = await stripe.customers.create({
+            name: client_name,
+            email: client_email,
+            phone: client_phone_number
+        });
+        console.log("Created customer: ", customer.id);
         const paymentIntent = await stripe.paymentIntents.create({
             amount,
             currency: "eur",
@@ -30,12 +32,14 @@ export async function fetchClientSecret(amount: number, client_name: string, cli
                 client_phone_number,
                 reservationIds: commaSeparatedReservationIds,
                 notes: notes || "",
-            }
+            },
+            setup_future_usage: "off_session"
         });
-
+        console.log("Created payment_intent: ", paymentIntent.id);
 
         return { success: true, client_secret: paymentIntent.client_secret, id: paymentIntent.id };
-    } catch {
+    } catch (error) {
+        console.log(error);
         return { success: false, client_secret: null, id: null };
     }
 }
