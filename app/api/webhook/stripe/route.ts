@@ -1,3 +1,4 @@
+import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
 import OrderModel from "@/models/Order";
 import { hostifyRequest } from "@/utils/hostify-request";
@@ -20,10 +21,11 @@ export async function POST(req: Request) {
     }
 
     try {
+        await connectDB();
         switch (event.type) {
             case 'payment_intent.succeeded':
                 const payment_id = event.data.object.id;
-                const foundOrder = await OrderModel.findOne({ payment_id }).maxTimeMS(25000);
+                const foundOrder = await OrderModel.findOne({ payment_id });
                 if (foundOrder) {
                     for (const transactionId of foundOrder.transaction_id) {
                         await hostifyRequest<{ success: boolean }>(
@@ -110,7 +112,8 @@ export async function POST(req: Request) {
         }
     } catch (error) {
         console.log(error);
-        return new Response('Webhook handler failed. View logs.', {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return new Response('Webhook handler failed. View logs.' + (error as any).toString(), {
             status: 400
         });
     }
