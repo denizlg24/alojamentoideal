@@ -29,8 +29,8 @@ export async function POST(req: Request) {
                 const payment_method_id = event.data.object.payment_method;
                 if (foundOrder) {
                     if (typeof payment_method_id === "string") {
-                        foundOrder.updateOne({ payment_method_id: payment_method_id });
-                        await foundOrder.save();
+                        console.log("Found payment method id: ", payment_method_id)
+                        await OrderModel.findOneAndUpdate({ payment_id }, { payment_method_id });
                     }
                     for (let index = 0; index < foundOrder.reservationIds.length; index++) {
                         const reservation_id = foundOrder.reservationIds[index];
