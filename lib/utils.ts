@@ -235,3 +235,28 @@ export function generateUniqueId({
 
   return createId(availableChars, length);
 }
+
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  sepa_debit: "SEPA Debit",
+  sofort: "Sofort",
+  ideal: "iDEAL",
+  giropay: "GiroPay",
+  eps: "EPS",
+  bancontact: "Bancontact",
+  alipay: "Alipay",
+  grabpay: "GrabPay",
+  wechat_pay: "WeChat Pay",
+  apple_pay: "Apple Pay",
+  google_pay: "Google Pay",
+  klarna: "Klarna",
+  afterpay_clearpay: "Afterpay / Clearpay",
+  bacs_debit: "Bacs Direct Debit",
+  fpx: "FPX",
+  paynow: "PayNow",
+  multibanco: "Multibanco",
+  p24: "Przelewy24",
+  oxxo: "OXXO",
+  boleto: "Boleto",
+  cashapp: "Cash App",
+  // add more if you enable other methods in your Stripe account
+};

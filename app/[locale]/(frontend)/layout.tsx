@@ -72,6 +72,7 @@ export default async function RootLayout({
       <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap"
         rel="stylesheet"
+        precedence="default"
       />
       <body
         className={`antialiased ${montserrat.variable} w-full min-h-screen flex flex-col items-center justify-start sm:pt-16! pt-12!`}
