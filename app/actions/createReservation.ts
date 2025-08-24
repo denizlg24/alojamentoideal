@@ -11,7 +11,16 @@ import { verifySession } from "@/utils/verifySession";
 import { generateUniqueId } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
 
-export async function purchaseAccommodation({ property, clientName, clientEmail, clientPhone, clientNotes }: { property: AccommodationItem, clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string }) {
+export async function purchaseAccommodation({ property, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName }: {
+    property: AccommodationItem, clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
+        line1: string;
+        line2: string | null;
+        city: string;
+        state: string;
+        postal_code: string;
+        country: string;
+    }, clientTax?: string, isCompany: boolean, companyName?: string
+}) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
     }
@@ -47,7 +56,8 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
             clientEmail,
             clientPhone,
             clientNotes,
-            [reservation.reservation.id]
+            [reservation.reservation.id],
+            clientAddress,
         );
 
         const transaction = await hostifyRequest<{ success: boolean, transaction: { id: number } }>(
@@ -73,7 +83,11 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
             reservationReferences: [reservation.reservation.confirmation_code],
             items: [property],
             payment_id: id || "",
-            transaction_id: [transaction.transaction.id.toString()]
+            transaction_id: [transaction.transaction.id.toString()],
+            payment_method_id: "",
+            tax_number: clientTax,
+            isCompany,
+            companyName
         });
 
         const newChatId = generateUniqueId();

@@ -26,7 +26,12 @@ export async function POST(req: Request) {
             case 'payment_intent.succeeded':
                 const payment_id = event.data.object.id;
                 const foundOrder = await OrderModel.findOne({ payment_id });
+                const payment_method_id = event.data.object.payment_method;
                 if (foundOrder) {
+                    if (typeof payment_method_id === "string") {
+                        foundOrder.updateOne({ payment_method_id: payment_method_id });
+                        await foundOrder.save();
+                    }
                     for (let index = 0; index < foundOrder.reservationIds.length; index++) {
                         const reservation_id = foundOrder.reservationIds[index];
                         const transaction_id = foundOrder.transaction_id[index];

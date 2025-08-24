@@ -19,6 +19,10 @@ type RegisterOrderInput = {
     items: CartItem[];
     payment_id: string;
     transaction_id: string[];
+    payment_method_id: string;
+    tax_number?: string;
+    isCompany: boolean;
+    companyName?: string;
 };
 
 export async function registerOrder(data: RegisterOrderInput) {
@@ -70,7 +74,11 @@ export async function registerOrder(data: RegisterOrderInput) {
             reservationReferences: data.reservationReferences,
             items: plainItems,
             payment_id: data.payment_id,
-            transaction_id: data.transaction_id
+            transaction_id: data.transaction_id,
+            payment_method_id: data.payment_method_id,
+            tax_number: data.tax_number,
+            isCompany: data.isCompany,
+            companyName: data.companyName
         });
 
         await order.save();

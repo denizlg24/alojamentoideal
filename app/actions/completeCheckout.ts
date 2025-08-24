@@ -11,7 +11,16 @@ import { fetchClientSecret } from "./stripe";
 import { generateUniqueId } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
 
-export async function buyCart({ cart, clientName, clientEmail, clientPhone, clientNotes }: { cart: CartItem[], clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string }) {
+export async function buyCart({ cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName }: {
+    cart: CartItem[], clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
+        line1: string;
+        line2: string | null;
+        city: string;
+        state: string;
+        postal_code: string;
+        country: string;
+    }, clientTax?: string, isCompany: boolean, companyName?: string
+}) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
     }
@@ -85,7 +94,8 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
             clientEmail,
             clientPhone,
             clientNotes,
-            reservationIds
+            reservationIds,
+            clientAddress,
         );
 
         const { success: order_success, orderId } = await registerOrder({
@@ -97,7 +107,11 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
             reservationReferences: reservationReferences.map((r) => r.toString()),
             items: cart,
             payment_id: id || "",
-            transaction_id: transactionIds.map((t) => t.toString())
+            transaction_id: transactionIds.map((t) => t.toString()),
+            payment_method_id: "",
+            tax_number: clientTax,
+            isCompany,
+            companyName
         });
 
         return { success: success && order_success, client_secret, payment_id: id, order_id: orderId };

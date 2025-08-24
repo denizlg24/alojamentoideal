@@ -295,7 +295,18 @@
     "loading_save_order": "A guardar o pedido.",
     "error_username": "O nome deve ter pelo menos 2 caracteres.",
     "error_email": "Deves inserir um email válido.",
-    "error_phone": "Tem de ser um número de telemóvel válido (ex: +351912345678)"
+    "error_phone": "Tem de ser um número de telemóvel válido (ex: +351912345678)",
+    "purchasing-as-company": "Estou a comprar como empresa.",
+    "or": "OU",
+    "provide_information": "Por favor preencha os seus dados de faturação.",
+    "invalid-tax": "Deve ser um NIF válido.",
+    "vat": "Número de Identificação Fiscal",
+    "vat-optional": "(opcional)",
+    "proceed-payment": "Prosseguir para pagamento",
+    "card": "Cartão",
+    "invalid-company": "Por favor indique o nome da sua empresa.",
+    "business_name": "Nome da empresa",
+    "business_placeholder": "Alojamento Ideal, Lda"
   },
   "order": {
     "order_info": "Informações do Pedido",

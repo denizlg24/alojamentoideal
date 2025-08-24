@@ -15,6 +15,10 @@ export interface OrderDocument extends Document {
     createdAt: Date;
     payment_id: string;
     transaction_id: string[];
+    payment_method_id: string;
+    tax_number?: string;
+    isCompany: boolean;
+    companyName?: string;
 }
 
 export interface IOrder {
@@ -29,6 +33,10 @@ export interface IOrder {
     createdAt: Date;
     payment_id: string;
     transaction_id: string[];
+    payment_method_id: string;
+    tax_number?: string;
+    isCompany: boolean;
+    companyName?: string;
 }
 
 const FeeSchema = new mongoose.Schema<FeeType>(
@@ -78,7 +86,11 @@ const OrderSchema = new mongoose.Schema<OrderDocument>(
         reservationReferences: [{ type: String, index: true }],
         items: [ItemSchema],
         payment_id: { type: String, index: true },
-        transaction_id: [{ type: String }]
+        payment_method_id: { type: String, index: true },
+        tax_number: { type: String },
+        transaction_id: [{ type: String }],
+        companyName: { type: String },
+        isCompany: { type: Boolean }
     },
     { timestamps: true }
 );

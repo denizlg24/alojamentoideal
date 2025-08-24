@@ -82,7 +82,7 @@ export const CheckoutHolder = () => {
 
   return (
     <div className="lg:grid flex flex-col-reverse grid-cols-5 w-full max-w-7xl px-4 pt-12 gap-8 relative lg:items-start items-center">
-      <Card className="col-span-3 flex flex-col gap-4 p-4">
+      <Card className="col-span-3 flex flex-col gap-4 p-4 w-full">
         <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-semibold">
           {t("order_summary")}
         </h1>

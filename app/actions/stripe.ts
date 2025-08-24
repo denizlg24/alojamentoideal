@@ -3,7 +3,14 @@
 import { verifySession } from '@/utils/verifySession';
 import { stripe } from '../../lib/stripe'
 
-export async function fetchClientSecret(amount: number, client_name: string, client_email: string, client_phone_number: string, notes: string | undefined, reservationIds: number[]) {
+export async function fetchClientSecret(amount: number, client_name: string, client_email: string, client_phone_number: string, notes: string | undefined, reservationIds: number[], clientAddress: {
+    line1: string;
+    line2: string | null;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
+}) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
     }
@@ -13,9 +20,9 @@ export async function fetchClientSecret(amount: number, client_name: string, cli
         const customer = await stripe.customers.create({
             name: client_name,
             email: client_email,
-            phone: client_phone_number
+            phone: client_phone_number,
+            address: { ...clientAddress, line2: clientAddress.line2 ?? undefined },
         });
-        console.log("Created customer: ", customer.id);
         const paymentIntent = await stripe.paymentIntents.create({
             amount,
             currency: "eur",
@@ -35,8 +42,6 @@ export async function fetchClientSecret(amount: number, client_name: string, cli
             },
             setup_future_usage: "off_session"
         });
-        console.log("Created payment_intent: ", paymentIntent.id);
-
         return { success: true, client_secret: paymentIntent.client_secret, id: paymentIntent.id };
     } catch (error) {
         console.log(error);

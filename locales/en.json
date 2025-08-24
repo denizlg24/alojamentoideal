@@ -295,7 +295,18 @@
     "loading_save_order": "Saving order.",
     "error_username": "Username must be at least 2 characters.",
     "error_email": "Must be a valid email address.",
-    "error_phone": "Must be a valid phone number (e.g. +351912345678)"
+    "error_phone": "Must be a valid phone number (e.g. +351912345678)",
+    "purchasing-as-company": "I'm purchasing as a business.",
+    "or": "OR",
+    "provide_information": "Please fill out your billing details.",
+    "invalid-tax": "Must be a valid TAX ID.",
+    "vat": "TAX ID Number",
+    "vat-optional": "(optional)",
+    "proceed-payment": "Proceed to payment",
+    "card": "Card",
+    "invalid-company": "Please provide a name for your business.",
+    "business_name": "Business name",
+    "business_placeholder": "Alojamento Ideal, Lda"
   },
   "order": {
     "order_info": "Order Information",
