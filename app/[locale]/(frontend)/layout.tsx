@@ -68,6 +68,11 @@ export default async function RootLayout({
   setRequestLocale(locale);
   return (
     <html lang={locale}>
+      {/* eslint-disable-next-line @next/next/no-page-custom-font*/}
+      <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap"
+        rel="stylesheet"
+      />
       <body
         className={`antialiased ${montserrat.variable} w-full min-h-screen flex flex-col items-center justify-start sm:pt-16! pt-12!`}
       >

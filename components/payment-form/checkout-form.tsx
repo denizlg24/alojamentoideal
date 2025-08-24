@@ -54,7 +54,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const elementStyle: Appearance = {
   variables: {
-    fontFamily: "montserrat",
+    fontFamily:
+      '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     fontSizeXl: "14px",
     fontSizeLg: "14px",
     fontSizeBase: "14px",
@@ -685,7 +686,8 @@ export const CheckoutForm = () => {
                           disableLink: true,
                           style: {
                             base: {
-                              fontFamily: "montserrat, system-ui, sans-serif",
+                              fontFamily:
+                                '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                             },
                           },
                         }}
@@ -700,7 +702,8 @@ export const CheckoutForm = () => {
                           options={{
                             style: {
                               base: {
-                                fontFamily: "montserrat, system-ui, sans-serif",
+                                fontFamily:
+                                  '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                               },
                             },
                           }}
@@ -714,7 +717,8 @@ export const CheckoutForm = () => {
                           options={{
                             style: {
                               base: {
-                                fontFamily: "montserrat",
+                                fontFamily:
+                                  '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                               },
                             },
                           }}
@@ -749,7 +753,8 @@ export const CheckoutForm = () => {
                           placeholderCountry: "PT",
                           style: {
                             base: {
-                              fontFamily: "montserrat",
+                              fontFamily:
+                                '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                               fontSize: "14px",
                             },
                           },
