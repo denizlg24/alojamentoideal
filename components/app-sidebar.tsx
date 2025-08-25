@@ -1,5 +1,5 @@
 "use client";
-import { Inbox, LogOut, Search, ShoppingBag } from "lucide-react";
+import { Inbox, LogOut, Search, Settings, ShoppingBag } from "lucide-react";
 
 import {
   Sidebar,
@@ -36,6 +36,11 @@ export function AppSidebar() {
       title: t("search"),
       url: "/admin/dashboard/search",
       icon: Search,
+    },
+    {
+      title: t("settings"),
+      url: "/admin/dashboard/settings",
+      icon: Settings,
     },
   ];
   return (

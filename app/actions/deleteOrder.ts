@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { ChatModel, MessageModel } from "@/models/Chat";
+import GuestDataModel from "@/models/GuestData";
 import OrderModel from "@/models/Order";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { verifySession } from "@/utils/verifySession";
@@ -20,6 +21,7 @@ export async function deleteOrder(order_id: string) {
         if (!foundOrder) {
             return false;
         }
+
         for (const reservationId of foundOrder.reservationIds) {
             await hostifyRequest<{ success: boolean }>(
                 `reservations/${reservationId}`,
@@ -35,6 +37,9 @@ export async function deleteOrder(order_id: string) {
             if (foundChat) {
                 await MessageModel.deleteMany({ chat_id: foundChat.chat_id });
             }
+        }
+        for (const reservationReference of foundOrder.reservationReferences) {
+            await GuestDataModel.findOneAndDelete({ booking_code: reservationReference });
         }
         for (const transactionId of foundOrder.transaction_id) {
             await hostifyRequest<{ success: boolean }>(

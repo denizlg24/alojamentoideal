@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/sync/hostkit",
+      "schedule": "0 */1 * * *"
+    }
+  ]
+}

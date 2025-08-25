@@ -371,7 +371,33 @@
     "cancellation-policy": "Cancellation policy",
     "guest-information": "Guest Information",
     "coordinate-with-host": "Coordinate with host",
-    "please-provide-this-information-to-help-coordinate-with-the-host": "Please provide this information to help coordinate with the host."
+    "please-provide-this-information-to-help-coordinate-with-the-host": "Please provide this information to help coordinate with the host.",
+    "adults": "Adults",
+    "add_guest_info_desc": "Why do we need this information? Portuguese laws mandate that we collect visitor's ID's for tax purposes.",
+    "adult": "Adult",
+    "passport": "Passport",
+    "id": "Citizen's Card",
+    "other": "Other",
+    "doc_id_placeholder": "Ex: 925665416",
+    "document": "Document Type",
+    "document_number": "Document number",
+    "nationality": "Nationality",
+    "document_country": "Country Issued",
+    "residence": "Residence",
+    "residence-city": "Residence City",
+    "first-name": "First name",
+    "last-name": "Last name",
+    "select-date": "Select date",
+    "birthdate": "Birthdate",
+    "city_placeholder": "Ex: Porto",
+    "first_name_placeholder": "Ex: John",
+    "last_name_placeholder": "Ex: Smith",
+    "add-guest": "Guest Information",
+    "add-guest-information": "Add Guest",
+    "no-guests": "You haven't added any guests yet.",
+    "verifying-guest-data": "Validating guest information.",
+    "add": "Add",
+    "validating-desct": "We are validating the ID's you submitted."
   },
   "orderSearch": {
     "placeholder": "Search for reservation number or order id...",
@@ -1002,7 +1028,8 @@
     "orders": "Orders",
     "inbox": "Inbox",
     "search": "Search",
-    "log-out": "Log out"
+    "log-out": "Log out",
+    "settings": "Settings"
   },
   "admin-inbox": {
     "inbox": "Inbox"

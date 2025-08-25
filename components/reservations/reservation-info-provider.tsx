@@ -1,6 +1,4 @@
 "use client";
-
-import { CustomFieldType } from "@/schemas/custom-field.schema";
 import { FullListingType } from "@/schemas/full-listings.schema";
 import { ReservationType } from "@/schemas/reservation.schema";
 import { hostifyRequest } from "@/utils/hostify-request";
@@ -11,46 +9,20 @@ import planeFlyingGif from "@/public/plane_flying_gif.gif";
 import { useTranslations } from "next-intl";
 import { syncAutomatedMessages } from "@/app/actions/syncAutomatedMessages";
 import { getChatId } from "@/app/actions/getChatId";
-import { getOrderByReservationId } from "@/app/actions/getOrderByReference";
-import { OrderDocument } from "@/models/Order";
 export const ReservationInfoProvider = ({
   reservation_id,
 }: {
   reservation_id: string;
 }) => {
   const t = useTranslations("propertyCard");
-  const [customFields, setCustomFields] = useState<CustomFieldType[]>([]);
   const [listing, setListing] = useState<FullListingType | undefined>(
     undefined
   );
   const [reservation, setReservation] = useState<ReservationType | undefined>(
     undefined
   );
-  const [order, setOrder] = useState<OrderDocument | undefined>(undefined);
 
   const [chat_id, setChatId] = useState("");
-
-  const guestInfoCustomField = customFields?.find(
-    (a) => a.name == "hostkit_url"
-  );
-  const guestInfoCustomDoneField = customFields?.find(
-    (b) => b.name == "hostkit_done"
-  );
-
-  const getReservationCustomFields = async (rId: string) => {
-    const custom_fields_response = await hostifyRequest<{
-      success: boolean;
-      custom_fields: CustomFieldType[];
-    }>(`reservations/custom_fields/${rId}`, "GET");
-    if (
-      custom_fields_response.success &&
-      custom_fields_response.custom_fields
-    ) {
-      return custom_fields_response.custom_fields;
-    } else {
-      return undefined;
-    }
-  };
 
   const getReservationInfo = async (rId: string) => {
     const info = await hostifyRequest<{ reservation: ReservationType }>(
@@ -114,27 +86,21 @@ export const ReservationInfoProvider = ({
 
   useEffect(() => {
     const getReservationWrapper = async () => {
-      const [reservationInfo, { order }] = await Promise.all([
-        getReservationInfo(reservation_id),
-        getOrderByReservationId(reservation_id),
-      ]);
-      if (order) {
-        setOrder(order as OrderDocument);
-      }
+      const reservationInfo = await getReservationInfo(reservation_id);
+
       if (reservationInfo) {
         setReservation(reservationInfo);
-        const [listingInfo, custom_fields, chat_id] = await Promise.all([
+        const [listingInfo, chat_id] = await Promise.all([
           getListingInfo(reservationInfo.listing_id),
-          getReservationCustomFields(reservation_id),
           getChatId(reservation_id),
         ]);
+
         getThread(
           reservationInfo.message_id,
           reservationInfo.guest_id.toString()
         );
         setChatId(chat_id);
         setListing(listingInfo);
-        setCustomFields(custom_fields ?? []);
       }
     };
     if (reservation_id) {
@@ -142,27 +108,6 @@ export const ReservationInfoProvider = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reservation_id]);
-
-  useEffect(() => {
-    const refreshCustomFields = async () => {
-      const custom_fields = await getReservationCustomFields(reservation_id);
-      if (custom_fields) {
-        setCustomFields(custom_fields);
-      }
-    };
-    let interval: NodeJS.Timeout;
-
-    const shouldntContinue =
-      guestInfoCustomField?.value && guestInfoCustomDoneField?.value;
-    if (!shouldntContinue) {
-      refreshCustomFields();
-      interval = setInterval(refreshCustomFields, 60000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [guestInfoCustomField, guestInfoCustomDoneField, reservation_id]);
 
   if (!listing || !reservation) {
     return (
@@ -215,11 +160,9 @@ export const ReservationInfoProvider = ({
         refreshMessages={() => {
           getThread(reservation.message_id, reservation.guest_id.toString());
         }}
-        order={order}
         chat_id={chat_id}
         reservation={reservation}
         setReservation={setReservation}
-        custom_fields={customFields}
       />
     </div>
   );
