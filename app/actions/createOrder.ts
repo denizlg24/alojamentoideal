@@ -43,6 +43,7 @@ export async function registerOrder(data: RegisterOrderInput) {
                     quantity: item.quantity,
                     photo: item.photo,
                     description: item.description,
+                    invoice: item.invoice
                 };
             } else {
                 return {
@@ -58,6 +59,7 @@ export async function registerOrder(data: RegisterOrderInput) {
                     front_end_price: item.front_end_price,
                     photo: item.photo,
                     fees: item.fees,
+                    invoice: item.invoice
                 };
             }
         });

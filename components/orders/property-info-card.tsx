@@ -8,6 +8,7 @@ import {
   Edit3,
   Info,
   Loader2Icon,
+  LucideNotepadText,
   MapPinned,
   MessageCircle,
   PlusCircle,
@@ -66,13 +67,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { updateGuestData } from "@/app/actions/updateGuestData";
 import { useEffect, useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
+import { AccommodationItem } from "@/hooks/cart-context";
 
 export const PropertyInfoCard = ({
   listing,
+  property,
   reservation,
   chat_id,
 }: {
   listing: FullListingType;
+  property: AccommodationItem | undefined;
   reservation: ReservationType;
   chat_id: string;
 }) => {
@@ -125,6 +129,7 @@ export const PropertyInfoCard = ({
     undefined
   );
   const [loadingHostkit, loadHostkit] = useState(true);
+  const [birthdayOpen, setBirthdayOpen] = useState(false);
 
   useEffect(() => {
     const getCheckInDone = async () => {
@@ -186,6 +191,7 @@ export const PropertyInfoCard = ({
     }
     setAddGuestOpen(false);
     setAddingGuest(false);
+    addGuestForm.reset();
   }
 
   const isMobile = useIsMobile();
@@ -591,7 +597,10 @@ export const PropertyInfoCard = ({
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormControl>
-                                      <Popover>
+                                      <Popover
+                                        open={birthdayOpen}
+                                        onOpenChange={setBirthdayOpen}
+                                      >
                                         <PopoverTrigger asChild>
                                           <Button
                                             variant="outline"
@@ -631,6 +640,7 @@ export const PropertyInfoCard = ({
                                                 field.onChange(
                                                   format(date, "yyyy-MM-dd")
                                                 );
+                                                setBirthdayOpen(false);
                                               } else {
                                                 field.onChange("");
                                               }
@@ -927,9 +937,14 @@ export const PropertyInfoCard = ({
         <div className="w-full flex flex-col gap-1 mt-4">
           <p className="md:text-base text-sm font-semibold">{t("documents")}</p>
           <div className="flex flex-row items-center flex-wrap justify-start gap-2">
-            <Button variant={"secondary"} className="w-fit grow">
-              {t("get-invoice")}
-            </Button>
+            {property?.invoice && (
+              <Button variant={"secondary"} asChild className="w-fit grow">
+                <Link target="_blank" href={property.invoice}>
+                  {t("get-invoice")}
+                  <LucideNotepadText />
+                </Link>
+              </Button>
+            )}
             <Button onClick={handlePrint} className="w-fit grow">
               {t("print-reservation")}
             </Button>

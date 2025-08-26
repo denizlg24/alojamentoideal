@@ -17,6 +17,7 @@ export type ECommerceItem = {
   quantity: number;
   photo: string;
   description?: string;
+  invoice?: string;
 };
 
 export type AccommodationItem = {
@@ -32,6 +33,7 @@ export type AccommodationItem = {
   front_end_price: number;
   photo: string;
   fees: Partial<FeeType>[];
+  invoice?: string;
 };
 
 export type CartItem = ECommerceItem | AccommodationItem;

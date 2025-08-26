@@ -334,7 +334,10 @@
     "address": "Endereço de faturação",
     "vat": "NIF",
     "confirmation-code": "Código de confirmação",
-    "print": "Imprimir resumo do pedido"
+    "print": "Imprimir resumo do pedido",
+    "refunded": "Reembolsado",
+    "succeeded": "Concluído",
+    "failed": "Falhou"
   },
   "propertyCard": {
     "trip_details": "Detalhes da viagem",

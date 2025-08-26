@@ -255,10 +255,12 @@ export const OrderInfo = ({
               <div className="flex min-[420px]:flex-row flex-col min-[420px]:items-center items-start justify-between text-sm">
                 <p className="font-semibold">{t("status")}</p>
                 <div className="flex flex-row items-center gap-2">
-                  <p className="truncate capitalize">
-                    {(charge?.amount_refunded ?? 0) > 0
-                      ? "refunded"
-                      : charge?.status}
+                  <p className="truncate">
+                    {t(
+                      (charge?.amount_refunded ?? 0) > 0
+                        ? "refunded"
+                        : charge?.status ?? "unknown-status"
+                    )}
                     {charge?.status === "failed" &&
                       " " + charge?.failure_message}
                   </p>

@@ -9,6 +9,8 @@ import planeFlyingGif from "@/public/plane_flying_gif.gif";
 import { useTranslations } from "next-intl";
 import { getChatId } from "@/app/actions/getChatId";
 import { syncAutomatedMessages } from "@/app/actions/syncAutomatedMessages";
+import { IOrder } from "@/models/Order";
+import { getOrderByReservationId } from "@/app/actions/getOrderByReference";
 export const ReservationInfoProvider = ({
   reservation_id,
 }: {
@@ -21,6 +23,7 @@ export const ReservationInfoProvider = ({
   const [reservation, setReservation] = useState<ReservationType | undefined>(
     undefined
   );
+  const [order, setOrder] = useState<IOrder | undefined>(undefined);
 
   const [chat_id, setChatId] = useState("");
 
@@ -56,8 +59,13 @@ export const ReservationInfoProvider = ({
 
   useEffect(() => {
     const getReservationWrapper = async () => {
-      const reservationInfo = await getReservationInfo(reservation_id);
-
+      const [reservationInfo, { order }] = await Promise.all([
+        getReservationInfo(reservation_id),
+        getOrderByReservationId(reservation_id),
+      ]);
+      if (order) {
+        setOrder(order as IOrder);
+      }
       if (reservationInfo) {
         const message_id = reservationInfo.message_id;
         const info = await hostifyRequest<{
@@ -149,6 +157,9 @@ export const ReservationInfoProvider = ({
         {t("confirmation-code")}: {reservation.confirmation_code}
       </h1>
       <PropertyInfoCard
+        property={order?.items
+          .filter((item) => item.type == "accommodation")
+          .find((item) => item.property_id === listing.listing.id)}
         listing={listing}
         chat_id={chat_id}
         reservation={reservation}

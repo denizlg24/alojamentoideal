@@ -10,6 +10,7 @@ import { registerOrder } from "./createOrder";
 import { fetchClientSecret } from "./stripe";
 import { generateUniqueId } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
+import { createHouseInvoice } from "./createHouseInvoice";
 
 export async function buyCart({ cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName }: {
     cart: CartItem[], clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
@@ -30,6 +31,7 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
         const reservationIds: number[] = [];
         const reservationReferences: string[] = [];
         const transactionIds: number[] = [];
+        const newCart: CartItem[] = []
         for (const property of cart.filter((i) => i.type == "accommodation")) {
             const property_amount = await calculateAmount([property]);
             amounts.push(property_amount);
@@ -86,6 +88,10 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
             });
 
             await newChat.save();
+
+            const itemInvoice = await createHouseInvoice({ item: property, clientName: isCompany ? (companyName || clientName) : clientName, clientTax, booking_code: reservation.reservation.confirmation_code, clientAddress })
+            const newItem = { ...property, invoice: itemInvoice };
+            newCart.push(newItem);
         }
 
         const { success, client_secret, id } = await fetchClientSecret(
@@ -105,7 +111,7 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
             notes: clientNotes,
             reservationIds: reservationIds.map((r) => r.toString()),
             reservationReferences: reservationReferences.map((r) => r.toString()),
-            items: cart,
+            items: newCart,
             payment_id: id || "",
             transaction_id: transactionIds.map((t) => t.toString()),
             payment_method_id: "",
