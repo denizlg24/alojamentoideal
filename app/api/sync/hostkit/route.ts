@@ -36,10 +36,10 @@ export async function GET(req: Request) {
                     city_residence: guest.city_residence
                 }
             })
-            if (response.status != 'success') {
-                console.log(response);
-                synced = false;
+            if (response.status == 'success') {
+                continue;
             }
+            synced = false;
         }
         if (!synced) {
             continue;
