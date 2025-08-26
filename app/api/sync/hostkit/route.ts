@@ -17,6 +17,9 @@ export async function GET(req: Request) {
             }
         })
         let synced = true;
+        if (booking.guest_data.length == 0) {
+            continue;
+        }
         for (const guest of booking.guest_data) {
             const response = await callHostkitAPI<{ status: 'success' | unknown }>({
                 listingId: booking.listing_id,
