@@ -18,17 +18,15 @@ countries.registerLocale(enLocale);
 export function CountrySelect({
   onChange,
   defaultValue,
-  locale,
   className,
   value,
 }: {
   value?: string;
-  locale: string;
   onChange?: (code: string) => void;
   defaultValue?: string;
   className?: string;
 }) {
-  const countryObj = countries.getNames(locale ?? "en", { select: "official" }); // { "AF": "Afghanistan", "AL": "Albania", ... }
+  const countryObj = countries.getNames("en", { select: "official" }); // { "AF": "Afghanistan", "AL": "Albania", ... }
   const entries = Object.entries(countryObj); // [ ["AF", "Afghanistan"], ... ]
 
   return (

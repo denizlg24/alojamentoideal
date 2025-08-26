@@ -98,6 +98,7 @@ export const PropertyInfoCard = ({
     country_residence: z.string(),
     city_residence: z.string().min(2, { message: "" }),
   });
+
   const addGuestForm = useForm<z.infer<typeof addGuestSchema>>({
     resolver: zodResolver(addGuestSchema),
     defaultValues: {
@@ -699,7 +700,6 @@ export const PropertyInfoCard = ({
                                           field.onChange(v);
                                         }}
                                         defaultValue="PRT"
-                                        locale={locale}
                                         className="z-99 w-full"
                                       />
                                     </FormControl>
@@ -740,7 +740,6 @@ export const PropertyInfoCard = ({
                                       <CountrySelect
                                         {...field}
                                         defaultValue="PRT"
-                                        locale={locale}
                                         className="z-99 w-full"
                                       />
                                     </FormControl>
@@ -759,7 +758,6 @@ export const PropertyInfoCard = ({
                                       <CountrySelect
                                         {...field}
                                         defaultValue="PRT"
-                                        locale={locale}
                                         className="z-99 w-full"
                                       />
                                     </FormControl>
