@@ -397,7 +397,13 @@
     "no-guests": "You haven't added any guests yet.",
     "verifying-guest-data": "Validating guest information.",
     "add": "Add",
-    "validating-desct": "We are validating the ID's you submitted."
+    "validating-desct": "We are validating the ID's you submitted.",
+    "failed-verification": "We weren't able to verify the documents you provided, please try again.",
+    "thanks-for-providing": "You're all set. We've verified your information!",
+    "redo-guest-verification": "Update",
+    "documents": "Documents",
+    "print-reservation": "Print Reservation",
+    "get-invoice": "Get Invoice"
   },
   "orderSearch": {
     "placeholder": "Search for reservation number or order id...",

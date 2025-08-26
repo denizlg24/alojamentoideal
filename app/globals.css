@@ -146,3 +146,9 @@ html {
     opacity: 1;
   }
 }
+
+.no-print {
+  @media print {
+    display: none;
+  }
+}

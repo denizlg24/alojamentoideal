@@ -276,7 +276,7 @@ export const OrderInfo = ({
                   {charge?.created &&
                     format(
                       fromUnixTime(charge?.created),
-                      "dd, MMMM yyyy - h:mm bbb",
+                      "dd, MMMM yyyy - h:mm a",
                       { locale: localeMap[locale as keyof typeof localeMap] }
                     )}
                 </p>

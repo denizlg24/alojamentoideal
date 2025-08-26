@@ -7,8 +7,8 @@ import { PropertyInfoCard } from "../orders/property-info-card";
 import Image from "next/image";
 import planeFlyingGif from "@/public/plane_flying_gif.gif";
 import { useTranslations } from "next-intl";
-import { syncAutomatedMessages } from "@/app/actions/syncAutomatedMessages";
 import { getChatId } from "@/app/actions/getChatId";
+import { syncAutomatedMessages } from "@/app/actions/syncAutomatedMessages";
 export const ReservationInfoProvider = ({
   reservation_id,
 }: {
@@ -54,51 +54,45 @@ export const ReservationInfoProvider = ({
     }
   };
 
-  const getThread = async (message_id: number, guest_id?: string) => {
-    const info = await hostifyRequest<{
-      success: boolean;
-      thread: { id: string; channel_unread: number };
-      messages: {
-        id: number;
-        target_id: number;
-        message: string;
-        notes: string | null;
-        created: string;
-        image: string | null;
-        guest_name: string;
-        guest_thumb: string;
-        is_sms: number;
-        is_automatic: number;
-        pinned: number;
-        avatar: string | null;
-        guest_id: number;
-      }[];
-    }>(`inbox/${message_id}`, "GET");
-    if (info.success) {
-      if (guest_id) {
-        await syncAutomatedMessages(reservation_id, guest_id, info.messages);
-      }
-      return info;
-    } else {
-      return undefined;
-    }
-  };
-
   useEffect(() => {
     const getReservationWrapper = async () => {
       const reservationInfo = await getReservationInfo(reservation_id);
 
       if (reservationInfo) {
+        const message_id = reservationInfo.message_id;
+        const info = await hostifyRequest<{
+          success: boolean;
+          thread: { id: string; channel_unread: number };
+          messages: {
+            id: number;
+            target_id: number;
+            message: string;
+            notes: string | null;
+            created: string;
+            image: string | null;
+            guest_name: string;
+            guest_thumb: string;
+            is_sms: number;
+            is_automatic: number;
+            pinned: number;
+            avatar: string | null;
+            guest_id: number;
+          }[];
+        }>(`inbox/${message_id}`, "GET");
+        if (info.success) {
+          if (reservationInfo.guest_id) {
+            syncAutomatedMessages(
+              reservationInfo.id.toString(),
+              reservationInfo.guest_id.toString(),
+              info.messages
+            );
+          }
+        }
         setReservation(reservationInfo);
         const [listingInfo, chat_id] = await Promise.all([
           getListingInfo(reservationInfo.listing_id),
           getChatId(reservation_id),
         ]);
-
-        getThread(
-          reservationInfo.message_id,
-          reservationInfo.guest_id.toString()
-        );
         setChatId(chat_id);
         setListing(listingInfo);
       }
@@ -106,7 +100,6 @@ export const ReservationInfoProvider = ({
     if (reservation_id) {
       getReservationWrapper();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reservation_id]);
 
   if (!listing || !reservation) {
@@ -157,12 +150,8 @@ export const ReservationInfoProvider = ({
       </h1>
       <PropertyInfoCard
         listing={listing}
-        refreshMessages={() => {
-          getThread(reservation.message_id, reservation.guest_id.toString());
-        }}
         chat_id={chat_id}
         reservation={reservation}
-        setReservation={setReservation}
       />
     </div>
   );

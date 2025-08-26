@@ -10,23 +10,8 @@ import { getChatMessages } from "@/app/actions/getChatMessages";
 import { postMessage } from "@/app/actions/postMessage";
 import { generateUniqueId } from "@/lib/utils";
 
-export function OrderChat({
-  chat_id,
-  refreshMessages,
-}: {
-  chat_id: string;
-  refreshMessages: () => void;
-}) {
+export function OrderChat({ chat_id }: { chat_id: string }) {
   const t = useTranslations("chat");
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refreshMessages();
-      //sync automated messages
-    }, 60000 * 15);
-
-    return () => clearInterval(interval);
-  }, [refreshMessages]);
 
   const [message, setMessage] = useState("");
   const [currentMessages, setMessages] = useState<IMessage[]>([]);

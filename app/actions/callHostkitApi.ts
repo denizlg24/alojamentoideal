@@ -1,7 +1,6 @@
 "use server";
 import { connectDB } from "@/lib/mongodb";
 import HostkitApiKeyModel from "@/models/HostkitApiKey";
-import { verifySession } from "@/utils/verifySession";
 
 export async function callHostkitAPI<T = unknown>({
     listingId,
@@ -12,9 +11,6 @@ export async function callHostkitAPI<T = unknown>({
     endpoint: string;
     query?: Record<string, string | number>;
 }): Promise<T> {
-    if (!(await verifySession())) {
-        throw new Error("Unauthorized")
-    }
     await connectDB();
 
     const apiKeyDoc = await HostkitApiKeyModel.findOne({ listingId }).lean();

@@ -22,6 +22,7 @@ interface GuestDataDocument extends Document {
     listing_id: string;
     guest_data: Guest[];
     synced: boolean;
+    succeeded: boolean;
 }
 
 export interface IGuestDataDocument {
@@ -29,6 +30,7 @@ export interface IGuestDataDocument {
     listing_id: string;
     guest_data: Guest[];
     synced: boolean;
+    succeeded: boolean;
 }
 
 
@@ -52,7 +54,8 @@ const GuestDataSchema = new mongoose.Schema<GuestDataDocument>(
         listing_id: { type: String },
         booking_code: { type: String, unique: true },
         guest_data: [GuestSchema],
-        synced: { type: Boolean, default: false }
+        synced: { type: Boolean, default: false },
+        succeeded: { type: Boolean, default: false }
     },
     { timestamps: true }
 );

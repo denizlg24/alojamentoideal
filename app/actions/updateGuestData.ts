@@ -10,7 +10,7 @@ export async function updateGuestData({ booking_code, guest_data }: { booking_co
             throw new Error("Unauthorized");
         }
         await connectDB();
-        const updated = await GuestDataModel.findOneAndUpdate({ booking_code }, { guest_data }, { new: true }).lean();
+        const updated = await GuestDataModel.findOneAndUpdate({ booking_code }, { guest_data, synced: false, succeeded: false }, { new: true }).lean();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return updated ? { ...updated, _id: updated._id.toString(), guest_data: updated.guest_data.map((guest) => ({ ...guest, _id: (guest as any)._id.toString() })) } : undefined;
     } catch (error) {

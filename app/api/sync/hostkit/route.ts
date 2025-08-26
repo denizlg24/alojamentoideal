@@ -16,8 +16,9 @@ export async function GET(req: Request) {
                 rcode: booking.booking_code,
             }
         })
+        let synced = true;
         for (const guest of booking.guest_data) {
-            const response = await callHostkitAPI({
+            const response = await callHostkitAPI<{ status: 'success' | unknown }>({
                 listingId: booking.listing_id,
                 endpoint: "addGuest",
                 query: {
@@ -35,9 +36,38 @@ export async function GET(req: Request) {
                     city_residence: guest.city_residence
                 }
             })
-            console.log(response);
+            if (response.status != 'success') {
+                console.log(response);
+                synced = false;
+            }
         }
-        await GuestDataModel.findOneAndUpdate({ booking_code: booking.booking_code }, { synced: true })
+        if (!synced) {
+            continue;
+        }
+        const validated = await callHostkitAPI<{ status: 'success' | unknown }>({
+            listingId: booking.listing_id,
+            endpoint: "validateSIBA",
+            query: {
+                rcode: booking.booking_code,
+            }
+        })
+        console.log("validated: ", validated);
+        if (validated.status === "success") {
+            /*const sent = await callHostkitAPI<{ status: 'success' | unknown }>({
+                listingId: booking.listing_id,
+                endpoint: "sendSIBA",
+                query: {
+                    rcode: booking.booking_code,
+                }
+            })
+            console.log("sent: ", sent);
+            if (sent.status === "success") {*/
+            await GuestDataModel.findOneAndUpdate({ booking_code: booking.booking_code }, { synced: true, succeeded: true })
+            //} else { await GuestDataModel.findOneAndUpdate({ booking_code: booking.booking_code }, { synced: true, succeeded: false }) }
+        } else {
+            await GuestDataModel.findOneAndUpdate({ booking_code: booking.booking_code }, { synced: true, succeeded: false })
+        }
+
     }
     return NextResponse.json({ ok: true });
 }
