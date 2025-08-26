@@ -397,7 +397,13 @@
     "no-guests": "Todavía no has añadido ningún huésped.",
     "verifying-guest-data": "Validando la información del huésped.",
     "add": "Añadir",
-    "validating-desct": "Estamos validando los documentos de identificación que has enviado."
+    "validating-desct": "Estamos validando los documentos de identificación que has enviado.",
+    "failed-verification": "No hemos podido verificar los documentos que proporcionaste, por favor inténtalo de nuevo.",
+    "thanks-for-providing": "¡Todo listo! Hemos verificado tu información.",
+    "redo-guest-verification": "Actualizar",
+    "documents": "Documentos",
+    "print-reservation": "Imprimir Reserva",
+    "get-invoice": "Obtener Factura"
   },
   "orderSearch": {
     "placeholder": "Buscar por número de reserva o ID del pedido...",
