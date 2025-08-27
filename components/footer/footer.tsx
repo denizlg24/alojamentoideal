@@ -35,7 +35,7 @@ export const Footer = () => {
         <div className="flex flex-col gap-4 text-sm">
           <h3 className="font-semibold">Alojamento Ideal</h3>
           <Link href={"/about"}>{t("about")}</Link>
-          <Link href={""}>{t("property-owner")}</Link>
+          <Link href={"/owner"}>{t("property-owner")}</Link>
         </div>
       </div>
       <Separator className="mt-6 mb-6 w-full h-[1px] bg-accent-foreground/25 max-w-7xl" />

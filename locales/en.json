@@ -79,6 +79,11 @@
       "title": "Admin Account Created | Alojamento Ideal",
       "description": "Your admin acc  ount request has been submitted. Our team will review it and approve or decline the request shortly.",
       "keywords": "admin account created, admin registration, account approval, administrator request, Alojamento Ideal"
+    },
+    "owner": {
+      "title": "Property Owner Form | Alojamento Ideal",
+      "description": "Submit your property details to receive a personalized profitability study for your house. Our experts will analyze your property and provide a tailored report.",
+      "keywords": "property owner, profitability study, house analysis, property evaluation, Alojamento Ideal, submit property details"
     }
   },
   "not-found": {
@@ -1121,5 +1126,24 @@
     "Per Adult / Night": "Per Adult / Night",
     "Per Guest / Night": "Per Guest / Night",
     "Percent": "Percent"
+  },
+  "owner": {
+    "headline": "Discover Your Property's True Profitability",
+    "subtitle": "Submit your house details and receive a free personalized study from our experts.",
+    "get-profitability-study-title": "Get your profitability study",
+    "field-required": "This field is required.",
+    "invalid-email": "Must be a valid email address.",
+    "next": "Next",
+    "address": "Address",
+    "location": "Location",
+    "number-properties": "Number of properties",
+    "number-bedrooms": "Number of bedrooms",
+    "name": "Full name",
+    "email": "Email address",
+    "send": "Send",
+    "phone-number": "Phone number",
+    "sending": "Sending...",
+    "email-success": "Sent successfuly!",
+    "will-be-in-contact": "We will be in contact shortly to discuss further steps."
   }
 }

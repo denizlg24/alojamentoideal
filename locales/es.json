@@ -79,6 +79,11 @@
       "title": "Cuenta de Administrador Creada | Alojamento Ideal",
       "description": "Tu solicitud de cuenta de administrador ha sido enviada. Nuestro equipo revisará la petición y la aprobará o rechazará en breve.",
       "keywords": "cuenta administrador creada, registro administrador, aprobación de cuenta, solicitud administrador, Alojamento Ideal"
+    },
+    "owner": {
+      "title": "Formulario de Propietario | Alojamento Ideal",
+      "description": "Envíe los detalles de su propiedad para recibir un estudio de rentabilidad personalizado para su casa. Nuestros expertos analizarán su propiedad y le proporcionarán un informe adaptado.",
+      "keywords": "propietario, estudio de rentabilidad, análisis de casa, evaluación de propiedad, Alojamento Ideal, enviar detalles de propiedad"
     }
   },
   "not-found": {
@@ -1124,5 +1129,24 @@
     "Per Adult / Night": "Por adulto / noche",
     "Per Guest / Night": "Por huésped / noche",
     "Percent": "Porcentaje"
+  },
+  "owner": {
+    "headline": "Descubre la Verdadera Rentabilidad de Tu Propiedad",
+    "subtitle": "Envía los detalles de tu casa y recibe un estudio personalizado gratuito de nuestros expertos.",
+    "get-profitability-study-title": "Obtén tu estudio de rentabilidad",
+    "field-required": "Este campo es obligatorio.",
+    "invalid-email": "Debe ser una dirección de correo electrónico válida.",
+    "next": "Siguiente",
+    "address": "Dirección",
+    "location": "Ubicación",
+    "number-properties": "Número de propiedades",
+    "number-bedrooms": "Número de habitaciones",
+    "name": "Nombre completo",
+    "email": "Correo electrónico",
+    "send": "Enviar",
+    "phone-number": "Número de teléfono",
+    "sending": "Enviando...",
+    "email-success": "¡Enviado con éxito!",
+    "will-be-in-contact": "Nos pondremos en contacto pronto para discutir los próximos pasos."
   }
 }
