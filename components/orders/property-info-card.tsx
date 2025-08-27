@@ -1,8 +1,8 @@
-import { format, parse } from "date-fns";
+import { format } from "date-fns";
 import { Separator } from "../ui/separator";
 import {
+  CalendarIcon,
   CheckCircle,
-  ChevronDownIcon,
   CircleAlert,
   Clock,
   Edit3,
@@ -59,7 +59,13 @@ import { Calendar } from "../ui/calendar";
 import { IGuestDataDocument } from "@/models/GuestData";
 import { getGuestData } from "@/app/actions/getGuestData";
 import { Card } from "../ui/card";
-import { Form, FormControl, FormField, FormItem } from "../ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "../ui/form";
 
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -94,7 +100,7 @@ export const PropertyInfoCard = ({
   const addGuestSchema = z.object({
     first_name: z.string().min(2, { message: "" }),
     last_name: z.string().min(2, { message: "" }),
-    birthday: z.string().min(2, { message: "" }),
+    birthday: z.date(),
     document_type: z.enum(["P", "ID", "O"]),
     document_country: z.string(),
     document_number: z.string().min(2, { message: "" }),
@@ -108,7 +114,6 @@ export const PropertyInfoCard = ({
     defaultValues: {
       first_name: "",
       last_name: "",
-      birthday: "",
       document_type: "P",
       document_country: "PRT",
       document_number: "",
@@ -178,6 +183,7 @@ export const PropertyInfoCard = ({
         ...previous,
         {
           ...values,
+          birthday: format(values.birthday, "yyyy-MM-dd"),
           arrival: reservation.checkIn,
           departure: reservation.checkOut,
         },
@@ -603,14 +609,19 @@ export const PropertyInfoCard = ({
                                       >
                                         <PopoverTrigger asChild>
                                           <Button
-                                            variant="outline"
-                                            id="date"
-                                            className="w-full justify-between font-normal"
+                                            variant={"outline"}
+                                            className={cn(
+                                              "w-[240px] pl-3 text-left font-normal",
+                                              !field.value &&
+                                                "text-muted-foreground"
+                                            )}
                                           >
-                                            {field.value == ""
-                                              ? t("select-date")
-                                              : field.value}
-                                            <ChevronDownIcon />
+                                            {field.value ? (
+                                              format(field.value, "PPP")
+                                            ) : (
+                                              <span>Pick a date</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                           </Button>
                                         </PopoverTrigger>
                                         <PopoverContent
@@ -619,32 +630,19 @@ export const PropertyInfoCard = ({
                                         >
                                           <Calendar
                                             mode="single"
+                                            showOutsideDays={false}
                                             locale={
                                               localeMap[
                                                 locale as keyof typeof localeMap
                                               ]
                                             }
-                                            captionLayout="dropdown"
-                                            {...field}
-                                            selected={
-                                              field.value
-                                                ? parse(
-                                                    field.value,
-                                                    "yyyy-MM-dd",
-                                                    new Date()
-                                                  )
-                                                : undefined
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) =>
+                                              date > new Date() ||
+                                              date < new Date("1900-01-01")
                                             }
-                                            onSelect={(date) => {
-                                              if (date) {
-                                                field.onChange(
-                                                  format(date, "yyyy-MM-dd")
-                                                );
-                                                setBirthdayOpen(false);
-                                              } else {
-                                                field.onChange("");
-                                              }
-                                            }}
+                                            captionLayout="dropdown-years"
                                           />
                                         </PopoverContent>
                                       </Popover>
@@ -804,6 +802,7 @@ export const PropertyInfoCard = ({
                               <>{t("add-guest-information")}</>
                             )}
                           </Button>
+                          <FormMessage />
                         </div>
                       </form>
                     </Form>

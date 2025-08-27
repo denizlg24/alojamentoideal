@@ -195,11 +195,16 @@ export const OrderInfo = ({
                               >
                                 <p className="">
                                   -{" "}
-                                  {fee.fee_name?.startsWith("City Tax")
-                                    ? `${feeT("City Tax")}${fee.fee_name.slice(
+                                  {fee.fee_name
+                                    ?.toLowerCase()
+                                    .startsWith("City Tax")
+                                    ? `${feeT("city tax")}${fee.fee_name.slice(
                                         "City Tax".length
                                       )}`
-                                    : feeT(fee.fee_name || "not-found")}
+                                    : feeT(
+                                        fee.fee_name?.toLowerCase() ||
+                                          "not-found"
+                                      )}
                                 </p>
                                 <p className="">{fee.total}€</p>
                               </div>

@@ -152,15 +152,16 @@ export const RoomCheckoutProvider = ({
                 >
                   <div className="flex flex-row items-center justify-start gap-1 truncate w-full">
                     <p className="md:text-base text-sm">
-                      {fee.fee_name?.startsWith("City Tax")
-                        ? `${feeT("City Tax")}${fee.fee_name.slice(
+                      {fee.fee_name?.toLowerCase().startsWith("city tax")
+                        ? `${feeT("city tax")}${fee.fee_name.slice(
                             "City Tax".length
                           )}`
-                        : feeT(fee.fee_name || "not-found")}
+                        : feeT(fee.fee_name?.toLowerCase() || "not-found")}
                     </p>
                     {fee.fee_charge_type && (
                       <p className="md:text-sm text-xs truncate">
-                        - {fee.amount}€ / {feeT(fee.fee_charge_type)}
+                        - {fee.amount}€ /{" "}
+                        {feeT(fee.fee_charge_type.toLowerCase())}
                       </p>
                     )}
                   </div>

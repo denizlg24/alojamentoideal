@@ -49,7 +49,7 @@ export async function createHouseInvoice({ item, clientName, clientAddress, clie
                 const custom_descr = fee.fee_name || ""
                 let product_id = '';
                 let type = '';
-                switch (fee.fee_type) {
+                switch (fee.fee_type?.toLowerCase()) {
                     case "accommodation":
                         product_id = 'AL';
                         type = 'S';
@@ -59,37 +59,37 @@ export async function createHouseInvoice({ item, clientName, clientAddress, clie
                         type = 'I';
                         break;
                     default:
-                        switch (fee.fee_name) {
-                            case "Breakfast":
+                        switch (fee.fee_name?.toLowerCase()) {
+                            case "breakfast":
                                 type = 'P';
                                 product_id = "PA";
                                 break;
-                            case "Cleaning fee T0-T1":
-                            case "Cleaning fee":
-                            case "Short-term cleaning fee":
+                            case "cleaning fee t0-t1":
+                            case "cleaning fee":
+                            case "short-term cleaning fee":
                                 type = 'S';
                                 product_id = "CF";
                                 break;
-                            case "Touristic tax":
+                            case "touristic tax":
                                 type = 'I';
                                 product_id = "TMT";
                                 break;
-                            case "Management fee":
-                            case "Administrative fee":
-                            case "Guest registration":
-                            case "Hoa fee":
-                            case "Booking fee":
+                            case "management fee":
+                            case "administrative fee":
+                            case "guest registration":
+                            case "hoa fee":
+                            case "booking fee":
                                 type = 'S';
                                 product_id = "SAL";
                                 break;
-                            case "Electricity fee":
-                            case "Gas fee":
-                            case "Oil fee":
-                            case "Wood fee":
-                            case "Water usage fee":
-                            case "Heating fee":
-                            case "Air conditioning fee":
-                            case "Utility fee":
+                            case "electricity fee":
+                            case "gas fee":
+                            case "oil fee":
+                            case "wood fee":
+                            case "water usage fee":
+                            case "heating fee":
+                            case "air conditioning fee":
+                            case "utility fee":
                                 type = 'S'
                                 product_id = "Man";
                                 break;
