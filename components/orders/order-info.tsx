@@ -78,6 +78,7 @@ export const OrderInfo = ({
   loading: boolean;
 }) => {
   const t = useTranslations("order");
+  const feeT = useTranslations("feeTranslations");
   const locale = useLocale();
   const cardRef = useRef<HTMLDivElement>(null);
   const handlePrint = useReactToPrint({
@@ -135,18 +136,20 @@ export const OrderInfo = ({
                 <p className="font-bold">{t("billing_info")}</p>
                 {order.companyName && (
                   <div className="flex flex-row items-center justify-between text-sm">
-                    <p className="font-semibold">{t("company_name")}</p>
+                    <p className="font-semibold text-left">
+                      {t("company_name")}
+                    </p>
                     <p className="max-w-[60%] truncate">{order.companyName}</p>
                   </div>
                 )}
                 {order.tax_number && (
                   <div className="flex flex-row items-center justify-between text-sm">
-                    <p className="font-semibold">{t("vat")}</p>
+                    <p className="font-semibold text-left">{t("vat")}</p>
                     <p className="max-w-[60%] truncate">{order.tax_number}</p>
                   </div>
                 )}
                 <div className="flex flex-row items-start justify-between text-sm text-right">
-                  <p className="font-semibold">{t("address")}</p>
+                  <p className="font-semibold text-left">{t("address")}</p>
                   <p className="max-w-[60%] line-clamp-3">{`${
                     charge?.billing_details.address?.line1
                   }${
@@ -190,7 +193,14 @@ export const OrderInfo = ({
                                 key={fee.fee_id}
                                 className="w-full flex flex-row items-center justify-between text-sm"
                               >
-                                <p className="">- {fee.fee_name}</p>
+                                <p className="">
+                                  -{" "}
+                                  {fee.fee_name?.startsWith("City Tax")
+                                    ? `${feeT("City Tax")}${fee.fee_name.slice(
+                                        "City Tax".length
+                                      )}`
+                                    : feeT(fee.fee_name || "not-found")}
+                                </p>
                                 <p className="">{fee.total}€</p>
                               </div>
                             );
@@ -278,7 +288,7 @@ export const OrderInfo = ({
                   {charge?.created &&
                     format(
                       fromUnixTime(charge?.created),
-                      "dd, MMMM yyyy - h:mm a",
+                      "dd, MMMM yyyy - hh:mm:ss",
                       { locale: localeMap[locale as keyof typeof localeMap] }
                     )}
                 </p>

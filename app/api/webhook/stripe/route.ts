@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
+import GuestDataModel from "@/models/GuestData";
 import OrderModel from "@/models/Order";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { format } from "date-fns";
@@ -98,6 +99,10 @@ export async function POST(req: Request) {
                                 undefined,
                                 undefined
                             );
+
+                        }
+                        for (const booking_code of refund_foundOrder.reservationReferences) {
+                            await GuestDataModel.findOneAndDelete({ booking_code });
                         }
                         for (const transactionId of refund_foundOrder.transaction_id) {
                             await hostifyRequest<{ success: boolean }>(

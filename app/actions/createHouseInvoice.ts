@@ -3,15 +3,15 @@
 import { AccommodationItem } from "@/hooks/cart-context";
 import { callHostkitAPI } from "./callHostkitApi";
 import { Address } from "@stripe/stripe-js";
-import { toAlpha3 } from "i18n-iso-countries";
+import { alpha2ToAlpha3 } from "i18n-iso-countries";
 
 export async function createHouseInvoice({ item, clientName, clientAddress, clientTax, booking_code }: { item: AccommodationItem, clientName: string, clientAddress: Address, clientTax: string | undefined, booking_code: string }) {
     const fees = item.fees;
 
     const customer_id = clientTax == '' ? '999999990' : clientTax;
     const name = clientName;
-    const country = clientAddress.country ? toAlpha3(clientAddress.country) : undefined;
-    const address = `${clientAddress.line1}${clientAddress.line2 ? ` ${clientAddress.line2}` : " "}`;
+    const country = clientAddress.country ? alpha2ToAlpha3(clientAddress.country) : undefined;
+    const address = clientAddress.line1 + (clientAddress.line2 ? ` ${clientAddress.line2}` : "");
     const cp = clientAddress.postal_code || "";
     const city = clientAddress.city || "";
     const rcode = booking_code;
@@ -31,9 +31,9 @@ export async function createHouseInvoice({ item, clientName, clientAddress, clie
         if (customer_id) newInvoiceQuery.customer_id = customer_id;
         if (name) newInvoiceQuery.name = name;
         if (country) newInvoiceQuery.country = country;
-        if (address) newInvoiceQuery.address = address;
+        if (address) newInvoiceQuery.address = encodeURI(address);
         if (cp) newInvoiceQuery.cp = cp;
-        if (city) newInvoiceQuery.city = city;
+        if (city) newInvoiceQuery.city = encodeURI(city);
         if (rcode) newInvoiceQuery.rcode = rcode;
         if (payment_method) newInvoiceQuery.payment_method = payment_method;
         if (invoicing_nif) newInvoiceQuery.invoicing_nif = invoicing_nif;
@@ -46,68 +46,77 @@ export async function createHouseInvoice({ item, clientName, clientAddress, clie
         if (newInvoice.id) {
             const id = newInvoice.id;
             for (const fee of fees) {
-                const fee_name = fee.fee_name;
-                const fee_type = fee.fee_type;
-                if (fee_type == 'accommodation') {
-                    const custom_descr = fee_name || "Alojamento Local";
-                    const product_id = 'AL';
-                    const qty = 1;
-                    const price = fee.total || 0;
-                    const vat = fee.inclusive_percent ? fee.inclusive_percent * 100 : 0;
-                    const query: Record<string, string | number> = {
-                        id,
-                        product_id,
-                        custom_descr,
-                        qty,
-                        price,
-                        discount: 0,
-                        vat,
-                        type: 'S',
-                        reason_code: vat == 0 ? 'M99' : ''
-                    };
-                    await callHostkitAPI<{ status: 'success' | unknown, line?: string }>({
-                        listingId: item.property_id.toString(), endpoint: "addInvoiceLine", query
-                    })
-
-                } else if (fee_type == 'fee') {
-                    const custom_descr = fee_name || "EXTRA";
-                    const product_id = 'EXTRAS';
-                    const qty = fee.quantity || 1;
-                    const price = fee.total || 0;
-                    const vat = fee.inclusive_percent ? fee.inclusive_percent * 100 : 0;
-                    const query: Record<string, string | number> = {
-                        id,
-                        product_id,
-                        custom_descr,
-                        qty,
-                        price,
-                        discount: 0,
-                        vat,
-                        reason_code: vat == 0 ? 'M99' : ''
-                    };
-                    await callHostkitAPI<{ status: 'success' | unknown, line?: string }>({
-                        listingId: item.property_id.toString(), endpoint: "addInvoiceLine", query
-                    })
-                } else if (fee_type == 'tax') {
-                    const custom_descr = fee_name || "City Tax";
-                    const product_id = 'TMT';
-                    const qty = 1;
-                    const price = fee.total || 0;
-                    const vat = fee.inclusive_percent ? fee.inclusive_percent * 100 : 0;
-                    const query: Record<string, string | number> = {
-                        id,
-                        product_id,
-                        custom_descr,
-                        qty,
-                        price,
-                        discount: 0,
-                        vat,
-                        reason_code: vat == 0 ? 'M99' : ''
-                    };
-                    await callHostkitAPI<{ status: 'success' | unknown, line?: string }>({
-                        listingId: item.property_id.toString(), endpoint: "addInvoiceLine", query
-                    })
+                const custom_descr = fee.fee_name || ""
+                let product_id = '';
+                let type = '';
+                switch (fee.fee_type) {
+                    case "accommodation":
+                        product_id = 'AL';
+                        type = 'S';
+                        break;
+                    case "tax":
+                        product_id = "TMT";
+                        type = 'I';
+                        break;
+                    default:
+                        switch (fee.fee_name) {
+                            case "Breakfast":
+                                type = 'P';
+                                product_id = "PA";
+                                break;
+                            case "Cleaning fee T0-T1":
+                            case "Cleaning fee":
+                            case "Short-term cleaning fee":
+                                type = 'S';
+                                product_id = "CF";
+                                break;
+                            case "Touristic tax":
+                                type = 'I';
+                                product_id = "TMT";
+                                break;
+                            case "Management fee":
+                            case "Administrative fee":
+                            case "Guest registration":
+                            case "Hoa fee":
+                            case "Booking fee":
+                                type = 'S';
+                                product_id = "SAL";
+                                break;
+                            case "Electricity fee":
+                            case "Gas fee":
+                            case "Oil fee":
+                            case "Wood fee":
+                            case "Water usage fee":
+                            case "Heating fee":
+                            case "Air conditioning fee":
+                            case "Utility fee":
+                                type = 'S'
+                                product_id = "Man";
+                                break;
+                            default:
+                                type = 'S'
+                                product_id = "EXTRAS";
+                                break;
+                        }
+                        break;
                 }
+                const price = fee.total || 0;
+                const vat = fee.inclusive_percent ? fee.inclusive_percent * 100 : 0;
+                const qty = 1;
+                const query: Record<string, string | number> = {
+                    id,
+                    product_id,
+                    custom_descr,
+                    qty,
+                    price,
+                    discount: 0,
+                    vat,
+                    type,
+                    reason_code: vat == 0 ? 'M99' : ''
+                };
+                await callHostkitAPI<{ status: 'success' | unknown, line?: string }>({
+                    listingId: item.property_id.toString(), endpoint: "addInvoiceLine", query
+                })
             }
             //CLOSE
             /*

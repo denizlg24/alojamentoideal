@@ -23,11 +23,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import Stripe from "stripe";
 
-export interface ITableOrder extends Omit<IOrder, "payment_id"> {
+export interface ITableOrder
+  extends Omit<Omit<IOrder, "payment_id">, "payment_method_id"> {
   payment_id: {
     status: string;
     payment_id: string;
+  };
+  payment_method_id: {
+    charge: Stripe.Charge | undefined;
+    payment_method_id: string | undefined;
   };
 }
 
@@ -77,59 +83,29 @@ export const columns: ColumnDef<Order>[] = [
     ),
   },
   {
-    accessorKey: "payment_id",
+    accessorKey: "payment_method_id",
     cell: ({ row }) => {
+      const charge = (
+        row.getValue("payment_method_id") as {
+          charge: Stripe.Charge;
+          payment_method_id: string;
+        }
+      ).charge;
       let status = <></>;
-      switch (
-        (row.getValue("payment_id") as { status: string; payment_id: string })
-          .status
-      ) {
-        case "canceled":
+      switch (charge.status) {
+        case "failed":
           status = (
             <div className="flex flex-row items-center justify-start gap-1">
               <div className="w-2 h-2 rounded-full bg-destructive"></div>
-              <p>Canceled</p>
+              <p>Failed ({charge.failure_message})</p>
             </div>
           );
           break;
-        case "processing":
+        case "pending":
           status = (
             <div className="flex flex-row items-center justify-start gap-1">
               <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-              <p>Processing</p>
-            </div>
-          );
-          break;
-        case "requires_action":
-          status = (
-            <div className="flex flex-row items-center justify-start gap-1">
-              <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-              <p>Waiting action</p>
-            </div>
-          );
-          break;
-        case "requires_capture":
-          status = (
-            <div className="flex flex-row items-center justify-start gap-1">
-              <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-              <p>Waiting capture</p>
-            </div>
-          );
-          break;
-        case "requires_confirmation":
-          status = (
-            <div className="flex flex-row items-center justify-start gap-1">
-              <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-              <p>Waiting confirmation</p>
-            </div>
-          );
-
-          break;
-        case "requires_payment_method":
-          status = (
-            <div className="flex flex-row items-center justify-start gap-1">
-              <div className="w-2 h-2 rounded-full bg-destructive"></div>
-              <p>Card declined</p>
+              <p>Pending ({charge.amount / 100}€)</p>
             </div>
           );
           break;
@@ -137,18 +113,18 @@ export const columns: ColumnDef<Order>[] = [
           status = (
             <div className="flex flex-row items-center justify-start gap-1">
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <p>Succeeded</p>
+              <p>Succeeded ({charge.amount / 100}€)</p>
             </div>
           );
           break;
-        case "not-found":
-          status = (
-            <div className="flex flex-row items-center justify-start gap-1">
-              <div className="w-2 h-2 rounded-full bg-destructive"></div>
-              <p>Not found</p>
-            </div>
-          );
-          break;
+      }
+      if (charge.amount_refunded > 0) {
+        status = (
+          <div className="flex flex-row items-center justify-start gap-1">
+            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+            <p>Refunded ({charge.amount_refunded / 100}€)</p>
+          </div>
+        );
       }
       return status;
     },
@@ -157,29 +133,39 @@ export const columns: ColumnDef<Order>[] = [
     ),
     filterFn: (row, columnId, filterValue: string[] | string) => {
       const value = row.getValue(columnId) as {
-        status: string;
-        payment_id: string;
+        charge: Stripe.Charge;
+        payment_method_id: string;
       };
       if (Array.isArray(filterValue)) {
-        return filterValue.includes(value.status);
+        return (
+          filterValue.includes(value.charge.status) ||
+          value.charge.amount_refunded > 0
+        );
       }
-      return value.status === filterValue;
+      if (filterValue == "refunded") {
+        return value.charge.amount_refunded > 0;
+      } else {
+        return (
+          value.charge.status === filterValue &&
+          value.charge.amount_refunded == 0
+        );
+      }
     },
     sortingFn: (rowA, rowB, columnId) => {
       const a = rowA.getValue(columnId) as {
-        status: string;
-        payment_id: string;
+        charge: Stripe.Charge;
+        payment_method_id: string;
       };
       const b = rowB.getValue(columnId) as {
-        status: string;
-        payment_id: string;
+        charge: Stripe.Charge;
+        payment_method_id: string;
       };
 
-      if (a.status < b.status) return -1;
-      if (a.status > b.status) return 1;
+      if (a.charge.status < b.charge.status) return -1;
+      if (a.charge.status > b.charge.status) return 1;
 
-      if (a.payment_id < b.payment_id) return -1;
-      if (a.payment_id > b.payment_id) return 1;
+      if (a.charge.id < b.charge.id) return -1;
+      if (a.charge.id > b.charge.id) return 1;
 
       return 0;
     },

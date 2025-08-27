@@ -66,6 +66,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
 
   const roomInfoT = useTranslations("room-info");
   const floatingFilterT = useTranslations("floating-filter");
+  const feeT = useTranslations("feeTranslations");
 
   const [photoZoomOpen, setPhotoZoomOpen] = useState(false);
   const [isLoading, setLoading] = useState(true);
@@ -275,7 +276,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
       let overchargeToDeduct = 0;
 
       price.price.fees = price.price.fees.map((fee) => {
-        if (fee.fee_name.includes("City Tax")) {
+        if (fee.fee_type == "tax") {
           const maxQuantity = guests.adults * nights;
           if (fee.quantity > maxQuantity) {
             const excess = fee.quantity - maxQuantity;
@@ -1462,11 +1463,15 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                           >
                             <div className="flex flex-row items-center justify-start gap-1 truncate w-full">
                               <p className="md:text-base text-sm">
-                                {fee.fee_name}
+                                {fee.fee_name?.startsWith("City Tax")
+                                  ? `${feeT("City Tax")}${fee.fee_name.slice(
+                                      "City Tax".length
+                                    )}`
+                                  : feeT(fee.fee_name)}
                               </p>
                               {fee.charge_type_label && (
                                 <p className="md:text-sm text-xs truncate">
-                                  - {fee.charge_type_label}
+                                  {fee.amount}€ / {feeT(fee.fee_charge_type)}
                                 </p>
                               )}
                             </div>

@@ -5,7 +5,7 @@ import { connectDB } from "@/lib/mongodb";
 import OrderModel from "@/models/Order";
 import { verifySession } from "@/utils/verifySession";
 import { getPaymentStatus } from "./getPaymentStatus";
-import { stripe } from "@/lib/stripe";
+import { getPaymentIntent } from "./getPaymentIntent";
 
 export async function getAdminOrder(orderId: string) {
     if (!(await verifySession())) {
@@ -20,8 +20,12 @@ export async function getAdminOrder(orderId: string) {
     if (!order) {
         return undefined;
     }
-    const final = {
-        ...order, _id: order._id.toString(), payment_id: { payment_id: order.payment_id, status: order.payment_id ? await getPaymentStatus(order.payment_id) : "not-found" }, payment_method: { payment_method_id: order.payment_method_id, payment_method: order.payment_method_id ? await stripe.paymentMethods.retrieve(order.payment_method_id) : undefined }
-    };
-    return final;
+
+    const status = order.payment_id ? await getPaymentStatus(order.payment_id) : "not-found";
+    const { charge } = order.payment_id ? await getPaymentIntent(order.payment_id) : { charge: undefined };
+    return {
+        ...order, _id: order._id.toString(),
+        payment_id: { payment_id: order.payment_id, status },
+        payment_method_id: { payment_method_id: order.payment_method_id, charge }
+    }
 }

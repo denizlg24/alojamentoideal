@@ -174,31 +174,23 @@ export function DataTable<TData, TValue>({
           onValueChange={(value) => {
             switch (value) {
               case "all":
-                table.getColumn("payment_id")?.setFilterValue("");
+                table.getColumn("payment_method_id")?.setFilterValue("");
                 break;
               case "succeeded":
-                table.getColumn("payment_id")?.setFilterValue("succeeded");
-                break;
-              case "canceled":
-                table.getColumn("payment_id")?.setFilterValue("canceled");
-                break;
-              case "processing":
-                table.getColumn("payment_id")?.setFilterValue("processing");
-                break;
-              case "requires_action,requires_confirmation,requires_capture":
                 table
-                  .getColumn("payment_id")
-                  ?.setFilterValue([
-                    "requires_action",
-                    "requires_confirmation",
-                    "requires_capture",
-                  ]);
-
+                  .getColumn("payment_method_id")
+                  ?.setFilterValue("succeeded");
                 break;
-              case "requires_payment_method":
+              case "failed":
+                table.getColumn("payment_method_id")?.setFilterValue("failed");
+                break;
+              case "pending":
+                table.getColumn("payment_method_id")?.setFilterValue("pending");
+                break;
+              case "refunded":
                 table
-                  .getColumn("payment_id")
-                  ?.setFilterValue("requires_payment_method");
+                  .getColumn("payment_method_id")
+                  ?.setFilterValue("refunded");
                 break;
             }
           }}
@@ -207,14 +199,9 @@ export function DataTable<TData, TValue>({
           <TabsList className="flex-wrap h-full!">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="succeeded">Succeeded</TabsTrigger>
-            <TabsTrigger value="requires_action,requires_confirmation,requires_capture">
-              Pending
-            </TabsTrigger>
-            <TabsTrigger value="processing">Processing</TabsTrigger>
-            <TabsTrigger value="requires_payment_method">
-              Card Declined
-            </TabsTrigger>
-            <TabsTrigger value="canceled">Canceled</TabsTrigger>
+            <TabsTrigger value="pending">Pending</TabsTrigger>
+            <TabsTrigger value="failed">Failed</TabsTrigger>
+            <TabsTrigger value="refunded">Refunded</TabsTrigger>
           </TabsList>
         </Tabs>
         <Input

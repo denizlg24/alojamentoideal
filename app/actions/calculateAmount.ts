@@ -36,7 +36,7 @@ export const calculateAmount = async (cart: CartItem[]) => {
             const nights = (to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24);
             let overchargeToDeduct = 0;
             price.price.fees = price.price.fees.map((fee) => {
-                if (fee.fee_name.includes("City Tax")) {
+                if (fee.fee_type == 'tax') {
                     const maxQuantity = guests.adults * nights;
                     if (fee.quantity > maxQuantity) {
                         const excess = fee.quantity - maxQuantity;

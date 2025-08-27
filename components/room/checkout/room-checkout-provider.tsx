@@ -38,6 +38,7 @@ export const RoomCheckoutProvider = ({
   const locale = useLocale();
 
   const t = useTranslations("checkout");
+  const feeT = useTranslations("feeTranslations");
   const supportedLocales = [
     "auto",
     "ar",
@@ -150,12 +151,16 @@ export const RoomCheckoutProvider = ({
                   className="w-full flex flex-row gap-2 items-center justify-between"
                 >
                   <div className="flex flex-row items-center justify-start gap-1 truncate w-full">
-                    <p className="md:text-base text-sm">{fee.fee_name}</p>
-                    {fee.charge_type_label && (
+                    <p className="md:text-base text-sm">
+                      {fee.fee_name?.startsWith("City Tax")
+                        ? `${feeT("City Tax")}${fee.fee_name.slice(
+                            "City Tax".length
+                          )}`
+                        : feeT(fee.fee_name || "not-found")}
+                    </p>
+                    {fee.fee_charge_type && (
                       <p className="md:text-sm text-xs truncate">
-                        {t("fee_type_label", {
-                          label: fee.charge_type_label,
-                        })}
+                        - {fee.amount}€ / {feeT(fee.fee_charge_type)}
                       </p>
                     )}
                   </div>

@@ -114,7 +114,7 @@ export default async function Page({
     let overchargeToDeduct = 0;
 
     price.price.fees = price.price.fees.map((fee) => {
-      if (fee.fee_name.includes("City Tax")) {
+      if (fee.fee_type == "tax") {
         const maxQuantity = tripDetails.adults * nights;
         if (fee.quantity > maxQuantity) {
           const excess = fee.quantity - maxQuantity;

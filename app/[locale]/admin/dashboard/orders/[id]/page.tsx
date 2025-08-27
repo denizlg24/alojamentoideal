@@ -2,17 +2,33 @@ import { getAdminOrder } from "@/app/actions/getAdminOrder";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
-import { localeMap } from "@/lib/utils";
+import { localeMap, PAYMENT_METHOD_LABELS } from "@/lib/utils";
 import { CustomFieldType } from "@/schemas/custom-field.schema";
 import { ListingType } from "@/schemas/listing.schema";
 import { ReservationType } from "@/schemas/reservation.schema";
 import { hostifyRequest } from "@/utils/hostify-request";
-import { format } from "date-fns";
-import { LucideSquareArrowOutUpRight } from "lucide-react";
+import { format, fromUnixTime } from "date-fns";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Landmark,
+  LucideSquareArrowOutUpRight,
+  RefreshCcw,
+  Wallet,
+  XCircle,
+} from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
 import { GetReservationStatus } from "./reservationStatus";
 import { Separator } from "@/components/ui/separator";
+import Stripe from "stripe";
+import { FaCcApplePay } from "react-icons/fa6";
+import {
+  PaymentIcon,
+  PaymentTypeExtended,
+} from "react-svg-credit-card-payment-icons";
+import { GetGuestSection } from "./guestSection";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -37,6 +53,44 @@ export async function generateMetadata() {
   };
 }
 
+const renderIcon = ({
+  paymentMethod,
+}: {
+  paymentMethod: Stripe.Charge.PaymentMethodDetails | undefined;
+}) => {
+  if (!paymentMethod) return null;
+
+  if (paymentMethod.type === "card")
+    return (
+      <PaymentIcon
+        type={paymentMethod?.card?.brand as PaymentTypeExtended}
+        format="flatRounded"
+        className="w-8 h-auto shrink-0"
+      />
+    );
+  if (paymentMethod.type === "sepa_debit")
+    return <Landmark className="w-auto shrink-0 h-4" />;
+  if (paymentMethod.type.includes("apple"))
+    return <FaCcApplePay className="w-4 h-4 shrink-0" />;
+
+  return <Wallet className="w-4 h-4 shrink-0" />;
+};
+
+const renderStatusIcon = ({ status }: { status: string }) => {
+  switch (status) {
+    case "succeeded":
+      return <CheckCircle2 className="w-5 h-5 text-green-600" />;
+    case "pending":
+      return <Clock className="w-5 h-5 text-yellow-600" />;
+    case "failed":
+      return <XCircle className="w-5 h-5 text-red-600" />;
+    case "refunded":
+      return <RefreshCcw className="w-5 h-5 text-blue-400" />;
+    default:
+      return <AlertTriangle className="w-5 h-5 text-gray-500" />;
+  }
+};
+
 export default async function Home({
   params,
 }: {
@@ -46,6 +100,8 @@ export default async function Home({
   const { locale, id } = await params;
   setRequestLocale(locale);
   const propertyCardT = await getTranslations("propertyCard");
+  const feeT = await getTranslations("feeTranslations");
+  const t = await getTranslations("order");
 
   const order = await getAdminOrder(id);
   if (!order) {
@@ -94,55 +150,30 @@ export default async function Home({
     })
   );
 
-  const getPaymentStatus = (paymentStatus: string) => {
+  const getPaymentStatus = (charge: Stripe.Charge | undefined) => {
     let status = <></>;
-    switch (paymentStatus) {
-      case "canceled":
+    if (!charge) {
+      return (
+        <div className="flex flex-row items-center justify-start gap-1">
+          <div className="w-2 h-2 rounded-full bg-destructive"></div>
+          <p>No Charge</p>
+        </div>
+      );
+    }
+    switch (charge.status) {
+      case "failed":
         status = (
           <div className="flex flex-row items-center justify-start gap-1">
             <div className="w-2 h-2 rounded-full bg-destructive"></div>
-            <p>Canceled</p>
+            <p>Failed ({charge.failure_message})</p>
           </div>
         );
         break;
-      case "processing":
+      case "pending":
         status = (
           <div className="flex flex-row items-center justify-start gap-1">
             <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-            <p>Processing</p>
-          </div>
-        );
-        break;
-      case "requires_action":
-        status = (
-          <div className="flex flex-row items-center justify-start gap-1">
-            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-            <p>Waiting action</p>
-          </div>
-        );
-        break;
-      case "requires_capture":
-        status = (
-          <div className="flex flex-row items-center justify-start gap-1">
-            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-            <p>Waiting capture</p>
-          </div>
-        );
-        break;
-      case "requires_confirmation":
-        status = (
-          <div className="flex flex-row items-center justify-start gap-1">
-            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-            <p>Waiting confirmation</p>
-          </div>
-        );
-
-        break;
-      case "requires_payment_method":
-        status = (
-          <div className="flex flex-row items-center justify-start gap-1">
-            <div className="w-2 h-2 rounded-full bg-destructive"></div>
-            <p>Card declined</p>
+            <p>Pending ({charge.amount / 100}€)</p>
           </div>
         );
         break;
@@ -150,21 +181,23 @@ export default async function Home({
         status = (
           <div className="flex flex-row items-center justify-start gap-1">
             <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <p>Succeeded</p>
-          </div>
-        );
-        break;
-      case "not-found":
-        status = (
-          <div className="flex flex-row items-center justify-start gap-1">
-            <div className="w-2 h-2 rounded-full bg-destructive"></div>
-            <p>Not found</p>
+            <p>Succeeded ({charge.amount / 100}€)</p>
           </div>
         );
         break;
     }
+    if (charge.amount_refunded > 0) {
+      status = (
+        <div className="flex flex-row items-center justify-start gap-1">
+          <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+          <p>Refunded ({charge.amount_refunded / 100}€)</p>
+        </div>
+      );
+    }
     return status;
   };
+
+  const charge = order.payment_method_id.charge;
 
   return (
     <div className="flex flex-col w-full h-full bg-muted">
@@ -175,7 +208,7 @@ export default async function Home({
               #{order.orderId}
             </h1>
             <Card className="p-1 rounded!">
-              {getPaymentStatus(order.payment_id.status)}
+              {getPaymentStatus(order.payment_method_id.charge)}
             </Card>
           </div>
           <h2 className="md:text-base text-sm font-medium">
@@ -183,68 +216,122 @@ export default async function Home({
           </h2>
         </div>
         <div className="w-full col-span-2 flex flex-col gap-4 order-2">
-          <Card className="w-full flex flex-col gap-2 p-4">
+          <Card className="px-4 flex flex-col gap-2">
             <div className="flex flex-row items-center justify-between text-sm w-full relative">
-              <p className="font-bold">Order ID</p>
+              <p className="font-bold">{t("order_id")}</p>
               <p className="font-normal max-w-[60%] truncate">
                 #{order.orderId}
               </p>
             </div>
             <div className="col-span-3 w-full flex flex-col gap-4">
-              <Separator />
               <div className="flex flex-row items-center justify-between text-sm">
-                <p className="font-bold">Created at</p>
+                <p className="font-bold">{t("created_at")}</p>
                 <p className="">
-                  {format(new Date(order.createdAt), "yyyy-MM-dd hh:mm")}
+                  {format(
+                    new Date(order.createdAt),
+                    "dd, MMMM yyyy - h:mm bbb",
+                    {
+                      locale: localeMap[locale as keyof typeof localeMap],
+                    }
+                  )}
                 </p>
               </div>
               <Separator />
-              <div className="w-full flex flex-col gap-2">
-                <div className="flex flex-row items-center justify-between text-sm">
-                  <p className="font-bold">Client name</p>
-                  <p className="max-w-[60%] truncate">{order.name}</p>
+              <div className="flex sm:flex-row flex-col sm:gap-6 gap-2 items-start">
+                <div className="w-full flex flex-col gap-2">
+                  <p className="font-bold">{t("client_info")}</p>
+                  <div className="flex flex-row items-center justify-between text-sm">
+                    <p className="font-semibold">{t("name_on_order")}</p>
+                    <p className="max-w-[60%] truncate">{order.name}</p>
+                  </div>
+                  <div className="flex flex-row items-center justify-between text-sm">
+                    <p className="font-semibold">{t("email")}</p>
+                    <p className="max-w-[60%] truncate">{order.email}</p>
+                  </div>
+                  <div className="flex flex-row items-center justify-between text-sm">
+                    <p className="font-semibold">{t("phone")}</p>
+                    <p className="max-w-[60%] truncate">{order.phoneNumber}</p>
+                  </div>
                 </div>
-                <div className="flex flex-row items-center justify-between text-sm">
-                  <p className="font-bold">Client email</p>
-                  <p className="max-w-[60%] truncate">{order.email}</p>
-                </div>
-                <div className="flex flex-row items-center justify-between text-sm">
-                  <p className="font-bold">Client phone</p>
-                  <p className="max-w-[60%] truncate">{order.phoneNumber}</p>
-                </div>
-                <div className="flex flex-row items-center justify-between text-sm">
-                  <p className="font-bold">Notes</p>
-                  <p className="max-w-[60%] truncate">{order.notes}</p>
+                <div className="w-full flex flex-col gap-2">
+                  <p className="font-bold">{t("billing_info")}</p>
+                  {order.companyName && (
+                    <div className="flex flex-row items-center justify-between text-sm">
+                      <p className="font-semibold text-left">
+                        {t("company_name")}
+                      </p>
+                      <p className="max-w-[60%] truncate">
+                        {order.companyName}
+                      </p>
+                    </div>
+                  )}
+                  {order.tax_number && (
+                    <div className="flex flex-row items-center justify-between text-sm">
+                      <p className="font-semibold text-left">{t("vat")}</p>
+                      <p className="max-w-[60%] truncate">{order.tax_number}</p>
+                    </div>
+                  )}
+                  <div className="flex flex-row items-start justify-between text-sm text-right">
+                    <p className="font-semibold text-left">{t("address")}</p>
+                    <p className="max-w-[60%] line-clamp-3">{`${
+                      charge?.billing_details.address?.line1
+                    }${
+                      charge?.billing_details.address?.line2
+                        ? ` ${charge?.billing_details.address?.line2}`
+                        : ""
+                    }, ${charge?.billing_details.address?.postal_code} ${
+                      charge?.billing_details.address?.state ||
+                      charge?.billing_details.address?.city
+                    }, ${charge?.billing_details.address?.country}`}</p>
+                  </div>
                 </div>
               </div>
+
               <Separator />
               <div className="w-full flex flex-col gap-2">
-                <p className="font-bold text-sm">Price breakdown</p>
-                <div className="flex flex-col gap-1 w-full">
-                  {order.items.map((item) => {
+                <p className="font-bold">{t("price_breakdown")}</p>
+                <p className="font-semibold text-sm">
+                  {order.items.length > 1
+                    ? t("items-count", { count: order.items.length })
+                    : t("item-count", { count: order.items.length })}
+                  :
+                </p>
+                <div className="flex flex-col gap-1 grow pl-2 -mt-2">
+                  {order.items.map((item, indx) => {
                     if (item.type == "accommodation") {
                       return (
                         <div
                           key={item.property_id}
                           className="w-full flex flex-col gap-0"
                         >
-                          <p className="font-semibold text-sm">{item.name}</p>
-                          <div className="w-full flex flex-col gap-0 ml-1">
+                          <p className="font-medium text-sm">
+                            {indx + 1}. {item.name} - {t("confirmation-code")}
+                            {": "}
+                            {order.reservationReferences[indx]}
+                          </p>
+                          <div className="w-full flex flex-col gap-0 pl-3">
                             {item.fees.map((fee) => {
                               return (
                                 <div
                                   key={fee.fee_id}
                                   className="w-full flex flex-row items-center justify-between text-sm"
                                 >
-                                  <p className="font-medium">
-                                    - {fee.fee_name}
+                                  <p className="">
+                                    -{" "}
+                                    {fee.fee_name?.startsWith("City Tax")
+                                      ? `${feeT(
+                                          "City Tax"
+                                        )}${fee.fee_name.slice(
+                                          "City Tax".length
+                                        )}`
+                                      : feeT(fee.fee_name || "not-found")}
                                   </p>
                                   <p className="">{fee.total}€</p>
                                 </div>
                               );
                             })}
                             <div className="flex flex-row items-center justify-between text-sm">
-                              <p className="font-normal">Total:</p>
+                              <p className="font-medium">{t("item_total")}:</p>
                               <p className="">{item.front_end_price}€</p>
                             </div>
                           </div>
@@ -252,26 +339,88 @@ export default async function Home({
                       );
                     }
                   })}
-                  <div className="flex flex-row items-center justify-between text-sm">
-                    <p className="font-bold">
-                      Order total{" "}
-                      <span className="font-normal">
-                        ({order.items.length})
-                      </span>
-                    </p>
-                    <p className="">
-                      {order.items.reduce((total, item) => {
-                        if (item.type === "accommodation") {
-                          return total + item.front_end_price;
-                        } else {
-                          return total + item.quantity * item.price;
-                        }
-                      }, 0)}
-                      €
-                    </p>
-                  </div>
+                </div>
+                <div className="flex flex-row items-center justify-between text-sm">
+                  <p className="font-bold">
+                    {t("order_total")}{" "}
+                    <span className="font-normal">({order.items.length})</span>
+                  </p>
+                  <p className="">
+                    {order.items.reduce((total, item) => {
+                      if (item.type === "accommodation") {
+                        return total + item.front_end_price;
+                      } else {
+                        return total + item.quantity * item.price;
+                      }
+                    }, 0)}
+                    €
+                  </p>
                 </div>
               </div>
+              <Separator />
+              <div className="w-full flex flex-col gap-2">
+                <p className="font-bold">{t("payment_details")}</p>
+                <div className="flex min-[420px]:flex-row flex-col min-[420px]:items-center items-start justify-between text-sm">
+                  <p className="font-semibold">{t("payment-method")}</p>
+                  <div className="min-[420px]:max-w-[60%] max-w-full truncate flex flex-row items-center gap-2">
+                    <p className="grow truncate">
+                      {charge?.payment_method_details?.type === "card" &&
+                      charge?.payment_method_details?.card?.last4
+                        ? t("card_ending", {
+                            last4: charge?.payment_method_details?.card.last4,
+                          })
+                        : PAYMENT_METHOD_LABELS[
+                            charge?.payment_method_details?.type ?? ""
+                          ] ??
+                          charge?.payment_method_details?.type ??
+                          "-"}
+                    </p>
+                    {renderIcon({
+                      paymentMethod:
+                        charge?.payment_method_details ?? undefined,
+                    })}
+                  </div>
+                </div>
+                <div className="flex min-[420px]:flex-row flex-col min-[420px]:items-center items-start justify-between text-sm">
+                  <p className="font-semibold">{t("amount")}</p>
+                  <p className="truncate">
+                    {((charge?.amount ?? 0) / 100).toFixed(2)}{" "}
+                    {charge?.currency.toUpperCase()}
+                  </p>
+                </div>
+                <div className="flex min-[420px]:flex-row flex-col min-[420px]:items-center items-start justify-between text-sm">
+                  <p className="font-semibold">{t("status")}</p>
+                  <div className="flex flex-row items-center gap-2">
+                    <p className="truncate">
+                      {t(
+                        (charge?.amount_refunded ?? 0) > 0
+                          ? "refunded"
+                          : charge?.status ?? "unknown-status"
+                      )}
+                      {charge?.status === "failed" &&
+                        " " + charge?.failure_message}
+                    </p>
+                    {renderStatusIcon({
+                      status:
+                        (charge?.amount_refunded ?? 0) > 0
+                          ? "refunded"
+                          : charge?.status || "",
+                    })}
+                  </div>
+                </div>
+                <div className="flex min-[420px]:flex-row flex-col min-[420px]:items-center items-start justify-between text-sm">
+                  <p className="font-semibold">{t("date")}</p>
+                  <p className="truncate">
+                    {order.payment_method_id.charge?.created &&
+                      format(
+                        fromUnixTime(charge?.created || 0),
+                        "dd, MMMM yyyy - hh:mm:ss",
+                        { locale: localeMap[locale as keyof typeof localeMap] }
+                      )}
+                  </p>
+                </div>
+              </div>
+              <Separator />
             </div>
           </Card>
         </div>
@@ -280,7 +429,7 @@ export default async function Home({
             <CardHeader>
               <CardTitle>Associated Reservations</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="gap-4">
               {reservations.map((reservation) => {
                 const arrayIndx = order.reservationIds.findIndex(
                   (indx) => indx == reservation.reservation.id.toString()
@@ -292,10 +441,6 @@ export default async function Home({
                   >
                     <GetReservationStatus
                       reservation={reservation.reservation}
-                      guestInfoCustomField={reservation.guestInfoCustomField}
-                      guestInfoCustomDoneField={
-                        reservation.guestInfoCustomDoneField
-                      }
                       transaction_id={order.transaction_id[arrayIndx]}
                     />
                     <div className="text-left text-sm font-bold">
@@ -311,7 +456,7 @@ export default async function Home({
                         </Link>
                       </Button>
                     </div>
-                    <div className="pb-2 border-b-2 border-muted border-dotted flex flex-row items-start gap-2 w-full mt-0.5">
+                    <div className="border-muted border-dotted flex flex-row items-start gap-2 w-full mt-0.5">
                       <div className="w-[15%] md:block hidden shrink-0 h-auto aspect-video relative overflow-hidden rounded">
                         <Image
                           src={reservation.listing.thumbnail_file}
@@ -385,7 +530,14 @@ export default async function Home({
                                 key={fee.fee_id}
                                 className="w-full flex flex-row items-center justify-between text-sm gap-2"
                               >
-                                <p className="font-medium">- {fee.fee_name}</p>
+                                <p className="font-medium">
+                                  -{" "}
+                                  {fee.fee_name?.startsWith("City Tax")
+                                    ? `${feeT("City Tax")}${fee.fee_name.slice(
+                                        "City Tax".length
+                                      )}`
+                                    : feeT(fee.fee_name || "not-found")}
+                                </p>
                                 <p className="">{fee.total}€</p>
                               </div>
                             );
@@ -398,6 +550,9 @@ export default async function Home({
                           </div>
                         </div>
                       </div>
+                    </div>
+                    <div className="pb-2 border-b-2 w-full">
+                      <GetGuestSection reservation={reservation.reservation} />
                     </div>
                   </div>
                 );
