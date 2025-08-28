@@ -59,13 +59,7 @@ import { Calendar } from "../ui/calendar";
 import { IGuestDataDocument } from "@/models/GuestData";
 import { getGuestData } from "@/app/actions/getGuestData";
 import { Card } from "../ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "../ui/form";
+import { Form, FormControl, FormField, FormItem } from "../ui/form";
 
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -600,62 +594,129 @@ export const PropertyInfoCard = ({
                               <FormField
                                 control={addGuestForm.control}
                                 name="birthday"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <Popover
-                                        open={birthdayOpen}
-                                        onOpenChange={setBirthdayOpen}
-                                      >
-                                        <PopoverTrigger asChild>
-                                          <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                              "w-[240px] pl-3 text-left font-normal",
-                                              !field.value &&
-                                                "text-muted-foreground"
-                                            )}
+                                render={({ field }) => {
+                                  if (isMobile) {
+                                    return (
+                                      <FormItem>
+                                        <FormControl>
+                                          <Dialog
+                                            open={birthdayOpen}
+                                            onOpenChange={setBirthdayOpen}
                                           >
-                                            {field.value ? (
-                                              format(field.value, "PPP")
-                                            ) : (
-                                              <span>Pick a date</span>
-                                            )}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                          </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent
-                                          className="w-auto overflow-hidden p-0 z-99"
-                                          align="start"
+                                            <DialogTrigger asChild>
+                                              <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                  "grow pl-3 text-left font-normal",
+                                                  !field.value &&
+                                                    "text-muted-foreground",
+                                                  addGuestForm.getFieldState(
+                                                    "birthday"
+                                                  ).error &&
+                                                    "outline-destructive outline"
+                                                )}
+                                              >
+                                                {field.value ? (
+                                                  format(field.value, "PPP")
+                                                ) : (
+                                                  <span>Pick a date</span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                              </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="w-[300px] overflow-hidden p-0 z-99 pt-6 gap-1">
+                                              <DialogHeader>
+                                                <DialogTitle>
+                                                  {t("birthdate")}
+                                                </DialogTitle>
+                                                <DialogDescription className="hidden">
+                                                  Birthday
+                                                </DialogDescription>
+                                              </DialogHeader>
+                                              <Calendar
+                                                mode="single"
+                                                showOutsideDays={false}
+                                                locale={
+                                                  localeMap[
+                                                    locale as keyof typeof localeMap
+                                                  ]
+                                                }
+                                                selected={field.value}
+                                                onSelect={(date) => {
+                                                  field.onChange(date);
+                                                  setBirthdayOpen(false);
+                                                }}
+                                                disabled={(date) =>
+                                                  date > new Date() ||
+                                                  date < new Date("1900-01-01")
+                                                }
+                                                captionLayout="dropdown-years"
+                                              />
+                                            </DialogContent>
+                                          </Dialog>
+                                        </FormControl>
+                                      </FormItem>
+                                    );
+                                  }
+                                  return (
+                                    <FormItem>
+                                      <FormControl>
+                                        <Popover
+                                          open={birthdayOpen}
+                                          onOpenChange={setBirthdayOpen}
                                         >
-                                          <Calendar
-                                            mode="single"
-                                            showOutsideDays={false}
-                                            locale={
-                                              localeMap[
-                                                locale as keyof typeof localeMap
-                                              ]
-                                            }
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            disabled={(date) =>
-                                              date > new Date() ||
-                                              date < new Date("1900-01-01")
-                                            }
-                                            captionLayout="dropdown-years"
-                                          />
-                                        </PopoverContent>
-                                      </Popover>
-                                    </FormControl>
-                                  </FormItem>
-                                )}
+                                          <PopoverTrigger asChild>
+                                            <Button
+                                              variant={"outline"}
+                                              className={cn(
+                                                "w-[240px] pl-3 text-left font-normal",
+                                                !field.value &&
+                                                  "text-muted-foreground",
+                                                addGuestForm.formState.errors
+                                                  .birthday &&
+                                                  "border! border-destructive!"
+                                              )}
+                                            >
+                                              {field.value ? (
+                                                format(field.value, "PPP")
+                                              ) : (
+                                                <span>Pick a date</span>
+                                              )}
+                                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                          </PopoverTrigger>
+                                          <PopoverContent
+                                            className="w-auto overflow-hidden p-0 z-99"
+                                            align="start"
+                                          >
+                                            <Calendar
+                                              mode="single"
+                                              showOutsideDays={false}
+                                              locale={
+                                                localeMap[
+                                                  locale as keyof typeof localeMap
+                                                ]
+                                              }
+                                              selected={field.value}
+                                              onSelect={field.onChange}
+                                              disabled={(date) =>
+                                                date > new Date() ||
+                                                date < new Date("1900-01-01")
+                                              }
+                                              captionLayout="dropdown-years"
+                                            />
+                                          </PopoverContent>
+                                        </Popover>
+                                      </FormControl>
+                                    </FormItem>
+                                  );
+                                }}
                               />
                             </div>
                           </div>
                           <div className="flex flex-wrap flex-row items-center justify-start gap-1 -mt-1">
-                            <div className="flex flex-col gap-0 shrink-0 w-fit!">
+                            <div className="flex flex-col gap-0 shrink-0 grow !w-fit">
                               <p className="text-sm">{t("document")}</p>
-
                               <FormField
                                 control={addGuestForm.control}
                                 name="document_type"
@@ -692,7 +753,7 @@ export const PropertyInfoCard = ({
                                 )}
                               />
                             </div>
-                            <div className="flex flex-col gap-0 shrink-0 w-fit!">
+                            <div className="flex flex-col gap-0 shrink-0 grow w-fit!">
                               <p className="text-sm">{t("document_country")}</p>
 
                               <FormField
@@ -736,9 +797,8 @@ export const PropertyInfoCard = ({
                             </div>
                           </div>
                           <div className="flex flex-wrap flex-row items-center justify-start gap-1 -mt-1">
-                            <div className="flex flex-col gap-0 shrink-0 w-fit!">
+                            <div className="flex flex-col gap-0 shrink-0 w-fit! grow">
                               <p className="text-sm">{t("nationality")}</p>
-
                               <FormField
                                 control={addGuestForm.control}
                                 name="nationality"
@@ -755,7 +815,7 @@ export const PropertyInfoCard = ({
                                 )}
                               />
                             </div>
-                            <div className="flex flex-col gap-0 shrink-0 w-fit!">
+                            <div className="flex flex-col gap-0 shrink-0 w-fit! grow">
                               <p className="text-sm">{t("residence")}</p>
                               <FormField
                                 control={addGuestForm.control}
@@ -802,7 +862,12 @@ export const PropertyInfoCard = ({
                               <>{t("add-guest-information")}</>
                             )}
                           </Button>
-                          <FormMessage />
+                          {Object.keys(addGuestForm.formState.errors).length >
+                            0 && (
+                            <p className="text-sm text-destructive">
+                              {t("all-fields-required")}
+                            </p>
+                          )}
                         </div>
                       </form>
                     </Form>

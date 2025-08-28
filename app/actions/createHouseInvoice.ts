@@ -5,24 +5,24 @@ import { callHostkitAPI } from "./callHostkitApi";
 import { Address } from "@stripe/stripe-js";
 import { alpha2ToAlpha3 } from "i18n-iso-countries";
 
-export async function createHouseInvoice({ item, clientName, clientAddress, clientTax, booking_code }: { item: AccommodationItem, clientName: string, clientAddress: Address, clientTax: string | undefined, booking_code: string }) {
+export async function createHouseInvoice({ item, clientName, clientAddress, clientTax, booking_code }: { item: AccommodationItem, clientName: string, clientAddress?: Address, clientTax: string | undefined, booking_code: string }) {
     const fees = item.fees;
 
     const customer_id = clientTax == '' ? '999999990' : clientTax;
     const name = clientName;
-    const country = clientAddress.country ? alpha2ToAlpha3(clientAddress.country) : undefined;
-    const address = clientAddress.line1 + (clientAddress.line2 ? ` ${clientAddress.line2}` : "");
-    const cp = clientAddress.postal_code || "";
-    const city = clientAddress.city || "";
+    const country = clientAddress?.country ? alpha2ToAlpha3(clientAddress.country) : undefined;
+    const address = clientAddress?.line1 + (clientAddress?.line2 ? ` ${clientAddress.line2}` : "");
+    const cp = clientAddress?.postal_code || "";
+    const city = clientAddress?.city || "";
     const rcode = booking_code;
     const payment_method = 'TB'
     const newInvoiceQuery: Record<string, string> = {};
 
-
-
     const property = await callHostkitAPI<{ invoicing_nif: string, default_series: string }>({
         listingId: item.property_id.toString(), endpoint: "getProperty"
     });
+
+    console.log(property);
 
     if (property.invoicing_nif && property.default_series) {
         const invoicing_nif = property.invoicing_nif;
@@ -42,6 +42,8 @@ export async function createHouseInvoice({ item, clientName, clientAddress, clie
         const newInvoice = await callHostkitAPI<{ status: 'success' | unknown, id?: string }>({
             listingId: item.property_id.toString(), endpoint: "addInvoice", query: newInvoiceQuery
         })
+
+        console.log(newInvoice);
 
         if (newInvoice.id) {
             const id = newInvoice.id;
@@ -124,8 +126,9 @@ export async function createHouseInvoice({ item, clientName, clientAddress, clie
                 listingId: item.property_id.toString(), endpoint: "closeInvoice", query: { id: newInvoice.id }
             })*/
             const invoice = await callHostkitAPI<{ invoice_url: string }[]>({
-                listingId: item.property_id.toString(), endpoint: "getInvoices", query: { id: newInvoice.id, customer_id: customer_id || "999999990" }
+                listingId: item.property_id.toString(), endpoint: "getReservationInvoices", query: { rcode: booking_code, invoicing_nif }
             })
+            console.log(invoice);
             if (invoice && invoice.length > 0) {
                 return invoice[0].invoice_url;
             }

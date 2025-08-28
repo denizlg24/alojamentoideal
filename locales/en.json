@@ -411,7 +411,8 @@
     "redo-guest-verification": "Update",
     "documents": "Documents",
     "print-reservation": "Print Reservation",
-    "get-invoice": "Get Invoice"
+    "get-invoice": "Get Invoice",
+    "all-fields-required": "All fields are required."
   },
   "orderSearch": {
     "placeholder": "Search for reservation number or order id...",
@@ -1119,7 +1120,7 @@
     "airport pickup": "Airport pickup",
     "housekeeping": "Housekeeping",
     "rent a bike": "Rent a bike",
-    "city Tax": "City tax",
+    "city tax": "City tax",
     "per stay": "Per Stay",
     "per night": "Per Night",
     "per guest": "Per Guest",

@@ -29,6 +29,7 @@ import {
   PaymentTypeExtended,
 } from "react-svg-credit-card-payment-icons";
 import { GetGuestSection } from "./guestSection";
+import { AttachInvoiceButton } from "./attachInvoiceButon";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -561,6 +562,24 @@ export default async function Home({
                         </div>
                       </div>
                     </div>
+                    {reservation.orderItem &&
+                      charge?.billing_details.address && (
+                        <AttachInvoiceButton
+                          orderId={order.orderId}
+                          item={reservation.orderItem!}
+                          clientName={order.name}
+                          clientAddress={
+                            charge?.billing_details.address ?? undefined
+                          }
+                          booking_code={
+                            reservation.reservation.confirmation_code
+                          }
+                          orderIndx={order.items.findIndex(
+                            (item) => item == reservation.orderItem
+                          )}
+                        />
+                      )}
+
                     <div className="pb-2 border-b-2 w-full">
                       <GetGuestSection reservation={reservation.reservation} />
                     </div>

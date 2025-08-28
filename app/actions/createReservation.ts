@@ -10,7 +10,7 @@ import { registerOrder } from "./createOrder";
 import { verifySession } from "@/utils/verifySession";
 import { generateUniqueId } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
-import { createHouseInvoice } from "./createHouseInvoice";
+//import { createHouseInvoice } from "./createHouseInvoice";
 
 export async function purchaseAccommodation({ property, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName }: {
     property: AccommodationItem, clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
@@ -75,8 +75,8 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
             }
         );
 
-        const itemInvoice = await createHouseInvoice({ item: property, clientName: isCompany ? (companyName || clientName) : clientName, clientTax, booking_code: reservation.reservation.confirmation_code, clientAddress })
-        const newProperty = { ...property, invoice: itemInvoice };
+        //const itemInvoice = await createHouseInvoice({ item: property, clientName: isCompany ? (companyName || clientName) : clientName, clientTax, booking_code: reservation.reservation.confirmation_code, clientAddress })
+        const newProperty = { ...property, /*invoice: itemInvoice*/ };
         const { success: order_success, orderId } = await registerOrder({
             name: clientName,
             email: clientEmail,

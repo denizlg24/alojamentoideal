@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { DateRange } from "react-day-picker";
 import { useEffect, useState } from "react";
-import { format, isValid, parseISO } from "date-fns";
+import { addMonths, format, isValid, parseISO } from "date-fns";
 import { cn, localeMap } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
 import {
@@ -25,6 +25,14 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 
 export const FloatingFilter = ({ className }: { className?: string }) => {
   const locale = useLocale();
@@ -93,178 +101,201 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
   return (
     <Card
       className={cn(
-        "w-full grid md:grid-cols-3 sm:grid-cols-5 grid-cols-1 max-w-3xl mx-auto p-4 gap-2",
+        "w-full grid md:grid-cols-3 grid-cols-1 max-w-3xl mx-auto p-4 gap-2",
         className
       )}
     >
-      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            id="date"
-            variant={"outline"}
-            className={cn(
-              "md:flex hidden w-full col-span-1 justify-start text-left font-normal",
-              !date && "text-muted-foreground"
-            )}
+      {isMobile ? (
+        <div className="col-span-full w-full flex flex-row items-center gap-2">
+          <Dialog
+            open={mobileCalendarOpen}
+            onOpenChange={setMobileCalendarOpen}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {date?.from ? (
-              date.to ? (
-                <>
-                  {format(date.from, "LLL dd", {
+            <DialogTrigger asChild>
+              <Button
+                id="date"
+                variant={"outline"}
+                className={cn(
+                  "flex flex-1 grow sm:col-span-2 justify-start text-left font-normal",
+                  !date?.from && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date?.from ? (
+                  <>
+                    {format(date.from, "LLL dd", {
+                      locale: localeMap[locale as keyof typeof localeMap],
+                    })}
+                  </>
+                ) : (
+                  <span>{t("checkin")}</span>
+                )}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[300px] pt-6 gap-1">
+              <DialogHeader>
+                <DialogTitle>{t("checkin")}</DialogTitle>
+                <DialogDescription className="hidden">
+                  Check-in date
+                </DialogDescription>
+              </DialogHeader>
+              <Calendar
+                showOutsideDays={false}
+                locale={localeMap[locale as keyof typeof localeMap]}
+                mode="single"
+                disabled={(date) => date < new Date(new Date().toDateString())}
+                today={undefined}
+                defaultMonth={date?.from}
+                selected={date?.from}
+                onSelect={(e) => {
+                  setDate((prev) => {
+                    return { from: e, to: prev?.to };
+                  });
+                  setMobileCalendarOpen(false);
+                }}
+                numberOfMonths={1}
+              />
+            </DialogContent>
+          </Dialog>
+          {date?.from && (
+            <>
+              <p>-</p>
+              <Dialog
+                open={mobileCalendarOpen1}
+                onOpenChange={setMobileCalendarOpen1}
+              >
+                <DialogTrigger asChild>
+                  <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                      "flex flex-1 grow sm:col-span-2 col-span-1 justify-start text-left font-normal",
+                      !date?.to && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.to ? (
+                      <>
+                        {format(date.to, "LLL dd", {
+                          locale: localeMap[locale as keyof typeof localeMap],
+                        })}
+                      </>
+                    ) : (
+                      <span>{t("checkout")}</span>
+                    )}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[300px] pt-6 gap-1">
+                  <DialogHeader>
+                    <DialogTitle>{t("checkout")}</DialogTitle>
+                    <DialogDescription className="hidden">
+                      Check-out date
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Calendar
+                    showOutsideDays={false}
+                    startMonth={addMonths(date.from, 1)}
+                    locale={localeMap[locale as keyof typeof localeMap]}
+                    mode="single"
+                    disabled={(date) =>
+                      date < new Date(new Date().toDateString())
+                    }
+                    today={undefined}
+                    defaultMonth={date?.to}
+                    selected={date?.to}
+                    onSelect={(e) => {
+                      setDate((prev) => {
+                        return { from: prev?.from, to: e };
+                      });
+                      setMobileCalendarOpen1(false);
+                    }}
+                    numberOfMonths={1}
+                  />
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
+        </div>
+      ) : (
+        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              id="date"
+              variant={"outline"}
+              className={cn(
+                "md:flex hidden w-full col-span-1 justify-start text-left font-normal",
+                !date && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date?.from ? (
+                date.to ? (
+                  <>
+                    {format(date.from, "LLL dd", {
+                      locale: localeMap[locale as keyof typeof localeMap],
+                    })}{" "}
+                    -{" "}
+                    {format(date.to, "LLL dd", {
+                      locale: localeMap[locale as keyof typeof localeMap],
+                    })}
+                  </>
+                ) : (
+                  format(date.from, "LLL dd", {
                     locale: localeMap[locale as keyof typeof localeMap],
-                  })}{" "}
-                  -{" "}
-                  {format(date.to, "LLL dd", {
-                    locale: localeMap[locale as keyof typeof localeMap],
-                  })}
-                </>
+                  })
+                )
               ) : (
-                format(date.from, "LLL dd", {
-                  locale: localeMap[locale as keyof typeof localeMap],
-                })
-              )
-            ) : (
-              <span>
-                {t("checkin")} - {t("checkout")}
-              </span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          side="bottom"
-          className="w-auto overflow-hidden p-1 z-99 relative flex flex-col gap-0"
-          align="start"
-        >
-          <Calendar
-            locale={localeMap[locale as keyof typeof localeMap]}
-            mode="range"
-            showOutsideDays={false}
-            disabled={(date) => date < new Date(new Date().toDateString())}
-            today={undefined}
-            defaultMonth={date?.from}
-            selected={date}
-            onSelect={(range) => {
-              if (range?.from && range?.to && range.to != range.from) {
-                setDate(range);
-                setCalendarOpen(false);
-              } else {
-                if (range?.from) {
-                  setDate((prev) => {
-                    return { ...prev, from: range.from };
-                  });
-                } else if (range?.to) {
-                  setDate((prev) => {
-                    return { from: prev?.from, to: range.from };
-                  });
+                <span>
+                  {t("checkin")} - {t("checkout")}
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            side="bottom"
+            className="w-auto overflow-hidden p-1 z-99 relative flex flex-col gap-0"
+            align="start"
+          >
+            <Calendar
+              locale={localeMap[locale as keyof typeof localeMap]}
+              mode="range"
+              showOutsideDays={false}
+              disabled={(date) => date < new Date(new Date().toDateString())}
+              today={undefined}
+              defaultMonth={date?.from}
+              selected={date}
+              onSelect={(range) => {
+                if (range?.from && range?.to && range.to != range.from) {
+                  setDate(range);
                   setCalendarOpen(false);
+                } else {
+                  if (range?.from) {
+                    setDate((prev) => {
+                      return { ...prev, from: range.from };
+                    });
+                  } else if (range?.to) {
+                    setDate((prev) => {
+                      return { from: prev?.from, to: range.from };
+                    });
+                    setCalendarOpen(false);
+                  }
                 }
-              }
-            }}
-            numberOfMonths={2}
-          />
-          <Button
-            onClick={() => {
-              setDate(undefined);
-            }}
-            className="mt-1 ml-1 py-1! px-2! h-fit"
-            variant="ghost"
-          >
-            <X className="text-foreground" />
-            {t("clear")}
-          </Button>
-        </PopoverContent>
-      </Popover>
-      <Popover onOpenChange={setMobileCalendarOpen} open={mobileCalendarOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            id="date"
-            variant={"outline"}
-            className={cn(
-              "md:hidden flex w-full sm:col-span-2 justify-start text-left font-normal",
-              !date?.from && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {date?.from ? (
-              <>
-                {format(date.from, "LLL dd", {
-                  locale: localeMap[locale as keyof typeof localeMap],
-                })}
-              </>
-            ) : (
-              <span>{t("checkin")}</span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          side="bottom"
-          className="w-auto overflow-hidden p-0 z-99"
-          align="start"
-        >
-          <Calendar
-            showOutsideDays={false}
-            locale={localeMap[locale as keyof typeof localeMap]}
-            mode="single"
-            disabled={(date) => date < new Date(new Date().toDateString())}
-            today={undefined}
-            defaultMonth={date?.from}
-            selected={date?.from}
-            onSelect={(e) => {
-              setDate((prev) => {
-                return { from: e, to: prev?.to };
-              });
-              setMobileCalendarOpen(false);
-            }}
-            numberOfMonths={1}
-          />
-        </PopoverContent>
-      </Popover>
-      <Popover open={mobileCalendarOpen1} onOpenChange={setMobileCalendarOpen1}>
-        <PopoverTrigger asChild>
-          <Button
-            id="date"
-            variant={"outline"}
-            className={cn(
-              "md:hidden flex w-full sm:col-span-2 col-span-1 justify-start text-left font-normal",
-              !date?.to && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {date?.to ? (
-              <>
-                {format(date.to, "LLL dd", {
-                  locale: localeMap[locale as keyof typeof localeMap],
-                })}
-              </>
-            ) : (
-              <span>{t("checkout")}</span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          side="bottom"
-          className="w-auto overflow-hidden p-0 z-99"
-          align="start"
-        >
-          <Calendar
-            showOutsideDays={false}
-            locale={localeMap[locale as keyof typeof localeMap]}
-            mode="single"
-            disabled={(date) => date < new Date(new Date().toDateString())}
-            today={undefined}
-            defaultMonth={date?.to}
-            selected={date?.to}
-            onSelect={(e) => {
-              setDate((prev) => {
-                return { from: prev?.from, to: e };
-              });
-              setMobileCalendarOpen1(false);
-            }}
-            numberOfMonths={1}
-          />
-        </PopoverContent>
-      </Popover>
+              }}
+              numberOfMonths={2}
+            />
+            <Button
+              onClick={() => {
+                setDate(undefined);
+              }}
+              className="mt-1 ml-1 py-1! px-2! h-fit"
+              variant="ghost"
+            >
+              <X className="text-foreground" />
+              {t("clear")}
+            </Button>
+          </PopoverContent>
+        </Popover>
+      )}
       <Popover>
         <PopoverTrigger asChild>
           <Button

@@ -10,7 +10,8 @@ import { registerOrder } from "./createOrder";
 import { fetchClientSecret } from "./stripe";
 import { generateUniqueId } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
-import { createHouseInvoice } from "./createHouseInvoice";
+import { connectDB } from "@/lib/mongodb";
+//import { createHouseInvoice } from "./createHouseInvoice";
 
 export async function buyCart({ cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName }: {
     cart: CartItem[], clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
@@ -26,6 +27,7 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
         throw new Error('Unauthorized');
     }
     try {
+        await connectDB();
         const amount = await calculateAmount(cart);
         const amounts: number[] = []
         const reservationIds: number[] = [];
@@ -89,8 +91,8 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
 
             await newChat.save();
 
-            const itemInvoice = await createHouseInvoice({ item: property, clientName: isCompany ? (companyName || clientName) : clientName, clientTax, booking_code: reservation.reservation.confirmation_code, clientAddress })
-            const newItem = { ...property, invoice: itemInvoice };
+            //const itemInvoice = await createHouseInvoice({ item: property, clientName: isCompany ? (companyName || clientName) : clientName, clientTax, booking_code: reservation.reservation.confirmation_code, clientAddress })
+            const newItem = { ...property, /*invoice: itemInvoice*/ };
             newCart.push(newItem);
         }
 

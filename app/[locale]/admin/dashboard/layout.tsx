@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Toaster } from "sonner";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -8,6 +9,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <main className="w-full relative">
         <SidebarTrigger className="absolute top-1/2 -translate-y-1/2 md:-left-4 left-0 z-95 bg-background border shadow" />
         {children}
+        <Toaster />
       </main>
     </SidebarProvider>
   );
