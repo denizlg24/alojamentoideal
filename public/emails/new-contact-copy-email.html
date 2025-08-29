@@ -49,30 +49,63 @@
             width="600"
             style="max-width: 600px; background: #ffffff"
           >
+            <!-- Header -->
             <tr>
-              <td
-                align="center"
-                bgcolor="#5a002c"
-                style="
-                  padding: 20px;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: center;
-                  justify-content: center;
-                  gap: 12px;
-                "
-              >
-                <img
-                  src="https://alojamentoideal.vercel.app/favicon.ico"
-                  alt="Logo"
-                  style="width: 48px; height: 48px; border-radius: 4px"
-                />
-                <div
-                  style="width: 2px; height: 48px; background-color: #ffffff"
-                ></div>
-                <p style="color: #ffffff; font-size: 24px; font-weight: bold">
-                  Alojamento Ideal
-                </p>
+              <td align="center" bgcolor="#5a002c" style="padding: 20px">
+                <table
+                  border="0"
+                  cellpadding="0"
+                  cellspacing="0"
+                  role="presentation"
+                >
+                  <tr>
+                    <!-- Logo -->
+                    <td
+                      align="center"
+                      valign="middle"
+                      style="padding-right: 12px"
+                    >
+                      <img
+                        src="https://alojamentoideal.vercel.app/favicon.ico"
+                        alt="Logo"
+                        width="48"
+                        height="48"
+                        style="border-radius: 4px"
+                      />
+                    </td>
+                    <!-- Divider -->
+                    <td
+                      align="center"
+                      valign="middle"
+                      style="padding-right: 12px"
+                    >
+                      <table
+                        border="0"
+                        cellpadding="0"
+                        cellspacing="0"
+                        height="48"
+                        role="presentation"
+                      >
+                        <tr>
+                          <td width="2" bgcolor="#ffffff"></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <!-- Title -->
+                    <td
+                      align="center"
+                      valign="middle"
+                      style="
+                        font-size: 24px;
+                        font-weight: bold;
+                        color: #ffffff;
+                        font-family: Arial, Helvetica, sans-serif;
+                      "
+                    >
+                      Alojamento Ideal
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
 
@@ -86,25 +119,28 @@
                   line-height: 24px;
                   color: #333333;
                   min-height: 350px;
-                  display: flex;
-                  flex-direction: column;
-                  align-items: start;
                 "
               >
-                <p style="font-weight: 800">{{intro}}</p>
-                <p>{{we-got-your-message-desc}}</p>
-                <div
-                  style="
-                    display: flex;
-                    flex-direction: row;
-                    gap: 16px;
-                    align-items: center;
-                    justify-content: start;
-                  "
+                <p style="font-weight: 800; margin: 0 0 12px 0">{{intro}}</p>
+                <p style="margin: 0 0 20px 0">{{we-got-your-message-desc}}</p>
+
+                <!-- Subject row -->
+                <table
+                  border="0"
+                  cellpadding="0"
+                  cellspacing="0"
+                  role="presentation"
                 >
-                  <p style="font-weight: 600">{{subject-title}}:</p>
-                  <p>{{subject}}</p>
-                </div>
+                  <tr>
+                    <td
+                      valign="top"
+                      style="font-weight: 600; padding-right: 12px"
+                    >
+                      {{subject-title}}:
+                    </td>
+                    <td valign="top">{{subject}}</td>
+                  </tr>
+                </table>
               </td>
             </tr>
 

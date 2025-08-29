@@ -163,7 +163,7 @@ export const Header = () => {
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <Link className="font-medium" href="/contact">
+                <Link className="font-medium" href="/help">
                   {t("contact")}
                 </Link>
               </NavigationMenuLink>
@@ -364,7 +364,7 @@ export const Header = () => {
                           setOpen(false);
                         }}
                         className="font-medium"
-                        href="/contact"
+                        href="/help"
                       >
                         {t("contact")}
                       </Link>

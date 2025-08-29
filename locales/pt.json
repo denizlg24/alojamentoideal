@@ -99,7 +99,7 @@
     "homes": "Alojamentos",
     "tours": "Experiências",
     "about": "Sobre Nós",
-    "contact": "Contactos",
+    "contact": "Ajuda",
     "porto-exp": "Experiências na cidade do Porto",
     "douro-exp": "Vinhas do vale do Douro",
     "arouca-exp": "Caminhos de Arouca e Paiva",
@@ -411,7 +411,8 @@
     "redo-guest-verification": "Atualizar",
     "documents": "Documentos",
     "print-reservation": "Imprimir Reserva",
-    "get-invoice": "Obter Fatura"
+    "get-invoice": "Obter Fatura",
+    "all-fields-required": "Todos os campos são obrigatórios."
   },
   "orderSearch": {
     "placeholder": "Procurar pelo número de reserva ou ID da encomenda...",

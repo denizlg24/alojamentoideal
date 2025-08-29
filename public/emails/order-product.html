@@ -1,83 +1,71 @@
-<div
-  style="
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    justify-content: space-between;
-    gap: 4px;
-    width: 100%;
-    padding-top: 0px;
-    padding-bottom: 24px;
-    border-bottom-style: solid;
-    border-bottom-width: 1px;
-    border-bottom-color: #777777;
-  "
+<!-- Product Row -->
+<table
+  role="presentation"
+  width="100%"
+  border="0"
+  cellspacing="0"
+  cellpadding="0"
+  style="border-bottom: 1px solid #777777; padding-bottom: 24px"
 >
-  <div
-    style="
-      display: flex;
-      flex-direction: row;
-      gap: 4px;
-      align-items: stretch;
-      justify-content: start;
-      flex-grow: 1;
-    "
-  >
-    <!--{{product_photo}}-->
-    <img
-      src="{{product_photo}}"
-      alt="{{product_name}}"
-      style="
-        width: 20%;
-        aspect-ratio: 16/9 !important;
-        height: auto;
-        object-fit: cover;
-        flex-shrink: 0;
-      "
-    />
-    <div
-      style="
-        display: flex;
-        flex-direction: column;
-        align-items: start;
-        justify-content: space-between;
-        height: 100%;
-        gap: 2px;
-      "
-    >
-      <h1 style="font-size: medium; font-weight: 600; margin: 0">
-        {{product_name}}
-      </h1>
-      <div
+  <tr valign="top">
+    <!-- Image column -->
+    <td width="20%" style="padding-right: 8px">
+      <img
+        src="{{product_photo}}"
+        alt="{{product_name}}"
+        width="100%"
+        style="display: block; max-width: 100%; height: auto"
+      />
+    </td>
+
+    <!-- Product details -->
+    <td width="60%" style="padding-right: 8px; font-family: Arial, sans-serif">
+      <h1
         style="
-          display: flex;
-          flex-direction: column;
-          align-items: start;
-          justify-content: start;
-          gap: 2px;
+          font-size: 16px;
+          font-weight: 600;
+          margin: 0 0 4px 0;
+          line-height: 1.2;
         "
       >
-        <p style="font-size: small; font-weight: 500; margin: 0">
-          {{product_quantity}}
-        </p>
-        <p style="font-size: smaller; font-weight: 400; margin: 0">
-          {{product_description}}
-        </p>
-      </div>
-    </div>
-  </div>
-  <div
-    style="
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: end;
-      text-align: right;
-      flex-shrink: 0;
-    "
-  >
-    <p style="font-size: medium; font-weight: 600; margin: 0">
-      {{product_price}}
-    </p>
-  </div>
-</div>
+        {{product_name}}
+      </h1>
+      <p
+        style="
+          font-size: 14px;
+          font-weight: 500;
+          margin: 0 0 2px 0;
+          line-height: 1.4;
+        "
+      >
+        {{product_quantity}}
+      </p>
+      <p
+        style="
+          font-size: 13px;
+          font-weight: 400;
+          margin: 0;
+          line-height: 1.4;
+          color: #555555;
+        "
+      >
+        {{product_description}}
+      </p>
+    </td>
+
+    <!-- Price column -->
+    <td
+      width="20%"
+      align="right"
+      style="
+        font-family: Arial, sans-serif;
+        text-align: right;
+        white-space: nowrap;
+      "
+    >
+      <p style="font-size: 16px; font-weight: 600; margin: auto 0">
+        {{product_price}}
+      </p>
+    </td>
+  </tr>
+</table>

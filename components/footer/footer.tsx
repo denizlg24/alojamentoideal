@@ -15,7 +15,7 @@ export const Footer = () => {
         <div className="flex flex-col gap-4 text-sm ">
           <h3 className="font-semibold">{t("support")}</h3>
           <Link href={"/faq"}>FAQ</Link>
-          <Link href={"/contact"}>{t("contact")}</Link>
+          <Link href={"/help"}>{t("contact")}</Link>
         </div>
         <Separator className="sm:hidden block my-6 w-full h-[1px] bg-accent-foreground/25" />
         <div className="flex flex-col gap-4 text-sm">

@@ -411,7 +411,8 @@
     "redo-guest-verification": "Actualizar",
     "documents": "Documentos",
     "print-reservation": "Imprimir Reserva",
-    "get-invoice": "Obtener Factura"
+    "get-invoice": "Obtener Factura",
+    "all-fields-required": "Todos los campos son requeridos."
   },
   "orderSearch": {
     "placeholder": "Buscar por número de reserva o ID del pedido...",

@@ -49,141 +49,181 @@
             width="600"
             style="max-width: 600px; background: #ffffff"
           >
+            <!-- Header -->
             <tr>
-              <td
-                align="center"
-                bgcolor="#5a002c"
-                style="
-                  padding: 20px;
-                  display: flex;
-                  flex-direction: row;
-                  align-items: center;
-                  justify-content: center;
-                  gap: 12px;
-                "
-              >
-                <img
-                  src="https://alojamentoideal.vercel.app/favicon.ico"
-                  alt="Logo"
-                  style="width: 48px; height: 48px; border-radius: 4px"
-                />
-                <div
-                  style="width: 2px; height: 48px; background-color: #ffffff"
-                ></div>
-                <p style="color: #ffffff; font-size: 24px; font-weight: bold">
-                  Alojamento Ideal
-                </p>
+              <td align="center" bgcolor="#5a002c" style="padding: 20px">
+                <table
+                  border="0"
+                  cellpadding="0"
+                  cellspacing="0"
+                  role="presentation"
+                >
+                  <tr>
+                    <!-- Logo -->
+                    <td style="padding-right: 12px">
+                      <img
+                        src="https://alojamentoideal.vercel.app/favicon.ico"
+                        alt="Logo"
+                        width="48"
+                        height="48"
+                        style="border-radius: 4px"
+                      />
+                    </td>
+                    <!-- Divider -->
+                    <td style="padding-right: 12px">
+                      <table
+                        border="0"
+                        cellpadding="0"
+                        cellspacing="0"
+                        height="48"
+                        role="presentation"
+                      >
+                        <tr>
+                          <td width="2" bgcolor="#ffffff"></td>
+                        </tr>
+                      </table>
+                    </td>
+                    <!-- Title -->
+                    <td
+                      style="
+                        font-size: 24px;
+                        font-weight: bold;
+                        color: #ffffff;
+                        font-family: Arial, Helvetica, sans-serif;
+                      "
+                    >
+                      Alojamento Ideal
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
 
             <!-- Main content -->
             <tr>
               <td
-                align="left"
-                style="
-                  font-size: 16px;
-                  color: #333333;
-                  min-height: 350px;
-                  display: flex;
-                  flex-direction: column;
-                  align-items: start;
-                  padding-top: 24px;
-                "
+                align="center"
+                style="font-size: 16px; color: #333333; padding: 24px 20px"
               >
-                <p
-                  style="
-                    margin: 0 auto;
-                    font-weight: 400;
-                    font-size: medium;
-                    width: fit-content;
-                  "
-                >
+                <!-- Order number -->
+                <p style="margin: 0; font-weight: 400; font-size: 14px">
                   {{order-number}}
                 </p>
+
+                <!-- Heading -->
                 <p
-                  style="
-                    margin: 0 auto;
-                    font-weight: 600;
-                    font-size: larger;
-                    width: fit-content;
-                    margin-top: 12px;
-                  "
+                  style="margin: 12px 0 0 0; font-weight: 600; font-size: 18px"
                 >
                   {{your-order-is-in}}
                 </p>
-                <a
-                  href="{{order_url}}"
-                  target="_blank"
-                  style="
-                    text-decoration: none;
-                    margin: 0 auto;
-                    margin-top: 12px;
-                  "
-                  ><span
-                    class="button"
-                    style="
-                      background-color: #5a002c;
-                      border-bottom: 0px solid transparent;
-                      border-left: 0px solid transparent;
-                      border-radius: 4px;
-                      border-right: 0px solid transparent;
-                      border-top: 0px solid transparent;
-                      color: #ffffff;
-                      font-size: medium;
-                      font-weight: 400;
-                      padding: 8px 10px;
-                      text-align: center;
-                      width: auto;
-                      margin: 0 auto;
-                    "
-                    ><span style="word-break: break-word; line-height: 36px"
-                      >{{view-your-order}}</span
-                    ></span
-                  ></a
+
+                <!-- Button -->
+                <table
+                  border="0"
+                  cellpadding="0"
+                  cellspacing="0"
+                  role="presentation"
+                  style="margin: 12px auto 0 auto"
                 >
-                <div
+                  <tr>
+                    <td
+                      bgcolor="#5a002c"
+                      style="border-radius: 4px; text-align: center"
+                    >
+                      <a
+                        href="{{order_url}}"
+                        target="_blank"
+                        style="
+                          display: inline-block;
+                          padding: 8px 10px;
+                          font-size: 14px;
+                          font-weight: 400;
+                          color: #ffffff;
+                          text-decoration: none;
+                          font-family: Arial, Helvetica, sans-serif;
+                        "
+                      >
+                        {{view-your-order}}
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Order box -->
+                <table
+                  border="0"
+                  cellpadding="0"
+                  cellspacing="0"
+                  role="presentation"
+                  width="100%"
                   style="
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                    align-items: center;
-                    width: calc(100% - 48px);
-                    margin: 12px;
+                    margin-top: 24px;
                     background-color: #f4f4f4;
                     border-radius: 12px;
-                    padding: 12px;
-                    margin-top: 24px;
                   "
                 >
-                  <p style="font-weight: 600">{{order-title}}</p>
-                  <div
-                    style="
-                      display: flex;
-                      flex-direction: column;
-                      gap: 24px;
-                      align-items: stretch;
-                      width: calc(100% - 8px);
-                      padding: 24px 4px;
-                      border-top-style: solid;
-                      border-top-width: 1px;
-                      border-top-color: #777777;
-                    "
-                  >
-                    {{products_html}}
-                    <div
-                      style="
-                        width: 100%;
-                        display: flex;
-                        flex-direction: row;
-                        align-items: center;
-                        justify-content: space-between;
-                      "
-                    >
-                      <p style="font-weight: 600; margin: 0">{{order-total}}</p>
-                      <p style="font-weight: 600; margin: 0">{{total_price}}</p>
-                    </div>
-                  </div>
-                </div>
+                  <tr>
+                    <td align="center" style="padding: 12px">
+                      <!-- Title -->
+                      <p style="margin: 0; font-weight: 600">{{order-title}}</p>
+                      <!-- Products -->
+                      <table
+                        border="0"
+                        cellpadding="0"
+                        cellspacing="0"
+                        role="presentation"
+                        width="100%"
+                        style="margin-top: 12px; border-top: 1px solid #777777"
+                      >
+                        <tr>
+                          <td
+                            style="
+                              padding: 24px 4px;
+                              font-size: 14px;
+                              line-height: 20px;
+                              color: #333333;
+                            "
+                          >
+                            {{products_html}}
+                            <!-- Total row -->
+                            <table
+                              border="0"
+                              cellpadding="0"
+                              cellspacing="0"
+                              role="presentation"
+                              width="100%"
+                              style="margin-top: 24px"
+                            >
+                              <tr>
+                                <td
+                                  align="left"
+                                  style="
+                                    font-weight: 600;
+                                    font-size: 14px;
+                                    color: #333333;
+                                    padding-right: 12px;
+                                  "
+                                >
+                                  {{order-total}}
+                                </td>
+                                <td
+                                  align="right"
+                                  style="
+                                    font-weight: 600;
+                                    font-size: 14px;
+                                    color: #333333;
+                                  "
+                                >
+                                  {{total_price}}
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
 

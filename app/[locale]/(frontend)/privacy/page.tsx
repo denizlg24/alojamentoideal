@@ -596,12 +596,12 @@ export default function Home({
           <li className="lg:text-lg md:text-base sm:text-sm text-xs">
             {t("by-visiting-this-page-on-our-website")}:{" "}
             <a
-              href="https://www.alojamentoideal.pt/contact"
+              href="https://www.alojamentoideal.pt/help"
               rel={"external nofollow noopener"}
               target="_blank"
               className="font-semibold underline"
             >
-              https://www.alojamentoideal.pt/contact
+              https://www.alojamentoideal.pt/help
             </a>
           </li>
         </ul>
