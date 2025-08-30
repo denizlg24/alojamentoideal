@@ -106,6 +106,9 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
         undefined,
         undefined
       );
+      if (info.listing.is_listed == 0) {
+        router.push("/rooms");
+      }
       setListingInfo(info);
     } catch {
       setListingInfo(undefined);
@@ -229,6 +232,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
       updateStayPrice(undefined);
       getListingInfo(id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {

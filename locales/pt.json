@@ -1129,7 +1129,11 @@
     "per guest": "Por hóspede",
     "per adult / night": "Por adulto / noite",
     "per guest / night": "Por hóspede / noite",
-    "percent": "Percentagem"
+    "percent": "Percentagem",
+    "tmt póvoa de varzim": "Taxa municipal da Póvoa",
+    "tmt porto": "Taxa municipal do Porto",
+    "cleaning tax": "Taxa de limpeza",
+    "taxa limpeza": "Taxa de limpeza"
   },
   "owner": {
     "headline": "Descubra a Verdadeira Rentabilidade da Sua Propriedade",
