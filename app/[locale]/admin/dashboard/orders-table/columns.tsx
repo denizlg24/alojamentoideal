@@ -87,12 +87,12 @@ export const columns: ColumnDef<Order>[] = [
     cell: ({ row }) => {
       const charge = (
         row.getValue("payment_method_id") as {
-          charge: Stripe.Charge;
-          payment_method_id: string;
+          charge: Stripe.Charge | undefined;
+          payment_method_id: string | undefined;
         }
       ).charge;
       let status = <></>;
-      switch (charge.status) {
+      switch (charge?.status) {
         case "failed":
           status = (
             <div className="flex flex-row items-center justify-start gap-1">
@@ -118,11 +118,19 @@ export const columns: ColumnDef<Order>[] = [
           );
           break;
       }
-      if (charge.amount_refunded > 0) {
+      if (charge && charge?.amount_refunded > 0) {
         status = (
           <div className="flex flex-row items-center justify-start gap-1">
             <div className="w-2 h-2 rounded-full bg-blue-400"></div>
             <p>Refunded ({charge.amount_refunded / 100}€)</p>
+          </div>
+        );
+      }
+      if (!charge) {
+        status = (
+          <div className="flex flex-row items-center justify-start gap-1">
+            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+            <p>Charge not issued.</p>
           </div>
         );
       }

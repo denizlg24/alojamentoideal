@@ -1,6 +1,6 @@
 "use server"
 
-import { CartItem } from "@/hooks/cart-context";
+import { AccommodationItem, CartItem } from "@/hooks/cart-context";
 import { verifySession } from "@/utils/verifySession";
 import { calculateAmount } from "./calculateAmount";
 import { ReservationType } from "@/schemas/reservation.schema";
@@ -42,9 +42,9 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
                 "POST",
                 undefined,
                 {
-                    listing_id: property.property_id,
-                    start_date: property.start_date,
-                    end_date: property.end_date,
+                    listing_id: (property as AccommodationItem).property_id,
+                    start_date: (property as AccommodationItem).start_date,
+                    end_date: (property as AccommodationItem).end_date,
                     name: clientName,
                     email: clientEmail,
                     phone: clientPhone,
@@ -52,9 +52,9 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
                     source: "alojamentoideal.pt",
                     status: "pending",
                     note: clientNotes,
-                    guests: property.adults + property.children,
-                    pets: property.pets,
-                    fees: property.fees,
+                    guests: (property as AccommodationItem).adults + (property as AccommodationItem).children,
+                    pets: (property as AccommodationItem).pets,
+                    fees: (property as AccommodationItem).fees,
                 },
                 undefined,
                 undefined

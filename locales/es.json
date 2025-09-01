@@ -143,7 +143,8 @@
     "pets-warning": "Algunas alojamientos pueden no permitir mascotas.",
     "search": "Buscar",
     "clear-dates": "Limpiar fechas",
-    "clear": "Claro"
+    "clear": "Borrar",
+    "add-filters": "Encuentra su habitación — prueba a añadir filtros"
   },
   "rooms": {
     "all": "Mostrando todos los alojamientos disponibles",
@@ -342,7 +343,8 @@
     "print": "Imprimir resumen del pedido",
     "refunded": "Reembolsado",
     "succeeded": "Completado",
-    "failed": "Fallido"
+    "failed": "Fallido",
+    "unknown-status": "Charge missing"
   },
   "propertyCard": {
     "trip_details": "Detalles del viaje",

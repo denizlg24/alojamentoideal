@@ -104,7 +104,7 @@ export const RoomCheckoutProvider = ({
 
   return (
     <div className="md:grid flex flex-col-reverse grid-cols-4 w-full max-w-7xl px-4 pt-12 gap-8 relative md:items-stretch items-center">
-      <Card className="w-full col-span-2 sm:p-6 p-4 flex flex-col gap-2 h-full">
+      <Card className="w-full col-span-2 sm:p-6 p-4 flex flex-col gap-2">
         <Image
           src={listingInfo.photos[0].original_file}
           alt={"thumbnail photo"}
@@ -192,7 +192,7 @@ export const RoomCheckoutProvider = ({
           </p>
         </div>
       </Card>
-      <div className="col-span-2 w-full h-full">
+      <div className="col-span-2 w-full">
         <Elements stripe={stripePromise}>
           <RoomCheckoutForm
             property={{

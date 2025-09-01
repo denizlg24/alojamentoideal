@@ -143,7 +143,8 @@
     "pets-warning": "Some rooms might not allow pets.",
     "search": "Search",
     "clear-dates": "Clear dates",
-    "clear": "Clear"
+    "clear": "Clear",
+    "add-filters": "Find your room — try adding filters"
   },
   "rooms": {
     "all": "Displaying all available rooms",
@@ -342,7 +343,8 @@
     "print": "Print order summary",
     "refunded": "Refunded",
     "succeeded": "Succeeded",
-    "failed": "Failed"
+    "failed": "Failed",
+    "unknown-status": "Charge missing"
   },
   "propertyCard": {
     "trip_details": "Trip details",

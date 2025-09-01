@@ -2,10 +2,8 @@
 
 import { motion } from "framer-motion";
 import { MapPinHouse } from "lucide-react";
-import { useTranslations } from "next-intl";
 
-export const AccommodationMapTitle = () => {
-  const t = useTranslations("home");
+export const AccommodationMapTitle = ({ label }: { label: string }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -15,7 +13,7 @@ export const AccommodationMapTitle = () => {
     >
       <h1 className="md:text-2xl sm:text-xl text-lg font-semibold flex items-center gap-2">
         <MapPinHouse className="w-5 h-5 text-primary" />
-        {t("map-title")}
+        {label}
       </h1>
     </motion.div>
   );

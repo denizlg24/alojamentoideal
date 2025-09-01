@@ -1,9 +1,12 @@
+import { getHtml } from "@/app/actions/getHtml";
+import { sendMail } from "@/app/actions/sendMail";
 import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
 import GuestDataModel from "@/models/GuestData";
 import OrderModel from "@/models/Order";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { format } from "date-fns";
+import { getTranslations } from "next-intl/server";
 import Stripe from "stripe";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -22,6 +25,7 @@ export async function POST(req: Request) {
     }
 
     try {
+        const t = await getTranslations("order-email");
         await connectDB();
         switch (event.type) {
             case 'payment_intent.succeeded':
@@ -62,6 +66,50 @@ export async function POST(req: Request) {
                         ])
                         console.log("reservation update: ", reservation_request, " transaction_update", transaction_request);
                     }
+                    const plainItems = foundOrder.items;
+                    const total = plainItems.reduce((prev, i) => {
+                        return i.type == "accommodation" ? prev + (i.front_end_price ?? 0) : prev + ((i.price ?? 0) * (i.quantity ?? 0))
+                    }, 0)
+                    let products_html = ""
+                    let a = 0;
+                    for (const i of plainItems) {
+                        if (i.type == "accommodation") {
+                            const nights =
+                                (new Date(i.end_date!).getTime() -
+                                    new Date(i.start_date!).getTime()) /
+                                (1000 * 60 * 60 * 24);
+                            const productHtml = await getHtml('emails/order-product.html', [{ '{{product_name}}': i.name }, {
+                                '{{product_description}}': t("nights", {
+                                    count:
+                                        nights,
+                                    adults: i.adults!,
+                                    children:
+                                        i.children! > 0 ? t("children_text", { count: i.children! }) : "",
+                                    infants:
+                                        i.infants! > 0 ? t("infants_text", { count: i.infants! }) : "",
+                                })
+                            }, { '{{product_quantity}}': t("reservation", { number: foundOrder.reservationReferences[a] }) }, { "{{product_price}}": `${i.front_end_price ?? 0}€` }, { "{{product_photo}}": i.photo }])
+                            products_html += productHtml;
+                            a++;
+                        }
+
+                    }
+                    const orderHtml = await getHtml('emails/order-confirmed-email.html',
+                        [{ "{{products_html}}": products_html },
+                        { "{{your-order-is-in}}": t('your-order-is-in') },
+                        { "{{view-your-order}}": t('view-your-order') },
+                        { "{{order-title}}": t('order-title') },
+                        { "{{order-number}}": t('order-number', { order_id: foundOrder.orderId }) },
+                        { "{{order-total}}": 'Total:' },
+                        { "{{total_price}}": `${total}€` },
+                        { '{{order_url}}': `${process.env.SITE_URL}/orders/${foundOrder.orderId}` }
+                        ])
+
+                    await sendMail({
+                        email: foundOrder.email,
+                        html: orderHtml,
+                        subject: t('order-number', { order_id: foundOrder.orderId }),
+                    });
                 }
                 break;
             case 'payment_intent.payment_failed':
