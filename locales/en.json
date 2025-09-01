@@ -343,7 +343,8 @@
     "print": "Print order summary",
     "refunded": "Refunded",
     "succeeded": "Succeeded",
-    "failed": "Failed"
+    "failed": "Failed",
+    "unknown-status": "Charge missing"
   },
   "propertyCard": {
     "trip_details": "Trip details",

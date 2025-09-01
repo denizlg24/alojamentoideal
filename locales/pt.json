@@ -343,7 +343,8 @@
     "print": "Imprimir resumo do pedido",
     "refunded": "Reembolsado",
     "succeeded": "Concluído",
-    "failed": "Falhou"
+    "failed": "Falhou",
+    "unknown-status": "Charge missing"
   },
   "propertyCard": {
     "trip_details": "Detalhes da viagem",
