@@ -150,24 +150,21 @@ export const OrderInfo = ({
                 )}
                 <div className="flex flex-row items-start justify-between text-sm text-right">
                   <p className="font-semibold text-left">{t("address")}</p>
-                  <div className="flex flex-row items-start justify-between text-sm text-right">
-                    <p className="font-semibold text-left">{t("address")}</p>
-                    <p className="max-w-[60%] line-clamp-3">
-                      {charge
-                        ? `${charge?.billing_details.address?.line1 ?? ""}${
-                            charge?.billing_details.address?.line2
-                              ? ` ${charge?.billing_details.address?.line2}`
-                              : ""
-                          }, ${
-                            charge?.billing_details.address?.postal_code ?? ""
-                          } ${
-                            charge?.billing_details.address?.state ||
-                            charge?.billing_details.address?.city ||
-                            ""
-                          }, ${charge?.billing_details.address?.country ?? ""}`
-                        : ""}
-                    </p>
-                  </div>
+                  <p className="max-w-[60%] line-clamp-3">
+                    {charge
+                      ? `${charge?.billing_details.address?.line1 ?? ""}${
+                          charge?.billing_details.address?.line2
+                            ? ` ${charge?.billing_details.address?.line2}`
+                            : ""
+                        }, ${
+                          charge?.billing_details.address?.postal_code ?? ""
+                        } ${
+                          charge?.billing_details.address?.state ||
+                          charge?.billing_details.address?.city ||
+                          ""
+                        }, ${charge?.billing_details.address?.country ?? ""}`
+                      : ""}
+                  </p>
                 </div>
               </div>
             </div>
