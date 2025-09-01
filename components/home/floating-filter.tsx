@@ -5,6 +5,7 @@ import {
   CircleAlert,
   CircleMinus,
   CirclePlus,
+  Loader2,
   User,
   X,
 } from "lucide-react";
@@ -34,9 +35,16 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 
-export const FloatingFilter = ({ className }: { className?: string }) => {
+export const FloatingFilter = ({
+  className,
+  initialHref,
+}: {
+  className?: string;
+  initialHref?: string;
+}) => {
   const locale = useLocale();
   const isMobile = useIsMobile();
+  const [searching, setSearching] = useState(false);
   const t = useTranslations("floating-filter");
   const [date, setDate] = useState<DateRange | undefined>({
     from: undefined,
@@ -286,6 +294,7 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
             <Button
               onClick={() => {
                 setDate(undefined);
+                setCalendarOpen(false);
               }}
               className="mt-1 ml-1 py-1! px-2! h-fit"
               variant="ghost"
@@ -474,9 +483,32 @@ export const FloatingFilter = ({ className }: { className?: string }) => {
           </div>
         </PopoverContent>
       </Popover>
-      <Button asChild className="md:col-span-1 sm:col-span-5 col-span-1">
-        <Link href={"/rooms" + currentHref}>
-          <>{t("search")}</>
+      <Button
+        disabled={
+          (initialHref ? initialHref == currentHref : false) || searching
+        }
+        asChild
+        className="md:col-span-1 sm:col-span-5 col-span-1"
+      >
+        <Link
+          onClick={() => {
+            setSearching(true);
+          }}
+          className={cn(
+            ((initialHref ? initialHref == currentHref : false) || searching) &&
+              "opacity-50"
+          )}
+          href={"/rooms" + currentHref}
+        >
+          {(initialHref ? initialHref == currentHref : false) ? (
+            <>{t("add-filters")}</>
+          ) : searching ? (
+            <>
+              {t("search")}... <Loader2 className="animate-spin" />
+            </>
+          ) : (
+            <>{t("search")}</>
+          )}
         </Link>
       </Button>
     </Card>

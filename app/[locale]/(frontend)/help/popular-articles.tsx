@@ -30,7 +30,7 @@ export const PopularArticles = () => {
               {article.preview}...
             </p>
             <Button
-              className="w-fit! text-xs p-1! px-2! rounded! h-fit! mt-auto justify-self-end"
+              className="w-fit! text-xs p-1! px-2! rounded! h-fit! justify-self-end"
               asChild
             >
               <Link href={`/help/${article.id}`}>

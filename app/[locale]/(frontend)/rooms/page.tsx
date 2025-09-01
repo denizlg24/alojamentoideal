@@ -1,8 +1,7 @@
-import { FloatingFilter } from "@/components/home/floating-filter";
-import { ListingsHolder } from "@/components/rooms/listings-holder";
-import { Skeleton } from "@/components/ui/skeleton";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Suspense, use } from "react";
+import { RoomListingHolder } from "./room-listings-holder";
+import { Suspense } from "react";
+import { ListingsSkeleton } from "./loading";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -33,30 +32,21 @@ export async function generateMetadata() {
   };
 }
 
-export default function Home({
+export default async function Home({
   params,
+  searchParams,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params: any;
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { locale } = use<{ locale: string }>(params);
-
+  const { locale } = await params;
   setRequestLocale(locale);
-
+  const keyString = `filters=${JSON.stringify(
+    await searchParams
+  )}+${Math.random()}`;
   return (
-    <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16 px-4">
-      <div className="w-full fixed z-85 bg-background h-fit p-4 shadow">
-        <Suspense
-          fallback={<Skeleton className="w-full max-w-7xl mx-auto h-[200px]" />}
-        >
-          <FloatingFilter className="max-w-7xl" />
-        </Suspense>
-      </div>
-      <div className="w-full max-w-7xl md:mt-30 sm:mt-40 mt-62">
-        <Suspense fallback={<Skeleton className="w-full mx-auto h-[500px]" />}>
-          <ListingsHolder />
-        </Suspense>
-      </div>
-    </main>
+    <Suspense key={keyString} fallback={<ListingsSkeleton />}>
+      <RoomListingHolder searchParams={searchParams} />
+    </Suspense>
   );
 }

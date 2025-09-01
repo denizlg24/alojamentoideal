@@ -66,7 +66,9 @@ export default function Home({
         <OrderSearch />
       </div>
       <div className="w-full max-w-7xl mt-4 mx-auto h-[450px] sm:mt-8 flex flex-col gap-2 px-4">
-        <AccommodationMapHolder />
+        <Suspense fallback={<Skeleton className="w-full mx-auto h-[350px]" />}>
+          <AccommodationMapHolder />
+        </Suspense>
       </div>
       {/*<RecommendedListings />*/}
     </main>

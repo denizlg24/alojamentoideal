@@ -48,8 +48,8 @@ export default function Home({
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16 sm:pt-12 pt-6">
       <div className="w-full relative flex flex-col text-left max-w-6xl mx-auto min-[420px]:px-4 gap-8">
-        <div className="w-full min-[420px]:grid sm:grid-cols-5 grid-cols-4 items-center flex flex-col gap-8">
-          <div className="flex flex-col gap-4 sm:col-span-3 col-span-2 min-[420px]:px-0 px-4">
+        <div className="w-full min-[420px]:flex-row items-center flex flex-col gap-8">
+          <div className="flex flex-col gap-4 flex-[2] min-[420px]:px-0 px-4">
             <h1 className="lg:text-4xl md:text-3xl sm:text-2xl text-xl font-bold">
               {t("about-title")}
             </h1>
@@ -60,7 +60,7 @@ export default function Home({
               {t("about-desc")}
             </h2>
           </div>
-          <div className="w-full col-span-2 min-[420px]:h-full h-[200px] items-center flex justify-center min-[420px]:rounded-xl overflow-hidden shadow-lg">
+          <div className="w-full flex-[1.5]  min-[420px]:h-full h-[200px] items-center flex justify-center min-[420px]:rounded-xl overflow-hidden shadow-lg">
             <Image
               src={regras_espelho}
               alt={"Amar Outside View"}
@@ -68,15 +68,15 @@ export default function Home({
             />
           </div>
         </div>
-        <div className="w-full min-[420px]:grid sm:grid-cols-5 grid-cols-4 items-center flex flex-col-reverse gap-8">
-          <div className="w-full col-span-2 min-[420px]:h-full h-[200px] items-center flex justify-center min-[420px]:rounded-xl overflow-hidden shadow-lg">
+        <div className="w-full min-[420px]:flex-row items-center flex flex-col-reverse gap-8">
+          <div className="w-full flex-[1.5] col-span-2 min-[420px]:h-full h-[200px] items-center flex justify-center min-[420px]:rounded-xl overflow-hidden shadow-lg">
             <Image
               src={regras_livros}
               alt={"Amar Outside View"}
               className="object-cover w-full h-full object-[50%_50%]"
             />
           </div>
-          <div className="flex flex-col gap-4 sm:col-span-3 col-span-2 min-[420px]:px-0 px-4">
+          <div className="flex flex-[2] flex-col gap-4 sm:col-span-3 col-span-2 min-[420px]:px-0 px-4">
             <h3 className="lg:text-xl md:text-lg text-base font-semibold">
               {t("our-story")}
             </h3>
@@ -85,8 +85,8 @@ export default function Home({
             </h2>
           </div>
         </div>
-        <div className="w-full min-[420px]:grid sm:grid-cols-5 grid-cols-4 items-center flex flex-col gap-8">
-          <div className="flex flex-col gap-4 sm:col-span-3 col-span-2 min-[420px]:px-0 px-4">
+        <div className="w-full min-[420px]:flex-row items-center flex flex-col gap-8">
+          <div className="flex flex-[2] flex-col gap-4 sm:col-span-3 col-span-2 min-[420px]:px-0 px-4">
             <h3 className="lg:text-xl md:text-lg text-base font-semibold">
               {t("where-are-we")}
             </h3>
@@ -94,33 +94,33 @@ export default function Home({
               {t("where-desc")}
             </h2>
           </div>
-          <div className="w-full col-span-2 min-[420px]:h-full h-[200px] min-[420px]:grid flex flex-row items-center grid-cols-2 gap-2 min-[420px]:rounded-xl min-[420px]:overflow-hidden overflow-x-clip min-[420px]:shadow-lg">
+          <div className="w-full flex-[1.5] col-span-2 min-[420px]:h-full h-[200px] min-[420px]:grid flex flex-row items-center grid-cols-2 gap-2 min-[420px]:rounded-xl min-[420px]:overflow-hidden overflow-x-clip min-[420px]:shadow-lg">
             <Image
               src={leca_view}
               alt={"Amar Outside View"}
-              className="object-cover min-[420px]:rounded-none min-[420px]:w-auto w-1/3 shrink-0 h-full object-[50%_50%] col-span-full rounded-r-md min-[420px]:shadow-none shadow-lg"
+              className="object-cover min-[420px]:rounded-none min-[420px]:w-auto w-1/3 shrink-0 min-[420px]:h-auto h-full object-[50%_50%] col-span-full rounded-r-md min-[420px]:shadow-none shadow-lg"
             />
             <Image
               src={porto_view}
               alt={"Amar Outside View"}
-              className="object-cover min-[420px]:rounded-none min-[420px]:w-auto w-1/3 shrink-0 h-full object-[25%_50%] rounded-md min-[420px]:shadow-none shadow-lg"
+              className="object-cover min-[420px]:rounded-none min-[420px]:w-auto w-1/3 shrink-0 min-[420px]:h-auto min-[420px]:aspect-[1.33] h-full object-[25%_50%] rounded-md min-[420px]:shadow-none shadow-lg"
             />
             <Image
               src={povoa_view}
               alt={"Amar Outside View"}
-              className="object-cover min-[420px]:rounded-none min-[420px]:w-auto w-1/3 shrink-0 h-full object-[20%_50%] rounded-l-md min-[420px]:shadow-none shadow-lg"
+              className="object-cover min-[420px]:rounded-none min-[420px]:w-auto w-1/3 shrink-0 min-[420px]:h-auto min-[420px]:aspect-[1.33] h-full object-[20%_50%] rounded-l-md min-[420px]:shadow-none shadow-lg"
             />
           </div>
         </div>
-        <div className="w-full min-[420px]:grid sm:grid-cols-5 grid-cols-4 items-center flex flex-col-reverse gap-8">
-          <div className="w-full col-span-2 min-[420px]:h-full h-[200px] items-center flex justify-center min-[420px]:rounded-xl overflow-hidden shadow-lg">
+        <div className="w-full min-[420px]:flex-row items-center flex flex-col-reverse gap-8">
+          <div className="w-full flex-[1.5] col-span-2 min-[420px]:h-full h-[200px] items-center flex justify-center min-[420px]:rounded-xl overflow-hidden shadow-lg">
             <Image
               src={regras_amenidade}
               alt={"Amar Outside View"}
               className="object-cover w-full h-full object-[50%_50%]"
             />
           </div>
-          <div className="flex flex-col gap-4 sm:col-span-3 col-span-2 min-[420px]:px-0 px-4">
+          <div className="flex flex-[2] flex-col gap-4 sm:col-span-3 col-span-2 min-[420px]:px-0 px-4">
             <h3 className="lg:text-xl md:text-lg text-base font-semibold">
               {t("why-stay")}
             </h3>

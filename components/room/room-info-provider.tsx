@@ -37,6 +37,7 @@ import { Amenitie, amenityIconMap } from "../ui/amenitie";
 import { ReviewCard } from "../ui/review-card";
 import {
   Carousel,
+  CarouselApi,
   CarouselContent,
   CarouselItem,
   CarouselNext,
@@ -68,112 +69,55 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
-export const RoomInfoProvider = ({ id }: { id: string }) => {
+export const RoomInfoProvider = ({
+  id,
+  listingCalendar,
+  listingInfo,
+  listingTranslations,
+}: {
+  id: string;
+  listingCalendar: CalendarType[];
+  listingInfo: FullListingType;
+  listingTranslations: TranslationResponse;
+}) => {
   const locale = useLocale();
 
   const roomInfoT = useTranslations("room-info");
   const floatingFilterT = useTranslations("floating-filter");
   const feeT = useTranslations("feeTranslations");
 
+  const [api, setApi] = useState<CarouselApi>();
+  const [scrollToIndex, setScrollToIndex] = useState<number | null>(null);
+
   const isMobile = useIsMobile();
   const [photoZoomOpen, setPhotoZoomOpen] = useState(false);
-  const [isLoading, setLoading] = useState(true);
+  useEffect(() => {
+    if (photoZoomOpen && api && scrollToIndex != null) {
+      api.scrollTo(scrollToIndex);
+    }
+  }, [photoZoomOpen, api, scrollToIndex]);
   const [directing, setDirecting] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [mobileCalendarOpen1, setMobileCalendarOpen1] = useState(false);
   const [mobileCalendarOpen, setMobileCalendarOpen] = useState(false);
-  const [listingInfo, setListingInfo] = useState<FullListingType | undefined>();
-  const [listingTranslations, setListingTranslations] = useState<
-    TranslationResponse | undefined
-  >();
-  const [translationsLoading, setTranslationsLoading] = useState(true);
   const [listingTranslated, setListingTranslated] = useState<
     ListingTranslation | undefined
   >();
   const [tab, setTab] = useState(0);
-
   const [stayPrice, updateStayPrice] = useState<PriceType | undefined>(
     undefined
   );
-
-  const getListingInfo = async (id: string) => {
-    try {
-      setLoading(true);
-      const info = await hostifyRequest<FullListingType>(
-        `listings/${id}`,
-        "GET",
-        [{ key: "include_related_objects", value: 1 }],
-        undefined,
-        undefined
-      );
-      if (info.listing.is_listed == 0) {
-        router.push("/rooms");
-      }
-      setListingInfo(info);
-    } catch {
-      setListingInfo(undefined);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getTranslations = async (id: number) => {
-    try {
-      setTranslationsLoading(true);
-      const translations = await hostifyRequest<TranslationResponse>(
-        `listings/translations/${id}`,
-        "GET",
-        undefined,
-        undefined,
-        undefined
-      );
-      setListingTranslations(translations);
-    } catch {
-      setListingTranslations(undefined);
-    } finally {
-      setTranslationsLoading(false);
-    }
-  };
-
-  const getCalendar = async (id: number) => {
-    try {
-      const calendar = await hostifyRequest<{ calendar: CalendarType[] }>(
-        `calendar?listing_id=${id}&start_date=${format(
-          new Date(),
-          "yyyy-MM-dd"
-        )}`,
-        "GET",
-        undefined,
-        undefined,
-        undefined,
-        { page: 1, perPage: 365 }
-      );
-      updateListingCalendar(calendar.calendar);
-    } catch {
-      updateListingCalendar(undefined);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const [date, setDate] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
   });
-
   const [guests, updateGuests] = useState<{
     adults: number;
     children: number;
     infants: number;
     pets: number;
   }>({ adults: 1, children: 0, infants: 0, pets: 0 });
-
   const searchParams = useSearchParams();
-
-  const [listingCalendar, updateListingCalendar] = useState<
-    CalendarType[] | undefined
-  >(undefined);
-
   const [filtersLoading, setFiltersLoading] = useState(true);
 
   useEffect(() => {
@@ -225,42 +169,13 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
   const [priceLoading, setPriceLoading] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      setListingError("");
-      setListingTranslated(undefined);
-      setListingTranslations(undefined);
-      updateStayPrice(undefined);
-      getListingInfo(id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
-  useEffect(() => {
-    if (listingInfo) {
-      getTranslations(listingInfo.listing.id);
-      getCalendar(listingInfo.listing.id);
-    }
-  }, [listingInfo]);
-
-  useEffect(() => {
-    if (
-      listingInfo &&
-      listingTranslations &&
-      !isLoading &&
-      !translationsLoading
-    ) {
+    if (listingInfo && listingTranslations) {
       const found = listingTranslations.translation.find(
         (t) => t.language == locale
       );
       setListingTranslated(found);
     }
-  }, [
-    isLoading,
-    listingInfo,
-    listingTranslations,
-    locale,
-    translationsLoading,
-  ]);
+  }, [listingInfo, listingTranslations, locale]);
 
   const getStayPrice = async (
     from: Date,
@@ -342,64 +257,6 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
 
   const router = useRouter();
 
-  if (isLoading || !listingInfo || filtersLoading) {
-    return (
-      <div className="w-full max-w-7xl px-4 flex flex-col gap-6 mt-6">
-        <div className="md:grid hidden grid-cols-4 w-full rounded-2xl overflow-hidden gap-2">
-          <div className="col-span-2 w-full h-auto aspect-[2/1.5] relative">
-            <Skeleton className="w-full h-full" />
-          </div>
-          <div className="col-span-1 w-full h-full flex flex-col relative gap-2">
-            <Skeleton className="w-full h-auto aspect-[2/1.5]" />
-            <Skeleton className="w-full h-auto aspect-[2/1.5]" />
-          </div>
-          <div className="col-span-1 w-full h-full flex flex-col relative gap-2">
-            <Skeleton className="w-full h-auto aspect-[2/1.5]" />
-            <Skeleton className="w-full h-auto aspect-[2/1.5]" />
-          </div>
-        </div>
-        <div className="w-full md:hidden">
-          <Skeleton className="w-full h-auto aspect-video rounded-2xl" />
-        </div>
-        <div className="w-full lg:grid grid-cols-5 flex flex-col-reverse gap-8">
-          <div className="flex flex-col gap-6 col-span-3">
-            <div className="w-full flex flex-col gap-1">
-              <Skeleton className="w-[55%] h-6" />
-              <Skeleton className="w-[45%] h-4" />
-              <Skeleton className="w-24 h-4" />
-            </div>
-            <div className="w-full grid grid-cols-2 overflow-hidden gap-4">
-              <Skeleton className="col-span-1 w-full h-6 max-w-28 mx-auto" />
-              <Skeleton className="col-span-1 w-full h-6 max-w-28 mx-auto" />
-              <Skeleton className="col-span-full w-full h-[1px]" />
-              <div className="flex flex-row items-center justify-start w-full gap-4 flex-wrap col-span-full">
-                <Skeleton className="w-full h-6 max-w-28" />
-                <Skeleton className="w-full h-6 max-w-28" />
-                <Skeleton className="w-full h-6 max-w-28" />
-                <Skeleton className="w-full h-6 max-w-28" />
-              </div>
-              <div className="w-full col-span-2 flex flex-col gap-1">
-                <Skeleton className="w-full h-4" />
-                <Skeleton className="w-full h-4" />
-                <Skeleton className="w-full h-4" />
-                <Skeleton className="w-full h-4" />
-                <Skeleton className="w-full h-4" />
-                <Skeleton className="w-[70%] h-4" />
-                <Skeleton className="w-[1px] h-4 bg-transparent" />
-                <Skeleton className="w-full h-4" />
-                <Skeleton className="w-[70%] h-4" />
-              </div>
-              <Skeleton className="col-span-2 w-full h-4 mt-2" />
-            </div>
-          </div>
-          <div className="w-full col-span-2">
-            <Skeleton className="w-full aspect-[4/3] h-auto" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full max-w-7xl px-4 flex flex-col gap-6 mt-6">
       <div className="md:grid hidden grid-cols-4 w-full rounded-2xl overflow-hidden gap-2">
@@ -416,6 +273,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               width={1920}
               height={1080}
               onClick={() => {
+                setScrollToIndex(0);
                 setPhotoZoomOpen(true);
               }}
               className="w-full h-full object-cover hover:cursor-zoom-in"
@@ -435,6 +293,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               width={1920}
               height={1080}
               onClick={() => {
+                setScrollToIndex(1);
                 setPhotoZoomOpen(true);
               }}
               className="w-full h-auto aspect-[2/1.5] object-cover hover:cursor-zoom-in"
@@ -452,6 +311,7 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               width={1920}
               height={1080}
               onClick={() => {
+                setScrollToIndex(2);
                 setPhotoZoomOpen(true);
               }}
               className="w-full h-auto aspect-[2/1.5] object-cover hover:cursor-zoom-in"
@@ -471,30 +331,22 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
               width={1920}
               height={1080}
               onClick={() => {
+                setScrollToIndex(3);
                 setPhotoZoomOpen(true);
               }}
               className="w-full h-auto aspect-[2/1.5] object-cover hover:cursor-zoom-in"
             />
           )}
-          {listingInfo.photos[4] && (
-            <Image
-              src={listingInfo.photos[4].original_file}
-              blurDataURL={
-                listingInfo.photos[4].has_thumb
-                  ? listingInfo.photos[4].thumbnail_file
-                  : undefined
-              }
-              alt="photo 1"
-              width={1920}
-              height={1080}
-              onClick={() => {
-                setPhotoZoomOpen(true);
+          <div className="w-full h-auto aspect-[2/1.5] bg-foreground/50 flex flex-col justify-end items-center pb-4 relative">
+            <Dialog
+              open={photoZoomOpen}
+              onOpenChange={(o) => {
+                if (o) {
+                  setScrollToIndex(0);
+                }
+                setPhotoZoomOpen(o);
               }}
-              className="w-full h-auto aspect-[2/1.5] object-cover hover:cursor-zoom-in"
-            />
-          )}
-          <div className="absolute z-10 right-0 bottom-0 w-full h-auto aspect-[2/1.5] bg-foreground/50 flex flex-col justify-end items-center pb-4">
-            <Dialog open={photoZoomOpen} onOpenChange={setPhotoZoomOpen}>
+            >
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
@@ -513,7 +365,10 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                   </DialogDescription>
                 </DialogHeader>
                 {listingInfo.photos && (
-                  <Carousel className="w-full mx-auto rounded-2xl overflow-hidden">
+                  <Carousel
+                    setApi={setApi}
+                    className="w-full mx-auto rounded-2xl overflow-hidden"
+                  >
                     <CarouselContent className="rounded-2xl mx-auto">
                       {listingInfo.photos.map((photo, index) => (
                         <CarouselItem key={index}>
@@ -536,6 +391,18 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                 )}
               </DialogContent>
             </Dialog>
+            <Image
+              src={listingInfo.photos[4].original_file}
+              blurDataURL={
+                listingInfo.photos[4].has_thumb
+                  ? listingInfo.photos[4].thumbnail_file
+                  : undefined
+              }
+              alt="photo 1"
+              className="w-full h-auto aspect-[2/1.5] object-cover absolute -z-10 top-0"
+              width={1920}
+              height={1080}
+            />
           </div>
         </div>
       </div>
@@ -692,16 +559,6 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                           </p>
                         );
                       }) || <p>{roomInfoT("no-translation")}</p>}
-                      {translationsLoading && (
-                        <>
-                          <div className="w-full flex flex-col gap-1">
-                            <Skeleton className="w-full h-4" />
-                            <Skeleton className="w-full h-4" />
-                            <Skeleton className="w-[70%] h-4" />
-                          </div>
-                          <Skeleton className="w-full h-4 mt-2" />
-                        </>
-                      )}
                       <p className="flex flex-row items-start gap-1 text-sm mt-2">
                         <NotepadText className="w-4 h-4" />
                         <span className="font-semibold">
@@ -977,51 +834,231 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
           </div>
         </div>
         <div className="col-span-2 w-full flex flex-col justify-start relative">
-          <Card className="w-full mx-auto p-4 flex flex-col gap-2 sticky top-20">
-            {isMobile ? (
-              <div className="flex flex-row items-center gap-2 w-full">
-                <div className="flex flex-col gap-2 items-start grow flex-1">
-                  <Label className="w-full col-span-full block sm:hidden">
-                    {floatingFilterT("checkin")}
+          {filtersLoading ? (
+            <Skeleton className="w-full mx-auto p-4 flex flex-col gap-2 sticky top-20 h-[300px]" />
+          ) : (
+            <Card className="w-full mx-auto p-4 flex flex-col gap-2 sticky top-20">
+              {isMobile ? (
+                <div className="flex flex-row items-center gap-2 w-full">
+                  <div className="flex flex-col gap-2 items-start grow flex-1">
+                    <Label className="w-full col-span-full block sm:hidden">
+                      {floatingFilterT("checkin")}
+                    </Label>
+                    <Dialog
+                      onOpenChange={setMobileCalendarOpen1}
+                      open={mobileCalendarOpen1}
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          id="date"
+                          variant={"outline"}
+                          className={cn(
+                            "flex w-full justify-start text-left font-normal",
+                            !date?.from && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date?.from ? (
+                            <>
+                              {format(date.from, "LLL dd", {
+                                locale:
+                                  localeMap[locale as keyof typeof localeMap],
+                              })}
+                            </>
+                          ) : (
+                            <span>{floatingFilterT("checkin")}</span>
+                          )}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="w-[300px] overflow-hidden p-0 z-99 pt-6 gap-1">
+                        <DialogHeader>
+                          <DialogTitle>
+                            {floatingFilterT("checkin")}
+                          </DialogTitle>
+                          <DialogDescription className="hidden">
+                            Check-in date
+                          </DialogDescription>
+                        </DialogHeader>
+                        <Calendar
+                          className="mx-auto"
+                          showOutsideDays={false}
+                          locale={localeMap[locale as keyof typeof localeMap]}
+                          mode="single"
+                          disabled={(date) => {
+                            if (!listingCalendar) {
+                              return date < new Date(new Date().toDateString());
+                            }
+                            const today = new Date(new Date().toDateString());
+
+                            const dateStr = date.toISOString().split("T")[0];
+
+                            const isBooked = listingCalendar.some(
+                              (entry) =>
+                                (entry.status === "booked" ||
+                                  entry.status === "unavailable") &&
+                                entry.date === dateStr
+                            );
+
+                            return date < today || isBooked;
+                          }}
+                          today={undefined}
+                          defaultMonth={date?.from}
+                          selected={date?.from}
+                          onSelect={(e) => {
+                            setDate((prev) => {
+                              return { from: e, to: prev?.to };
+                            });
+                            setMobileCalendarOpen1(false);
+                          }}
+                          numberOfMonths={1}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  {date?.from && (
+                    <>
+                      <p className="mt-5">-</p>
+                      <div className="flex flex-col gap-2 items-start grow flex-1">
+                        <Label className="w-full col-span-full block sm:hidden">
+                          {floatingFilterT("checkout")}
+                        </Label>
+                        <Dialog
+                          onOpenChange={setMobileCalendarOpen}
+                          open={mobileCalendarOpen}
+                        >
+                          <DialogTrigger asChild>
+                            <Button
+                              id="date"
+                              variant={"outline"}
+                              className={cn(
+                                "flex w-full justify-start text-left font-normal",
+                                !date?.to && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {date?.to ? (
+                                <>
+                                  {format(date.to, "LLL dd", {
+                                    locale:
+                                      localeMap[
+                                        locale as keyof typeof localeMap
+                                      ],
+                                  })}
+                                </>
+                              ) : (
+                                <span>{floatingFilterT("checkout")}</span>
+                              )}
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="w-[300px] overflow-hidden p-0 z-99 pt-6 gap-1">
+                            <DialogHeader>
+                              <DialogTitle>
+                                {floatingFilterT("checkout")}
+                              </DialogTitle>
+                              <DialogDescription className="hidden">
+                                Check-out date
+                              </DialogDescription>
+                            </DialogHeader>
+                            <Calendar
+                              className="mx-auto"
+                              showOutsideDays={false}
+                              locale={
+                                localeMap[locale as keyof typeof localeMap]
+                              }
+                              mode="single"
+                              disabled={(date) => {
+                                if (!listingCalendar) {
+                                  return (
+                                    date < new Date(new Date().toDateString())
+                                  );
+                                }
+                                const today = new Date(
+                                  new Date().toDateString()
+                                );
+
+                                const dateStr = date
+                                  .toISOString()
+                                  .split("T")[0];
+
+                                const isBooked = listingCalendar.some(
+                                  (entry) =>
+                                    (entry.status === "booked" ||
+                                      entry.status === "unavailable") &&
+                                    entry.date === dateStr
+                                );
+
+                                return date < today || isBooked;
+                              }}
+                              today={undefined}
+                              defaultMonth={date?.to}
+                              startMonth={addMonths(date.from, 1)}
+                              selected={date?.to}
+                              onSelect={(e) => {
+                                setDate((prev) => {
+                                  return { from: prev?.from, to: e };
+                                });
+                                setMobileCalendarOpen(false);
+                              }}
+                              numberOfMonths={1}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Label className="w-full col-span-full sm:block hidden">
+                    {floatingFilterT("checkin")} - {floatingFilterT("checkout")}
                   </Label>
-                  <Dialog
-                    onOpenChange={setMobileCalendarOpen1}
-                    open={mobileCalendarOpen1}
-                  >
-                    <DialogTrigger asChild>
+                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                    <PopoverTrigger asChild>
                       <Button
                         id="date"
                         variant={"outline"}
                         className={cn(
-                          "flex w-full justify-start text-left font-normal",
-                          !date?.from && "text-muted-foreground"
+                          "sm:flex hidden w-full col-span-2 justify-start text-left font-normal",
+                          !date && "text-muted-foreground"
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {date?.from ? (
-                          <>
-                            {format(date.from, "LLL dd", {
+                          date.to ? (
+                            <>
+                              {format(date.from, "LLL dd", {
+                                locale:
+                                  localeMap[locale as keyof typeof localeMap],
+                              })}{" "}
+                              -{" "}
+                              {format(date.to, "LLL dd", {
+                                locale:
+                                  localeMap[locale as keyof typeof localeMap],
+                              })}
+                            </>
+                          ) : (
+                            format(date.from, "LLL dd", {
                               locale:
                                 localeMap[locale as keyof typeof localeMap],
-                            })}
-                          </>
+                            })
+                          )
                         ) : (
-                          <span>{floatingFilterT("checkin")}</span>
+                          <span>
+                            {floatingFilterT("checkin")} -{" "}
+                            {floatingFilterT("checkout")}
+                          </span>
                         )}
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent className="w-[300px] overflow-hidden p-0 z-99 pt-6 gap-1">
-                      <DialogHeader>
-                        <DialogTitle>{floatingFilterT("checkin")}</DialogTitle>
-                        <DialogDescription className="hidden">
-                          Check-in date
-                        </DialogDescription>
-                      </DialogHeader>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      side="bottom"
+                      className="w-auto overflow-hidden p-1 z-99 relative flex flex-col gap-0"
+                      align="start"
+                    >
                       <Calendar
-                        className="mx-auto"
                         showOutsideDays={false}
                         locale={localeMap[locale as keyof typeof localeMap]}
-                        mode="single"
+                        mode="range"
                         disabled={(date) => {
                           if (!listingCalendar) {
                             return date < new Date(new Date().toDateString());
@@ -1041,570 +1078,408 @@ export const RoomInfoProvider = ({ id }: { id: string }) => {
                         }}
                         today={undefined}
                         defaultMonth={date?.from}
-                        selected={date?.from}
-                        onSelect={(e) => {
-                          setDate((prev) => {
-                            return { from: e, to: prev?.to };
-                          });
-                          setMobileCalendarOpen1(false);
-                        }}
-                        numberOfMonths={1}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                </div>
-                {date?.from && (
-                  <>
-                    <p className="mt-5">-</p>
-                    <div className="flex flex-col gap-2 items-start grow flex-1">
-                      <Label className="w-full col-span-full block sm:hidden">
-                        {floatingFilterT("checkout")}
-                      </Label>
-                      <Dialog
-                        onOpenChange={setMobileCalendarOpen}
-                        open={mobileCalendarOpen}
-                      >
-                        <DialogTrigger asChild>
-                          <Button
-                            id="date"
-                            variant={"outline"}
-                            className={cn(
-                              "flex w-full justify-start text-left font-normal",
-                              !date?.to && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date?.to ? (
-                              <>
-                                {format(date.to, "LLL dd", {
-                                  locale:
-                                    localeMap[locale as keyof typeof localeMap],
-                                })}
-                              </>
-                            ) : (
-                              <span>{floatingFilterT("checkout")}</span>
-                            )}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="w-[300px] overflow-hidden p-0 z-99 pt-6 gap-1">
-                          <DialogHeader>
-                            <DialogTitle>
-                              {floatingFilterT("checkout")}
-                            </DialogTitle>
-                            <DialogDescription className="hidden">
-                              Check-out date
-                            </DialogDescription>
-                          </DialogHeader>
-                          <Calendar
-                            className="mx-auto"
-                            showOutsideDays={false}
-                            locale={localeMap[locale as keyof typeof localeMap]}
-                            mode="single"
-                            disabled={(date) => {
-                              if (!listingCalendar) {
-                                return (
-                                  date < new Date(new Date().toDateString())
-                                );
-                              }
-                              const today = new Date(new Date().toDateString());
-
-                              const dateStr = date.toISOString().split("T")[0];
-
-                              const isBooked = listingCalendar.some(
-                                (entry) =>
-                                  (entry.status === "booked" ||
-                                    entry.status === "unavailable") &&
-                                  entry.date === dateStr
-                              );
-
-                              return date < today || isBooked;
-                            }}
-                            today={undefined}
-                            defaultMonth={date?.to}
-                            startMonth={addMonths(date.from, 1)}
-                            selected={date?.to}
-                            onSelect={(e) => {
+                        selected={date}
+                        onSelect={(range) => {
+                          if (
+                            range?.from &&
+                            range?.to &&
+                            range.to != range.from
+                          ) {
+                            setDate(range);
+                            setCalendarOpen(false);
+                          } else {
+                            if (range?.from) {
                               setDate((prev) => {
-                                return { from: prev?.from, to: e };
+                                return { ...prev, from: range.from };
                               });
-                              setMobileCalendarOpen(false);
-                            }}
-                            numberOfMonths={1}
-                          />
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </>
-                )}
+                            } else if (range?.to) {
+                              setDate((prev) => {
+                                return { from: prev?.from, to: range.from };
+                              });
+                              setCalendarOpen(false);
+                            }
+                          }
+                        }}
+                        numberOfMonths={2}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </>
+              )}
+              <div className="w-full col-span-2 flex flex-row mb-2">
+                <Button
+                  variant="link"
+                  className="h-min text-foreground p-0!"
+                  onClick={() => {
+                    setDate(undefined);
+                  }}
+                >
+                  <X />
+                  <p>{floatingFilterT("clear-dates")}</p>
+                </Button>
               </div>
-            ) : (
-              <>
-                <Label className="w-full col-span-full sm:block hidden">
-                  {floatingFilterT("checkin")} - {floatingFilterT("checkout")}
-                </Label>
-                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="date"
-                      variant={"outline"}
+              <Label className="w-full col-span-full">
+                {roomInfoT("guests")}
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="guests"
+                    variant={"outline"}
+                    className="w-full col-span-2 justify-start text-left font-normal"
+                  >
+                    <User />
+                    {guests.adults + guests.children}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="bottom"
+                  className="w-[300px] overflow-hidden p-4 z-99 flex flex-col gap-3"
+                  align="start"
+                >
+                  <div className="grid grid-cols-5 w-full items-center">
+                    <div className="flex flex-col items-start col-span-2">
+                      <p className="text-sm">{floatingFilterT("adults")}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {floatingFilterT("ages")}{" "}
+                        {listingInfo.listing.children_age_max
+                          ? listingInfo.listing.children_age_max + 1
+                          : "13"}
+                        +
+                      </p>
+                    </div>
+                    <div className="w-full flex flex-row justify-between items-center col-span-3">
+                      <Button
+                        onClick={() => {
+                          updateGuests((prev) => {
+                            return {
+                              ...prev,
+                              adults: prev.adults - 1 > 0 ? prev.adults - 1 : 1,
+                            };
+                          });
+                        }}
+                        variant="ghost"
+                      >
+                        <CircleMinus />
+                      </Button>
+                      <p className="text-sm">{guests.adults}</p>
+                      <Button
+                        onClick={() => {
+                          updateGuests((prev) => {
+                            const total = prev.adults + prev.children;
+                            const capacity =
+                              listingInfo.listing.person_capacity;
+                            return {
+                              ...prev,
+                              adults:
+                                total < capacity
+                                  ? Math.min(
+                                      prev.adults + 1,
+                                      capacity - prev.children
+                                    )
+                                  : prev.adults,
+                            };
+                          });
+                        }}
+                        variant="ghost"
+                      >
+                        <CirclePlus />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-5 w-full items-center">
+                    <div
                       className={cn(
-                        "sm:flex hidden w-full col-span-2 justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
+                        "flex flex-col items-start col-span-2",
+                        listingInfo.listing.children_allowed
+                          ? ""
+                          : "text-muted-foreground/50!"
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date?.from ? (
-                        date.to ? (
+                      <p className="text-sm">{floatingFilterT("children")}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {floatingFilterT("ages")} 2-
+                        {listingInfo.listing.children_age_max || "12"}
+                      </p>
+                    </div>
+                    <div className="w-full flex flex-row justify-between items-center col-span-3">
+                      <Button
+                        disabled={!listingInfo.listing.children_allowed}
+                        onClick={() => {
+                          if (!listingInfo.listing.children_allowed) {
+                            return;
+                          }
+                          updateGuests((prev) => {
+                            return {
+                              ...prev,
+                              children:
+                                prev.children > 0 ? prev.children - 1 : 0,
+                            };
+                          });
+                        }}
+                        variant="ghost"
+                      >
+                        <CircleMinus />
+                      </Button>
+                      <p className="text-sm">{guests.children}</p>
+                      <Button
+                        disabled={!listingInfo.listing.children_allowed}
+                        onClick={() => {
+                          if (!listingInfo.listing.children_allowed) {
+                            return;
+                          }
+                          updateGuests((prev) => {
+                            const total = prev.adults + prev.children;
+                            const capacity =
+                              listingInfo.listing.person_capacity;
+                            return {
+                              ...prev,
+                              children:
+                                total < capacity
+                                  ? Math.min(
+                                      prev.children + 1,
+                                      capacity - prev.adults,
+                                      listingInfo.listing.children_count_max ||
+                                        999999
+                                    )
+                                  : prev.children,
+                            };
+                          });
+                        }}
+                        variant="ghost"
+                      >
+                        <CirclePlus />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-5 w-full items-center">
+                    <div
+                      className={cn(
+                        "flex flex-col items-start col-span-2",
+                        listingInfo.listing.infants_allowed
+                          ? ""
+                          : "text-muted-foreground/50!"
+                      )}
+                    >
+                      <p className="text-sm">{floatingFilterT("infants")}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {floatingFilterT("ages-under")} 2
+                      </p>
+                    </div>
+                    <div className="w-full flex flex-row justify-between items-center col-span-3">
+                      <Button
+                        disabled={!listingInfo.listing.infants_allowed}
+                        onClick={() => {
+                          if (!listingInfo.listing.infants_allowed) {
+                            return;
+                          }
+                          updateGuests((prev) => {
+                            return {
+                              ...prev,
+                              infants: prev.infants > 0 ? prev.infants - 1 : 0,
+                            };
+                          });
+                        }}
+                        variant="ghost"
+                      >
+                        <CircleMinus />
+                      </Button>
+                      <p className="text-sm">{guests.infants}</p>
+                      <Button
+                        disabled={!listingInfo.listing.infants_allowed}
+                        onClick={() => {
+                          if (!listingInfo.listing.infants_allowed) {
+                            return;
+                          }
+                          updateGuests((prev) => {
+                            return {
+                              ...prev,
+                              infants:
+                                prev.infants + 1 <
+                                listingInfo.listing.person_capacity * 2
+                                  ? prev.infants + 1
+                                  : listingInfo.listing.person_capacity * 2,
+                            };
+                          });
+                        }}
+                        variant="ghost"
+                      >
+                        <CirclePlus />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-5 w-full items-center">
+                    <div
+                      className={cn(
+                        "flex flex-row items-center justify-start gap-1 col-span-2",
+                        listingInfo.listing.pets_allowed
+                          ? ""
+                          : "text-muted-foreground/50!"
+                      )}
+                    >
+                      <p className="text-sm">{floatingFilterT("pets")}</p>
+                    </div>
+                    <div className="w-full flex flex-row justify-between items-center col-span-3">
+                      <Button
+                        disabled={!listingInfo.listing.pets_allowed}
+                        onClick={() => {
+                          if (!listingInfo.listing.pets_allowed) {
+                            return;
+                          }
+                          updateGuests((prev) => {
+                            return {
+                              ...prev,
+                              pets: prev.pets > 0 ? prev.pets - 1 : 0,
+                            };
+                          });
+                        }}
+                        variant="ghost"
+                      >
+                        <CircleMinus />
+                      </Button>
+                      <p className="text-sm">{guests.pets}</p>
+                      <Button
+                        disabled={!listingInfo.listing.pets_allowed}
+                        onClick={() => {
+                          if (!listingInfo.listing.pets_allowed) {
+                            return;
+                          }
+                          updateGuests((prev) => {
+                            return {
+                              ...prev,
+                              pets: prev.pets + 1 < 21 ? prev.pets + 1 : 20,
+                            };
+                          });
+                        }}
+                        variant="ghost"
+                      >
+                        <CirclePlus />
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              {listingError && (
+                <div className="w-full col-span-2 flex flex-row items-center justify-center">
+                  <p className="text-destructive text-sm">
+                    {roomInfoT(listingError)}
+                  </p>
+                </div>
+              )}
+              {(priceLoading || stayPrice) && (
+                <div className="w-full col-span-full flex flex-col">
+                  {priceLoading && (
+                    <Skeleton className="w-full h-[200px] flex flex-row items-center justify-center">
+                      <Loader2Icon className="animate-spin" />
+                    </Skeleton>
+                  )}
+                  {!priceLoading && stayPrice && (
+                    <div className="w-full flex flex-col gap-4">
+                      <div className="w-full flex flex-col gap-2">
+                        {stayPrice.fees.map((fee) => {
+                          return (
+                            <div
+                              key={fee.fee_id}
+                              className="w-full flex flex-row gap-2 items-center justify-between"
+                            >
+                              <div className="flex flex-row items-center justify-start gap-1 truncate w-full">
+                                <p className="md:text-base text-sm">
+                                  {fee.fee_name
+                                    ?.toLowerCase()
+                                    .startsWith("city tax")
+                                    ? `${feeT("city tax")}${fee.fee_name.slice(
+                                        "City Tax".length
+                                      )}`
+                                    : feeT(fee.fee_name?.toLowerCase())}
+                                </p>
+                                {fee.charge_type_label && (
+                                  <p className="md:text-sm text-xs truncate">
+                                    {fee.amount}€ /{" "}
+                                    {feeT(fee.fee_charge_type.toLowerCase())}
+                                  </p>
+                                )}
+                              </div>
+                              <p className="w-full max-w-fit truncate">
+                                {fee.total} {stayPrice.symbol}
+                              </p>
+                            </div>
+                          );
+                        })}
+                        <Separator />
+                        <div className="w-full flex flex-row items-center justify-between">
+                          <p className="md:text-base text-sm">
+                            {roomInfoT("total")}
+                          </p>
+                          <p>
+                            {stayPrice.total} {stayPrice.symbol}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        disabled={directing}
+                        onClick={() => {
+                          setDirecting(true);
+                          if (!date?.from || !date.to) {
+                            setDirecting(false);
+                            return;
+                          }
+                          router.push(
+                            `/checkout/room/${id}?start=${format(
+                              date.from,
+                              "yyyy-MM-dd"
+                            )}&end=${format(date.to, "yyyy-MM-dd")}&adults=${
+                              guests.adults
+                            }&children=${guests.children}&infants=${
+                              guests.infants
+                            }&pets=${guests.pets}`
+                          );
+                        }}
+                      >
+                        {directing ? (
                           <>
-                            {format(date.from, "LLL dd", {
-                              locale:
-                                localeMap[locale as keyof typeof localeMap],
-                            })}{" "}
-                            -{" "}
-                            {format(date.to, "LLL dd", {
-                              locale:
-                                localeMap[locale as keyof typeof localeMap],
-                            })}
+                            <Loader2 className="animate-spin" />
+                            {roomInfoT("payment")}
                           </>
                         ) : (
-                          format(date.from, "LLL dd", {
-                            locale: localeMap[locale as keyof typeof localeMap],
-                          })
-                        )
-                      ) : (
-                        <span>
-                          {floatingFilterT("checkin")} -{" "}
-                          {floatingFilterT("checkout")}
-                        </span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    side="bottom"
-                    className="w-auto overflow-hidden p-1 z-99 relative flex flex-col gap-0"
-                    align="start"
-                  >
-                    <Calendar
-                      showOutsideDays={false}
-                      locale={localeMap[locale as keyof typeof localeMap]}
-                      mode="range"
-                      disabled={(date) => {
-                        if (!listingCalendar) {
-                          return date < new Date(new Date().toDateString());
-                        }
-                        const today = new Date(new Date().toDateString());
-
-                        const dateStr = date.toISOString().split("T")[0];
-
-                        const isBooked = listingCalendar.some(
-                          (entry) =>
-                            (entry.status === "booked" ||
-                              entry.status === "unavailable") &&
-                            entry.date === dateStr
-                        );
-
-                        return date < today || isBooked;
-                      }}
-                      today={undefined}
-                      defaultMonth={date?.from}
-                      selected={date}
-                      onSelect={(range) => {
-                        if (
-                          range?.from &&
-                          range?.to &&
-                          range.to != range.from
-                        ) {
-                          setDate(range);
-                          setCalendarOpen(false);
-                        } else {
-                          if (range?.from) {
-                            setDate((prev) => {
-                              return { ...prev, from: range.from };
-                            });
-                          } else if (range?.to) {
-                            setDate((prev) => {
-                              return { from: prev?.from, to: range.from };
-                            });
-                            setCalendarOpen(false);
+                          <>{roomInfoT("payment")}</>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (!date?.to || !date?.from) {
+                            return;
                           }
-                        }
-                      }}
-                      numberOfMonths={2}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </>
-            )}
-            <div className="w-full col-span-2 flex flex-row mb-2">
-              <Button
-                variant="link"
-                className="h-min text-foreground p-0!"
-                onClick={() => {
-                  setDate(undefined);
-                }}
-              >
-                <X />
-                <p>{floatingFilterT("clear-dates")}</p>
-              </Button>
-            </div>
-            <Label className="w-full col-span-full">
-              {roomInfoT("guests")}
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="guests"
-                  variant={"outline"}
-                  className="w-full col-span-2 justify-start text-left font-normal"
-                >
-                  <User />
-                  {guests.adults + guests.children}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                side="bottom"
-                className="w-[300px] overflow-hidden p-4 z-99 flex flex-col gap-3"
-                align="start"
-              >
-                <div className="grid grid-cols-5 w-full items-center">
-                  <div className="flex flex-col items-start col-span-2">
-                    <p className="text-sm">{floatingFilterT("adults")}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {floatingFilterT("ages")}{" "}
-                      {listingInfo.listing.children_age_max
-                        ? listingInfo.listing.children_age_max + 1
-                        : "13"}
-                      +
-                    </p>
-                  </div>
-                  <div className="w-full flex flex-row justify-between items-center col-span-3">
-                    <Button
-                      onClick={() => {
-                        updateGuests((prev) => {
-                          return {
-                            ...prev,
-                            adults: prev.adults - 1 > 0 ? prev.adults - 1 : 1,
+                          setAdded(true);
+                          setTimeout(() => setAdded(false), 1000);
+                          const propertyItem: AccommodationItem = {
+                            type: "accommodation",
+                            property_id: listingInfo.listing.id,
+                            name:
+                              listingInfo.listing.name ||
+                              listingInfo.listing.nickname,
+                            start_date: format(date?.from, "yyyy-MM-dd"),
+                            end_date: format(date?.to, "yyyy-MM-dd"),
+                            adults: guests.adults,
+                            children: guests.children,
+                            infants: guests.infants,
+                            pets: guests.pets,
+                            front_end_price: stayPrice.total,
+                            photo: listingInfo.listing.thumbnail_file,
+                            fees: stayPrice.fees,
                           };
-                        });
-                      }}
-                      variant="ghost"
-                    >
-                      <CircleMinus />
-                    </Button>
-                    <p className="text-sm">{guests.adults}</p>
-                    <Button
-                      onClick={() => {
-                        updateGuests((prev) => {
-                          const total = prev.adults + prev.children;
-                          const capacity = listingInfo.listing.person_capacity;
-                          return {
-                            ...prev,
-                            adults:
-                              total < capacity
-                                ? Math.min(
-                                    prev.adults + 1,
-                                    capacity - prev.children
-                                  )
-                                : prev.adults,
-                          };
-                        });
-                      }}
-                      variant="ghost"
-                    >
-                      <CirclePlus />
-                    </Button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-5 w-full items-center">
-                  <div
-                    className={cn(
-                      "flex flex-col items-start col-span-2",
-                      listingInfo.listing.children_allowed
-                        ? ""
-                        : "text-muted-foreground/50!"
-                    )}
-                  >
-                    <p className="text-sm">{floatingFilterT("children")}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {floatingFilterT("ages")} 2-
-                      {listingInfo.listing.children_age_max || "12"}
-                    </p>
-                  </div>
-                  <div className="w-full flex flex-row justify-between items-center col-span-3">
-                    <Button
-                      disabled={!listingInfo.listing.children_allowed}
-                      onClick={() => {
-                        if (!listingInfo.listing.children_allowed) {
-                          return;
-                        }
-                        updateGuests((prev) => {
-                          return {
-                            ...prev,
-                            children: prev.children > 0 ? prev.children - 1 : 0,
-                          };
-                        });
-                      }}
-                      variant="ghost"
-                    >
-                      <CircleMinus />
-                    </Button>
-                    <p className="text-sm">{guests.children}</p>
-                    <Button
-                      disabled={!listingInfo.listing.children_allowed}
-                      onClick={() => {
-                        if (!listingInfo.listing.children_allowed) {
-                          return;
-                        }
-                        updateGuests((prev) => {
-                          const total = prev.adults + prev.children;
-                          const capacity = listingInfo.listing.person_capacity;
-                          return {
-                            ...prev,
-                            children:
-                              total < capacity
-                                ? Math.min(
-                                    prev.children + 1,
-                                    capacity - prev.adults,
-                                    listingInfo.listing.children_count_max ||
-                                      999999
-                                  )
-                                : prev.children,
-                          };
-                        });
-                      }}
-                      variant="ghost"
-                    >
-                      <CirclePlus />
-                    </Button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-5 w-full items-center">
-                  <div
-                    className={cn(
-                      "flex flex-col items-start col-span-2",
-                      listingInfo.listing.infants_allowed
-                        ? ""
-                        : "text-muted-foreground/50!"
-                    )}
-                  >
-                    <p className="text-sm">{floatingFilterT("infants")}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {floatingFilterT("ages-under")} 2
-                    </p>
-                  </div>
-                  <div className="w-full flex flex-row justify-between items-center col-span-3">
-                    <Button
-                      disabled={!listingInfo.listing.infants_allowed}
-                      onClick={() => {
-                        if (!listingInfo.listing.infants_allowed) {
-                          return;
-                        }
-                        updateGuests((prev) => {
-                          return {
-                            ...prev,
-                            infants: prev.infants > 0 ? prev.infants - 1 : 0,
-                          };
-                        });
-                      }}
-                      variant="ghost"
-                    >
-                      <CircleMinus />
-                    </Button>
-                    <p className="text-sm">{guests.infants}</p>
-                    <Button
-                      disabled={!listingInfo.listing.infants_allowed}
-                      onClick={() => {
-                        if (!listingInfo.listing.infants_allowed) {
-                          return;
-                        }
-                        updateGuests((prev) => {
-                          return {
-                            ...prev,
-                            infants:
-                              prev.infants + 1 <
-                              listingInfo.listing.person_capacity * 2
-                                ? prev.infants + 1
-                                : listingInfo.listing.person_capacity * 2,
-                          };
-                        });
-                      }}
-                      variant="ghost"
-                    >
-                      <CirclePlus />
-                    </Button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-5 w-full items-center">
-                  <div
-                    className={cn(
-                      "flex flex-row items-center justify-start gap-1 col-span-2",
-                      listingInfo.listing.pets_allowed
-                        ? ""
-                        : "text-muted-foreground/50!"
-                    )}
-                  >
-                    <p className="text-sm">{floatingFilterT("pets")}</p>
-                  </div>
-                  <div className="w-full flex flex-row justify-between items-center col-span-3">
-                    <Button
-                      disabled={!listingInfo.listing.pets_allowed}
-                      onClick={() => {
-                        if (!listingInfo.listing.pets_allowed) {
-                          return;
-                        }
-                        updateGuests((prev) => {
-                          return {
-                            ...prev,
-                            pets: prev.pets > 0 ? prev.pets - 1 : 0,
-                          };
-                        });
-                      }}
-                      variant="ghost"
-                    >
-                      <CircleMinus />
-                    </Button>
-                    <p className="text-sm">{guests.pets}</p>
-                    <Button
-                      disabled={!listingInfo.listing.pets_allowed}
-                      onClick={() => {
-                        if (!listingInfo.listing.pets_allowed) {
-                          return;
-                        }
-                        updateGuests((prev) => {
-                          return {
-                            ...prev,
-                            pets: prev.pets + 1 < 21 ? prev.pets + 1 : 20,
-                          };
-                        });
-                      }}
-                      variant="ghost"
-                    >
-                      <CirclePlus />
-                    </Button>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-            {listingError && (
-              <div className="w-full col-span-2 flex flex-row items-center justify-center">
-                <p className="text-destructive text-sm">
-                  {roomInfoT(listingError)}
-                </p>
-              </div>
-            )}
-            {(priceLoading || stayPrice) && (
-              <div className="w-full col-span-full flex flex-col">
-                {priceLoading && (
-                  <Skeleton className="w-full h-[200px] flex flex-row items-center justify-center">
-                    <Loader2Icon className="animate-spin" />
-                  </Skeleton>
-                )}
-                {!priceLoading && stayPrice && (
-                  <div className="w-full flex flex-col gap-4">
-                    <div className="w-full flex flex-col gap-2">
-                      {stayPrice.fees.map((fee) => {
-                        return (
-                          <div
-                            key={fee.fee_id}
-                            className="w-full flex flex-row gap-2 items-center justify-between"
-                          >
-                            <div className="flex flex-row items-center justify-start gap-1 truncate w-full">
-                              <p className="md:text-base text-sm">
-                                {fee.fee_name
-                                  ?.toLowerCase()
-                                  .startsWith("city tax")
-                                  ? `${feeT("city tax")}${fee.fee_name.slice(
-                                      "City Tax".length
-                                    )}`
-                                  : feeT(fee.fee_name?.toLowerCase())}
-                              </p>
-                              {fee.charge_type_label && (
-                                <p className="md:text-sm text-xs truncate">
-                                  {fee.amount}€ /{" "}
-                                  {feeT(fee.fee_charge_type.toLowerCase())}
-                                </p>
-                              )}
-                            </div>
-                            <p className="w-full max-w-fit truncate">
-                              {fee.total} {stayPrice.symbol}
-                            </p>
-                          </div>
-                        );
-                      })}
-                      <Separator />
-                      <div className="w-full flex flex-row items-center justify-between">
-                        <p className="md:text-base text-sm">
-                          {roomInfoT("total")}
-                        </p>
-                        <p>
-                          {stayPrice.total} {stayPrice.symbol}
-                        </p>
-                      </div>
+                          addItem(propertyItem);
+                        }}
+                        variant="secondary"
+                        className="-mt-3 border"
+                      >
+                        {roomInfoT(added ? "added" : "add_to_cart")}
+                      </Button>
                     </div>
-                    <Button
-                      disabled={directing}
-                      onClick={() => {
-                        setDirecting(true);
-                        if (!date?.from || !date.to) {
-                          setDirecting(false);
-                          return;
-                        }
-                        router.push(
-                          `/checkout/room/${id}?start=${format(
-                            date.from,
-                            "yyyy-MM-dd"
-                          )}&end=${format(date.to, "yyyy-MM-dd")}&adults=${
-                            guests.adults
-                          }&children=${guests.children}&infants=${
-                            guests.infants
-                          }&pets=${guests.pets}`
-                        );
-                      }}
-                    >
-                      {directing ? (
-                        <>
-                          <Loader2 className="animate-spin" />
-                          {roomInfoT("payment")}
-                        </>
-                      ) : (
-                        <>{roomInfoT("payment")}</>
-                      )}
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        if (!date?.to || !date?.from) {
-                          return;
-                        }
-                        setAdded(true);
-                        setTimeout(() => setAdded(false), 1000);
-                        const propertyItem: AccommodationItem = {
-                          type: "accommodation",
-                          property_id: listingInfo.listing.id,
-                          name:
-                            listingInfo.listing.name ||
-                            listingInfo.listing.nickname,
-                          start_date: format(date?.from, "yyyy-MM-dd"),
-                          end_date: format(date?.to, "yyyy-MM-dd"),
-                          adults: guests.adults,
-                          children: guests.children,
-                          infants: guests.infants,
-                          pets: guests.pets,
-                          front_end_price: stayPrice.total,
-                          photo: listingInfo.listing.thumbnail_file,
-                          fees: stayPrice.fees,
-                        };
-                        addItem(propertyItem);
-                      }}
-                      variant="secondary"
-                      className="-mt-3 border"
-                    >
-                      {roomInfoT(added ? "added" : "add_to_cart")}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </Card>
+                  )}
+                </div>
+              )}
+            </Card>
+          )}
         </div>
       </div>
     </div>

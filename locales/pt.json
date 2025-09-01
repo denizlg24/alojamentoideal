@@ -143,7 +143,8 @@
     "pets-warning": "Alguns quartos podem não permitir animais.",
     "search": "Procurar",
     "clear-dates": "Limpar datas",
-    "clear": "Claro"
+    "clear": "Limpar",
+    "add-filters": "Encontre o seu quarto — experimente adicionar filtros"
   },
   "rooms": {
     "all": "A mostrar todos os alojamentos disponíveis",
