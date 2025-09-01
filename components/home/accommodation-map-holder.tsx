@@ -2,7 +2,7 @@ import { ListingType } from "@/schemas/listing.schema";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { AccommodationMapTitle } from "./accommodation-map-title";
 import { AccommodationMapClient } from "./accommodation-map-client";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 
 export const AccommodationMapHolder = async () => {
   const getListings = async (limit: number, page: number) => {
@@ -20,7 +20,7 @@ export const AccommodationMapHolder = async () => {
     }
   };
   const firstListings = await getListings(10, 1);
-  const t = useTranslations("home");
+  const t = await getTranslations("home");
 
   return (
     <>
