@@ -5,6 +5,7 @@ const BOKUN_BASE_URL = "https://api.bokun.io";
 interface BokunRequestOptions {
     method: "GET" | "POST" | "PUT" | "DELETE";
     path: string; // must start with "/"
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     body?: any;
 }
 
@@ -78,6 +79,7 @@ export interface BokunProductResponse {
     }[];
     excerpt: string;
     externalId: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     fields: Record<string, any>; // open object with dynamic keys
     flags: string[];
     id: string;
@@ -215,8 +217,11 @@ export interface ActivityPreviewResponse {
             pricingCategoryId: number;
             tierId: number;
         }[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         extraPriceRules: any[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         pickupPriceRules: any[];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         dropoffPriceRules: any[];
         priceCatalogCurrencies: {
             priceCatalogId: number;

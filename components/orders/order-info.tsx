@@ -1,5 +1,4 @@
 "use client";
-import { Skeleton } from "../ui/skeleton";
 import { Separator } from "../ui/separator";
 import { format, fromUnixTime } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";

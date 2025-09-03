@@ -4,7 +4,6 @@ import {
   bokunRequest,
 } from "@/utils/bokun-requests";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import Image from "next/image";
 import { ActivityPreviewCard } from "./tour-preview-card";
 
 export async function generateMetadata() {
@@ -63,7 +62,7 @@ export default async function Page({
     942575, 944942, 949420, 944947, 945073,
   ];
 
-  const flatIds1 = response.items.map((i) => i.id);
+  //const flatIds1 = response.items.map((i) => i.id);
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full max-w-7xl mx-auto px-4 grid grid-cols-4 gap-x-4 gap-y-8 sm:pt-12 pt-6">
@@ -86,10 +85,15 @@ export default async function Page({
             const jsonRes = await res.json();
             locality = `${jsonRes.locality}, ${jsonRes.city}`;
           } catch (error) {
+            console.log(error);
             locality = `${experience.location.city}`;
           }
           return (
-            <ActivityPreviewCard activity={experience} locality={locality} />
+            <ActivityPreviewCard
+              key={id}
+              activity={experience}
+              locality={locality}
+            />
           );
         })}
       </div>
