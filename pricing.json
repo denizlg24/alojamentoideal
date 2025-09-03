@@ -1,0 +1,79 @@
+{
+  "experiencePriceRules": [
+    {
+      "id": 202594947,
+      "rate": { "id": 1818764, "externalId": "TG1" },
+      "created": 1740649714000,
+      "priceCatalogId": 131159,
+      "currency": "EUR",
+      "amount": "76.000000",
+      "pricingCategoryId": 916615,
+      "tierId": 3424715
+    },
+    {
+      "id": 202594946,
+      "rate": { "id": 1818764, "externalId": "TG1" },
+      "created": 1740649714000,
+      "priceCatalogId": 131159,
+      "currency": "EUR",
+      "amount": "84.000000",
+      "pricingCategoryId": 916615,
+      "tierId": 3424713
+    },
+    {
+      "id": 181209799,
+      "rate": { "id": 1818764, "externalId": "TG1" },
+      "created": 1734006909000,
+      "priceCatalogId": 125294,
+      "currency": "EUR",
+      "amount": "50.000000",
+      "pricingCategoryId": 913892,
+      "tierId": 3424713
+    },
+    {
+      "id": 202594945,
+      "rate": { "id": 1818764, "externalId": "TG1" },
+      "created": 1740649714000,
+      "priceCatalogId": 131159,
+      "currency": "EUR",
+      "amount": "40.000000",
+      "pricingCategoryId": 913892,
+      "tierId": 3424713
+    },
+    {
+      "id": 181209801,
+      "rate": { "id": 1818764, "externalId": "TG1" },
+      "created": 1734006909000,
+      "priceCatalogId": 125294,
+      "currency": "EUR",
+      "amount": "95.000000",
+      "pricingCategoryId": 916615,
+      "tierId": 3424715
+    },
+    {
+      "id": 181209800,
+      "rate": { "id": 1818764, "externalId": "TG1" },
+      "created": 1734006909000,
+      "priceCatalogId": 125294,
+      "currency": "EUR",
+      "amount": "105.000000",
+      "pricingCategoryId": 916615,
+      "tierId": 3424713
+    }
+  ],
+  "extraPriceRules": [],
+  "pickupPriceRules": [],
+  "dropoffPriceRules": [],
+  "priceCatalogCurrencies": [
+    {
+      "priceCatalogId": 125294,
+      "currencies": ["EUR"],
+      "defaultCurrency": "EUR"
+    },
+    {
+      "priceCatalogId": 131159,
+      "currencies": ["EUR"],
+      "defaultCurrency": "EUR"
+    }
+  ]
+}

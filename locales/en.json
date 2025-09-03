@@ -1152,5 +1152,10 @@
     "sending": "Sending...",
     "email-success": "Sent successfuly!",
     "will-be-in-contact": "We will be in contact shortly to discuss further steps."
+  },
+  "activity-preview-card": {
+    "ages-above": "Ages above {age}",
+    "any-age": "Any age",
+    "duration": "Duration"
   }
 }

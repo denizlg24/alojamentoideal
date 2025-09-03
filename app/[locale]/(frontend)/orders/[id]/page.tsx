@@ -1,6 +1,8 @@
-import { use } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { OrderInfoProvider } from "@/components/orders/order-info-provider";
+import { getOrderById } from "@/app/actions/getOrder";
+import { getPaymentIntent } from "@/app/actions/getPaymentIntent";
+import { notFound } from "next/navigation";
+import { OrderInfo } from "@/components/orders/order-info";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -32,19 +34,29 @@ export async function generateMetadata() {
   };
 }
 
-export default function Page({
+export default async function Page({
   params,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params: any;
+  params: Promise<{ locale: string; id: string }>;
 }) {
-  const { locale, id } = use<{ locale: string; id: string }>(params);
+  const { locale, id } = await params;
 
   setRequestLocale(locale);
-
-  return (
-    <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
-      <OrderInfoProvider id={id} />
-    </main>
-  );
+  const { success, order } = await getOrderById(id);
+  if (success && order) {
+    const payment_intent = order.payment_id
+      ? await getPaymentIntent(order.payment_id)
+      : undefined;
+    return (
+      <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
+        <OrderInfo
+          order={order}
+          paymentIntent={payment_intent?.intent}
+          charge={payment_intent?.charge}
+        />
+      </main>
+    );
+  } else {
+    notFound();
+  }
 }

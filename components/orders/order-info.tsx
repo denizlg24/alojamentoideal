@@ -70,12 +70,10 @@ export const OrderInfo = ({
   order,
   paymentIntent,
   charge,
-  loading,
 }: {
-  order: IOrder | undefined;
+  order: IOrder;
   charge: Stripe.Charge | undefined;
   paymentIntent: PaymentIntent | undefined;
-  loading: boolean;
 }) => {
   const t = useTranslations("order");
   const feeT = useTranslations("feeTranslations");
@@ -85,15 +83,6 @@ export const OrderInfo = ({
     contentRef: cardRef,
     documentTitle: `Alojamento Ideal Order: ${order?.orderId}`,
   });
-
-  if (loading || !order) {
-    return (
-      <div className="w-full max-w-7xl mx-auto flex flex-col gap-8 px-4 pt-12">
-        <Skeleton className="w-full h-[70px]" />
-        <Skeleton className="w-full h-[300px]" />
-      </div>
-    );
-  }
 
   return (
     <div className="w-full max-w-7xl mx-auto flex flex-col gap-8 px-4 pt-12">
