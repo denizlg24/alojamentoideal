@@ -708,3 +708,93 @@ export interface ActivityPlacesDto {
     pickupPlaces: PickupPlaceDto[];
     dropoffPlaces: PickupPlaceDto[]
 }
+
+export interface ExperienceAvailabilityDto {
+    id: string;
+    activityId: number;
+    activityTitle: string;
+    activityOwnerId: number;
+    activityOwnerTitle: string;
+    startTime: string;
+    startTimeId: number;
+    startTimeLabel: string;
+    flexible: number;
+    date: number;
+    localizedDate: string;
+    availabilityCount: number;
+    bookedParticipants: number;
+    minParticipants: number;
+    minParticipantsToBookNow: number;
+    productGroupId: number;
+    recurrenceId: number;
+    pickupAllotment: boolean;
+    pickupAvailabilityCount: number;
+    unlimitedAvailability: boolean;
+    defaultRateId: number;
+    rates: ExperienceRateDto[]
+    pricesByRate: {
+        activityRateId: number;
+        pricePerBooking: { amount: number, currency: string };
+        pricePerCategoryUnit: {
+            id: number;
+            amount: {
+                amount: number;
+                currency: string;
+            }
+            minParticipantsRequired: number;
+            maxParticipantsRequired: number;
+        }[];
+        pickupPrice: { amount: number; currency: string };
+        pickupPricePerCategoryUnit: {
+            id: number;
+            amount: {
+                amount: number;
+                currency: string;
+            }
+            minParticipantsRequired: number;
+            maxParticipantsRequired: number;
+        }[];
+        dropoffPrice: { amount: number; currency: string };
+        dropoffPricePerCategoryUnit: {
+            id: number;
+            amount: {
+                amount: number;
+                currency: string;
+            }
+            minParticipantsRequired: number;
+            maxParticipantsRequired: number;
+        }[];
+        extraPricePerUnit: {
+            id: number;
+            amount: {
+                amount: number;
+                currency: string;
+            }
+            minParticipantsRequired: number;
+            maxParticipantsRequired: number;
+        }[];
+        extraPricePerCategoryUnit: {
+            id: number;
+            amount: {
+                amount: number;
+                currency: string;
+            }
+            minParticipantsRequired: number;
+            maxParticipantsRequired: number;
+        }[];
+    }[];
+    comboActivity: boolean;
+    comboStartTimes: { id: number; targetActivityId: number; targetStartTimeId: number }[];
+    flags: string[];
+    defaultPrice: number;
+    pricesByCategory: { [key: string]: number };
+    pickupPrice: number;
+    pickupPricesByCategory: { [key: string]: number };
+    dropoffPrice: number;
+    dropoffPricesByCategory: { [key: string]: number };
+    extraPrices: { [key: string]: number };
+    guidedLanguages: string[];
+    unavailable: boolean;
+    pickupSoldOut: boolean;
+    soldOut: boolean;
+}

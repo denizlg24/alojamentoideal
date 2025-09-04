@@ -7,6 +7,7 @@ import {
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { TourDisplay } from "./tour-display";
+import { GetActivityAvailability } from "@/app/actions/getExperienceAvailability";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -92,9 +93,19 @@ export default async function Page({
       meeting = { type: "MEET_ON_LOCATION_OR_PICK_UP", pickUpPlaces: [] };
       break;
   }
+  const availability = await GetActivityAvailability(response.id.toString());
+  console.log(availability);
+  if (!availability) {
+    notFound();
+  }
+  const mappedAvailability = Object.values(availability);
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
-      <TourDisplay experience={response} meeting={meeting} />
+      <TourDisplay
+        experience={response}
+        meeting={meeting}
+        initialAvailability={mappedAvailability}
+      />
     </main>
   );
 }

@@ -17,17 +17,32 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { FullExperienceType, PickupPlaceDto } from "@/utils/bokun-requests";
+import {
+  ExperienceAvailabilityDto,
+  ExperienceRateTierDto,
+  FullExperienceType,
+  PickupPlaceDto,
+} from "@/utils/bokun-requests";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
 import { cn, localeMap } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { AnimatePresence, motion } from "framer-motion";
-import { Clock, ExternalLink, UserLock } from "lucide-react";
-import { formatDuration } from "date-fns";
+import {
+  Clock,
+  ExternalLink,
+  MinusCircle,
+  PlusCircle,
+  UserLock,
+  Users,
+} from "lucide-react";
+import { formatDuration, isSameDay } from "date-fns";
 import { Link } from "@/i18n/navigation";
 import { RoomInfoMap } from "@/components/room/room-info-map";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
 
 export function cleanHtml(input: string) {
   const sanitized = sanitizeHtml(input, {
@@ -51,12 +66,14 @@ export function cleanHtml(input: string) {
 export const TourDisplay = ({
   experience,
   meeting,
+  initialAvailability,
 }: {
   experience: FullExperienceType;
   meeting:
     | { type: "PICK_UP"; pickUpPlaces: PickupPlaceDto[] }
     | { type: "MEET_ON_LOCATION" }
     | { type: "MEET_ON_LOCATION_OR_PICK_UP"; pickUpPlaces: PickupPlaceDto[] };
+  initialAvailability: ExperienceAvailabilityDto[];
 }) => {
   const locale = useLocale();
   //const experienceTypesT = useTranslations("experienceTypes");
@@ -64,6 +81,7 @@ export const TourDisplay = ({
   const [api, setApi] = useState<CarouselApi>();
   const [scrollToIndex, setScrollToIndex] = useState<number | null>(null);
   const [photoZoomOpen, setPhotoZoomOpen] = useState(false);
+  const [guests, setGuests] = useState(1);
   const [tab, setTab] = useState(0);
   useEffect(() => {
     if (photoZoomOpen && api && scrollToIndex != null) {
@@ -80,6 +98,7 @@ export const TourDisplay = ({
     }
   }, [contentRef]);
 
+  const [experienceAvailability] = useState(initialAvailability);
   return (
     <div className="w-full max-w-7xl px-4 flex flex-col gap-6 mt-6">
       <div className="md:grid hidden grid-cols-4 w-full rounded-2xl overflow-hidden gap-2">
@@ -220,7 +239,7 @@ export const TourDisplay = ({
           <CarouselNext className="right-2" />
         </Carousel>
       )}
-      <div className="w-full lg:grid grid-cols-5 flex flex-col-reverse gap-8">
+      <div className="w-full lg:grid grid-cols-5 flex flex-col-reverse items-start gap-8">
         <div className="flex flex-col gap-6 col-span-3">
           <div className="w-full flex flex-col gap-1">
             <h1 className="text-2xl font-semibold">{experience.title}</h1>
@@ -529,6 +548,171 @@ export const TourDisplay = ({
                 );
             }
           })()}
+        </div>
+        <div className="col-span-2 w-full flex flex-col justify-start relative h-full">
+          {false ? (
+            <Skeleton className="w-full mx-auto p-4 flex flex-col gap-2 sticky top-20 h-[500px]" />
+          ) : (
+            <Card className="w-full mx-auto p-4 flex flex-col gap-2 sticky top-20">
+              <div className="flex flex-row items-center justify-between w-full">
+                <Button
+                  variant={"secondary"}
+                  onClick={() => {
+                    setGuests((prev) => {
+                      if (prev == 0) {
+                        return 0;
+                      }
+                      return prev - 1;
+                    });
+                  }}
+                >
+                  <MinusCircle />
+                </Button>
+                <p className="text-sm">{guests}</p>
+                <Button
+                  variant={"secondary"}
+                  onClick={() => {
+                    setGuests((prev) => {
+                      if (prev == 100) {
+                        return 100;
+                      }
+                      return prev + 1;
+                    });
+                  }}
+                >
+                  <PlusCircle />
+                </Button>
+              </div>
+              <Calendar
+                mode="single"
+                className="w-full h-auto aspect-square border-0 mb-10"
+                captionLayout="label"
+                startMonth={new Date()}
+                showOutsideDays={false}
+                components={{
+                  DayButton(props) {
+                    const date = props.day.date;
+                    const avail = experienceAvailability.find((avail) =>
+                      isSameDay(new Date(avail.date), date)
+                    );
+
+                    function getTierForPassengers(
+                      tiers: ExperienceRateTierDto[],
+                      passengers: number
+                    ) {
+                      return tiers.find(
+                        (t) =>
+                          passengers >= t.minPassengersRequired &&
+                          passengers <= t.maxPassengersRequired
+                      );
+                    }
+
+                    if (date < new Date()) {
+                      return (
+                        <div className="flex flex-col items-center justify-center">
+                          <span>{date.getDate()}</span>
+                        </div>
+                      );
+                    }
+
+                    if (!avail) {
+                      return (
+                        <div className="flex flex-col items-center justify-center text-muted-foreground">
+                          <span>{date.getDate()}</span>
+                        </div>
+                      );
+                    }
+                    if (!avail.unlimitedAvailability) {
+                      if (
+                        avail.availabilityCount == 0 ||
+                        (avail.availabilityCount ?? 0) < guests
+                      ) {
+                        return (
+                          <div className="flex flex-col items-center justify-center text-muted-foreground relative overflow-hidden">
+                            <span>{date.getDate()}</span>
+                            <span className="w-4 h-4 bg-destructive absolute -top-2 -right-2 rotate-45"></span>
+                          </div>
+                        );
+                      }
+
+                      if ((avail.minParticipantsToBookNow ?? 0) > guests) {
+                        return (
+                          <div className="flex flex-col items-center justify-center relative overflow-hidden">
+                            <span>{date.getDate()}</span>
+                            <span className="text-xs text-foreground font-normal flex flex-row items-center gap-1 justify-start">
+                              Min {avail.minParticipantsToBookNow}{" "}
+                              <Users className="w-2 h-2 shrink-0" />
+                            </span>
+                            <span className="w-4 h-4 bg-yellow-300 absolute -top-2 -right-2 rotate-45"></span>
+                          </div>
+                        );
+                      }
+                    }
+
+                    if (avail.rates[0]?.tieredPricingEnabled) {
+                      const tier = getTierForPassengers(
+                        avail.rates[0].tiers,
+                        guests
+                      );
+                      if (tier) {
+                        const pricingId = tier.pricingCategoryId;
+                        const price =
+                          avail.pricesByRate[0].pricePerCategoryUnit.find(
+                            (price) =>
+                              price.id == pricingId &&
+                              price.maxParticipantsRequired >= guests
+                          );
+
+                        return (
+                          <div className="flex flex-col items-center justify-center relative overflow-hidden">
+                            <span>{date.getDate()}</span>
+                            {price && (
+                              <span className="text-xs text-green-600 font-medium">
+                                €{price.amount.amount * guests}
+                              </span>
+                            )}
+                            <span className="w-4 h-4 bg-green-300 absolute -top-2 -right-2 rotate-45"></span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="flex flex-col items-center justify-center text-muted-foreground relative overflow-hidden">
+                          <span>{date.getDate()}</span>
+                          <span className="w-4 h-4 bg-destructive absolute -top-2 -right-2 rotate-45"></span>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="flex flex-col items-center justify-center text-muted-foreground">
+                        <span>{date.getDate()}</span>
+                      </div>
+                    );
+                  },
+                }}
+                disabled={(date) => {
+                  let shouldBeDisabled = false;
+                  const avail = experienceAvailability.find((avail) =>
+                    isSameDay(new Date(avail.date), new Date())
+                  );
+                  if (avail?.unlimitedAvailability) {
+                    shouldBeDisabled = false;
+                    return date < new Date() || (shouldBeDisabled ?? false);
+                  } else {
+                    if (avail?.availabilityCount == 0) {
+                      shouldBeDisabled = true;
+                      return date < new Date() || (shouldBeDisabled ?? false);
+                    }
+                    if ((avail?.minParticipantsToBookNow ?? 0) > 1) {
+                      shouldBeDisabled = true;
+                      return date < new Date() || (shouldBeDisabled ?? false);
+                    }
+                    return date < new Date();
+                  }
+                }}
+              />
+            </Card>
+          )}
         </div>
       </div>
     </div>
