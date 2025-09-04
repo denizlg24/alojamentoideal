@@ -66,16 +66,13 @@ export default async function Page({
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full max-w-7xl mx-auto px-4 grid grid-cols-4 gap-x-4 gap-y-8 sm:pt-12 pt-6">
-        {flatIds.map(async (id, indx) => {
+        {flatIds.map(async (id) => {
           const experience = await bokunRequest<ActivityPreviewResponse>({
             method: "GET",
             path: `/restapi/v2.0/experience/${id}/components?componentType=MIN_AGE&componentType=PHOTOS&componentType=PRICING&componentType=PRICING_CATEGORIES&componentType=TITLE&componentType=SHORT_DESCRIPTION&componentType=LOCATION&componentType=DURATION`,
           });
           if (!experience.success) {
             return;
-          }
-          if (indx == 1) {
-            console.log(experience);
           }
           let locality = "";
           try {

@@ -3,7 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/navigation";
+import { cn, localeMap } from "@/lib/utils";
 import { ActivityPreviewResponse } from "@/utils/bokun-requests";
 import { formatDuration } from "date-fns";
 import {
@@ -14,7 +15,7 @@ import {
   Loader2,
   MapPin,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -30,10 +31,7 @@ export const ActivityPreviewCard = ({
   const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(true);
   const [selectedImg, setSelectedImg] = useState(0);
   const t = useTranslations("activity-preview-card");
-
-  const pricing = activity.pricing.experiencePriceRules.find(
-    (fn) => fn.pricingCategoryId == activity.pricingCategories.defaultId
-  );
+  const locale = useLocale();
 
   function ImageSliderDots({
     total,
@@ -170,11 +168,15 @@ export const ActivityPreviewCard = ({
             <p className="text-xs font-semibold">{t("duration")}</p>
             <div className="flex flex-row items-center gap-2 justify-start w-full truncate">
               <Clock className="text-primary w-4 h-4" />
-              <p className="text-xs">{formatDuration(activity.duration)}</p>
+              <p className="text-xs">
+                {formatDuration(activity.duration, {
+                  locale: localeMap[locale as keyof typeof localeMap],
+                })}
+              </p>
             </div>
           </div>
-          <Button className="w-full" variant={"secondary"}>
-            Starting at {parseInt(pricing?.amount || "0")}€
+          <Button asChild className="w-full" variant={"secondary"}>
+            <Link href={`/tours/${activity.id}`}>{t("book-now")}</Link>
           </Button>
         </div>
       </CardContent>

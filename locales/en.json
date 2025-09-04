@@ -1156,6 +1156,35 @@
   "activity-preview-card": {
     "ages-above": "Ages above {age}",
     "any-age": "Any age",
-    "duration": "Duration"
+    "duration": "Duration",
+    "starting-at": "Starting at {price}€",
+    "book-now": "Book Now"
+  },
+  "experienceTypes": {
+    "DAY_TOUR_OR_ACTIVITY": "Day Tour or Activity in {locality}",
+    "ATTRACTION": "Attraction in {locality}",
+    "EVENT": "Event in {locality}",
+    "TRANSPORT": "Transport in {locality}",
+    "MULTI_DAY_TOUR": "Multi-Day Tour in {locality}"
+  },
+  "tourDisplay": {
+    "experience-details": "Experience Details",
+    "where-meet": "Where we'll meet.",
+    "experience-itinerary": "Itinerary",
+    "VERY_EASY": "Very Easy",
+    "EASY": "Easy",
+    "MODERATE": "Moderate",
+    "CHALLENGING": "Challenging",
+    "DEMANDING": "Demanding",
+    "EXTREME": "Extreme",
+    "private": "Private",
+    "we-pick-you-up": "Were can we pick you up from?",
+    "we-pick-up": "We will pick you up",
+    "meet-on-location": "We'll meet at the location",
+    "meet-or-pickup": "We can meet at the location or pick you up",
+    "our-meeting-point": "Alojamento Ideal Meeting Point (Restaurante Grama)",
+    "show-all-places": "Show all ({count}) places",
+    "or": "OR",
+    "where-can-we-meet": "Where will we meet?"
   }
 }

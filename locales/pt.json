@@ -1155,5 +1155,37 @@
     "sending": "A enviar...",
     "email-success": "Enviado com sucesso!",
     "will-be-in-contact": "Entraremos em contacto em breve para discutir os próximos passos."
+  },
+  "activity-preview-card": {
+    "ages-above": "Mais de {age} anos",
+    "any-age": "Qualquer idade",
+    "duration": "Duração",
+    "starting-at": "Desde {price}€"
+  },
+  "experienceTypes": {
+    "DAY_TOUR_OR_ACTIVITY": "Passeio de um dia ou Atividade em {locality}",
+    "ATTRACTION": "Atração em {locality}",
+    "EVENT": "Evento em {locality}",
+    "TRANSPORT": "Transporte em {locality}",
+    "MULTI_DAY_TOUR": "Passeio de vários dias em {locality}"
+  },
+  "tourDisplay": {
+    "experience-details": "Detalhes da experiência",
+    "where-meet": "Onde vamos encontrar-nos.",
+    "experience-itinerary": "Itinerário",
+    "VERY_EASY": "Muito fácil",
+    "EASY": "Fácil",
+    "MODERATE": "Moderado",
+    "CHALLENGING": "Desafiante",
+    "DEMANDING": "Exigente",
+    "EXTREME": "Extremo",
+    "private": "Privado",
+    "we-pick-you-up": "De onde podemos ir buscá-lo?",
+    "we-pick-up": "Vamos buscá-lo",
+    "meet-on-location": "Encontramo-nos no local",
+    "meet-or-pickup": "Podemos encontrar-nos no local ou ir buscá-lo",
+    "our-meeting-point": "Ponto de encontro Alojamento Ideal (Restaurante Grama)",
+    "show-all-places": "Mostrar todos os locais ({count})",
+    "or": "OU"
   }
 }
