@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   ExperienceAvailabilityDto,
-  ExperienceRateTierDto,
+  ExperienceRateDto,
   FullExperienceType,
   PickupPlaceDto,
 } from "@/utils/bokun-requests";
@@ -30,14 +30,18 @@ import { cn, localeMap } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  BusFront,
+  Check,
+  ChevronLeft,
   Clock,
   ExternalLink,
+  Info,
   MinusCircle,
   PlusCircle,
   UserLock,
   Users,
 } from "lucide-react";
-import { formatDuration, isSameDay } from "date-fns";
+import { format, formatDuration, isSameDay } from "date-fns";
 import { Link } from "@/i18n/navigation";
 import { RoomInfoMap } from "@/components/room/room-info-map";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -81,8 +85,12 @@ export const TourDisplay = ({
   const [api, setApi] = useState<CarouselApi>();
   const [scrollToIndex, setScrollToIndex] = useState<number | null>(null);
   const [photoZoomOpen, setPhotoZoomOpen] = useState(false);
-  const [guests, setGuests] = useState(1);
+  const [guests, setGuests] = useState<{ [categoryId: number]: number }>({});
   const [tab, setTab] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedRate, setSelectedRate] = useState<
+    ExperienceRateDto | undefined
+  >(undefined);
   useEffect(() => {
     if (photoZoomOpen && api && scrollToIndex != null) {
       api.scrollTo(scrollToIndex);
@@ -99,6 +107,12 @@ export const TourDisplay = ({
   }, [contentRef]);
 
   const [experienceAvailability] = useState(initialAvailability);
+  const selectedAvailability = selectedDate
+    ? experienceAvailability.find((avail) =>
+        isSameDay(new Date(avail.date), selectedDate)
+      )
+    : undefined;
+
   return (
     <div className="w-full max-w-7xl px-4 flex flex-col gap-6 mt-6">
       <div className="md:grid hidden grid-cols-4 w-full rounded-2xl overflow-hidden gap-2">
@@ -337,6 +351,120 @@ export const TourDisplay = ({
                         __html: cleanHtml(experience.description),
                       }}
                     ></div>
+                    {experience.inclusions.length > 0 && (
+                      <div className="w-full flex flex-col gap-2 items-start text-left">
+                        <p className="sm:text-lg text-base font-semibold">
+                          {t("inclusions")}
+                        </p>
+                        <div
+                          className={cn(
+                            "w-full flex flex-col prose-sm lg:prose gap-0!"
+                          )}
+                        >
+                          <ul>
+                            {experience.inclusions.map((inclusion) => (
+                              <li key={inclusion}>{t(inclusion)}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                    {experience.included && (
+                      <div className="w-full flex flex-col gap-2 items-start text-left">
+                        <p className="sm:text-lg text-base font-semibold">
+                          {t("included")}
+                        </p>
+                        <div
+                          className={cn(
+                            "w-full flex flex-col prose-sm lg:prose gap-0!"
+                          )}
+                          dangerouslySetInnerHTML={{
+                            __html: cleanHtml(experience.included),
+                          }}
+                        ></div>
+                      </div>
+                    )}
+                    {experience.exclusions.length > 0 && (
+                      <div className="w-full flex flex-col gap-2 items-start text-left">
+                        <p className="sm:text-lg text-base font-semibold">
+                          {t("exclusions")}
+                        </p>
+                        <div
+                          className={cn(
+                            "w-full flex flex-col prose-sm lg:prose gap-0!"
+                          )}
+                        >
+                          <ul>
+                            {experience.exclusions.map((inclusion) => (
+                              <li key={inclusion}>{t(inclusion)}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                    {experience.excluded && (
+                      <div className="w-full flex flex-col gap-2 items-start text-left">
+                        <p className="sm:text-lg text-base font-semibold">
+                          {t("excluded")}
+                        </p>
+                        <div
+                          className={cn(
+                            "w-full flex flex-col prose-sm lg:prose gap-0!"
+                          )}
+                          dangerouslySetInnerHTML={{
+                            __html: cleanHtml(experience.excluded),
+                          }}
+                        ></div>
+                      </div>
+                    )}
+                    {experience.knowBeforeYouGo.length > 0 && (
+                      <div className="w-full flex flex-col gap-2 items-start text-left">
+                        <p className="sm:text-lg text-base font-semibold">
+                          {t("know-before-you-go-true")}
+                        </p>
+                        <div
+                          className={cn(
+                            "w-full flex flex-col prose-sm lg:prose gap-0!"
+                          )}
+                        >
+                          <ul>
+                            {experience.knowBeforeYouGo.map((inclusion) => (
+                              <li key={inclusion}>{t(inclusion)}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                    {experience.attention && (
+                      <div className="w-full flex flex-col gap-2 items-start text-left">
+                        <p className="sm:text-lg text-base font-semibold">
+                          {t("know-before-you-go")}
+                        </p>
+                        <div
+                          className={cn(
+                            "w-full flex flex-col prose-sm lg:prose gap-0!"
+                          )}
+                          dangerouslySetInnerHTML={{
+                            __html: cleanHtml(experience.attention),
+                          }}
+                        ></div>
+                      </div>
+                    )}
+                    {experience.requirements && (
+                      <div className="w-full flex flex-col gap-2 items-start text-left">
+                        <p className="sm:text-lg text-base font-semibold">
+                          {t("requirements")}
+                        </p>
+                        <div
+                          className={cn(
+                            "w-full flex flex-col prose-sm lg:prose gap-0!"
+                          )}
+                          dangerouslySetInnerHTML={{
+                            __html: cleanHtml(experience.requirements),
+                          }}
+                        ></div>
+                      </div>
+                    )}
                   </motion.div>
                 )}
                 {tab == 1 && (
@@ -549,168 +677,526 @@ export const TourDisplay = ({
             }
           })()}
         </div>
-        <div className="col-span-2 w-full flex flex-col justify-start relative h-full">
+        <div className="col-span-2 w-full max-w-lg mx-auto flex flex-col justify-start relative h-full">
           {false ? (
             <Skeleton className="w-full mx-auto p-4 flex flex-col gap-2 sticky top-20 h-[500px]" />
           ) : (
             <Card className="w-full mx-auto p-4 flex flex-col gap-2 sticky top-20">
-              <div className="flex flex-row items-center justify-between w-full">
-                <Button
-                  variant={"secondary"}
-                  onClick={() => {
-                    setGuests((prev) => {
-                      if (prev == 0) {
-                        return 0;
-                      }
-                      return prev - 1;
-                    });
-                  }}
-                >
-                  <MinusCircle />
-                </Button>
-                <p className="text-sm">{guests}</p>
-                <Button
-                  variant={"secondary"}
-                  onClick={() => {
-                    setGuests((prev) => {
-                      if (prev == 100) {
-                        return 100;
-                      }
-                      return prev + 1;
-                    });
-                  }}
-                >
-                  <PlusCircle />
-                </Button>
-              </div>
-              <Calendar
-                mode="single"
-                className="w-full h-auto aspect-square border-0 mb-10"
-                captionLayout="label"
-                startMonth={new Date()}
-                showOutsideDays={false}
-                components={{
-                  DayButton(props) {
-                    const date = props.day.date;
-                    const avail = experienceAvailability.find((avail) =>
-                      isSameDay(new Date(avail.date), date)
+              {experienceAvailability[0].rates[0].pricingCategoryIds.length ==
+              1 ? (
+                <div className="flex flex-row items-end gap-2 justify-between">
+                  <div className="flex flex-col gap-0 shrink-0">
+                    <p className="text-sm font-semibold text-left">
+                      {t("passengers")}
+                    </p>
+                    <p className="text-xs text-left">
+                      {t("ages-range", { min: experience.minAge, max: 80 })}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-row items-center justify-between w-fit gap-2 mt-2">
+                    <Button
+                      variant={"secondary"}
+                      onClick={() => {
+                        setGuests((prev) => {
+                          const key =
+                            experienceAvailability[0].rates[0]
+                              .pricingCategoryIds[0];
+                          if (!prev[key]) {
+                            return { ...prev, [key]: 0 };
+                          }
+                          if (prev[key] == 0) {
+                            return { ...prev, [key]: 0 };
+                          }
+                          return { ...prev, [key]: prev[key] - 1 };
+                        });
+                      }}
+                    >
+                      <MinusCircle />
+                    </Button>
+                    <p className="text-sm w-12 text-center">
+                      {guests[
+                        experienceAvailability[0].rates[0].pricingCategoryIds[0]
+                      ] ?? 0}
+                    </p>
+                    <Button
+                      variant={"secondary"}
+                      onClick={() => {
+                        setGuests((prev) => {
+                          const key =
+                            experienceAvailability[0].rates[0]
+                              .pricingCategoryIds[0];
+                          if (!prev[key]) {
+                            return { ...prev, [key]: 1 };
+                          }
+                          if (prev[key] == 100) {
+                            return { ...prev, [key]: 100 };
+                          }
+                          return { ...prev, [key]: prev[key] + 1 };
+                        });
+                      }}
+                    >
+                      <PlusCircle />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                experienceAvailability[0].rates[0].pricingCategoryIds.map(
+                  (id, indx) => {
+                    return (
+                      <div
+                        key={id}
+                        className="flex flex-row items-end gap-2 justify-between"
+                      >
+                        <div className="flex flex-col gap-0 shrink-0">
+                          <p className="text-sm font-semibold text-left">
+                            {t(["adults", "children"][indx])}
+                          </p>
+                          <p className="text-xs text-left">
+                            {t("ages-range", {
+                              min: [12, experience.minAge][indx],
+                              max: [80, 11][indx],
+                            })}
+                          </p>
+                        </div>
+
+                        <div className="flex flex-row items-center justify-between w-fit gap-2 mt-2">
+                          <Button
+                            variant={"secondary"}
+                            onClick={() => {
+                              setGuests((prev) => {
+                                const key = id;
+                                if (!prev[key]) {
+                                  return { ...prev, [key]: 0 };
+                                }
+                                if (prev[key] == 0) {
+                                  return { ...prev, [key]: 0 };
+                                }
+                                return { ...prev, [key]: prev[key] - 1 };
+                              });
+                            }}
+                          >
+                            <MinusCircle />
+                          </Button>
+                          <p className="text-sm w-12 text-center">
+                            {guests[id] ?? 0}
+                          </p>
+                          <Button
+                            variant={"secondary"}
+                            onClick={() => {
+                              setGuests((prev) => {
+                                const key = id;
+                                if (!prev[key]) {
+                                  return { ...prev, [key]: 1 };
+                                }
+                                if (prev[key] == 100) {
+                                  return { ...prev, [key]: 100 };
+                                }
+                                return { ...prev, [key]: prev[key] + 1 };
+                              });
+                            }}
+                          >
+                            <PlusCircle />
+                          </Button>
+                        </div>
+                      </div>
                     );
-
-                    function getTierForPassengers(
-                      tiers: ExperienceRateTierDto[],
-                      passengers: number
-                    ) {
-                      return tiers.find(
-                        (t) =>
-                          passengers >= t.minPassengersRequired &&
-                          passengers <= t.maxPassengersRequired
+                  }
+                )
+              )}
+              <Separator className="mt-4" />
+              {!selectedDate && (
+                <Calendar
+                  mode="single"
+                  className="w-full h-auto aspect-square border-0 mb-10 p-0 mt-4"
+                  captionLayout="label"
+                  startMonth={new Date()}
+                  showOutsideDays={false}
+                  weekStartsOn={1}
+                  components={{
+                    DayButton(props) {
+                      const date = props.day.date;
+                      const avail = experienceAvailability.find((avail) =>
+                        isSameDay(new Date(avail.date), date)
                       );
-                    }
 
-                    if (date < new Date()) {
-                      return (
-                        <div className="flex flex-col items-center justify-center">
-                          <span>{date.getDate()}</span>
-                        </div>
-                      );
-                    }
-
-                    if (!avail) {
-                      return (
-                        <div className="flex flex-col items-center justify-center text-muted-foreground">
-                          <span>{date.getDate()}</span>
-                        </div>
-                      );
-                    }
-                    if (!avail.unlimitedAvailability) {
-                      if (
-                        avail.availabilityCount == 0 ||
-                        (avail.availabilityCount ?? 0) < guests
-                      ) {
+                      if (date < new Date()) {
                         return (
-                          <div className="flex flex-col items-center justify-center text-muted-foreground relative overflow-hidden">
-                            <span>{date.getDate()}</span>
-                            <span className="w-4 h-4 bg-destructive absolute -top-2 -right-2 rotate-45"></span>
-                          </div>
-                        );
-                      }
-
-                      if ((avail.minParticipantsToBookNow ?? 0) > guests) {
-                        return (
-                          <div className="flex flex-col items-center justify-center relative overflow-hidden">
-                            <span>{date.getDate()}</span>
-                            <span className="text-xs text-foreground font-normal flex flex-row items-center gap-1 justify-start">
-                              Min {avail.minParticipantsToBookNow}{" "}
-                              <Users className="w-2 h-2 shrink-0" />
+                          <div className="w-full flex flex-col items-center justify-center h-full">
+                            <span className="sm:text-sm text-xs">
+                              {date.getDate()}
                             </span>
-                            <span className="w-4 h-4 bg-yellow-300 absolute -top-2 -right-2 rotate-45"></span>
                           </div>
                         );
                       }
-                    }
 
-                    if (avail.rates[0]?.tieredPricingEnabled) {
-                      const tier = getTierForPassengers(
-                        avail.rates[0].tiers,
-                        guests
+                      const totalGuests = Object.values(guests).reduce(
+                        (sum, val) => sum + val,
+                        0
                       );
-                      if (tier) {
-                        const pricingId = tier.pricingCategoryId;
-                        const price =
-                          avail.pricesByRate[0].pricePerCategoryUnit.find(
-                            (price) =>
-                              price.id == pricingId &&
-                              price.maxParticipantsRequired >= guests
-                          );
 
+                      if (!avail) {
                         return (
-                          <div className="flex flex-col items-center justify-center relative overflow-hidden">
-                            <span>{date.getDate()}</span>
-                            {price && (
-                              <span className="text-xs text-green-600 font-medium">
-                                €{price.amount.amount * guests}
+                          <div className="w-full flex flex-col items-center justify-center text-muted-foreground h-full">
+                            <span className="sm:text-sm text-xs">
+                              {date.getDate()}
+                            </span>
+                          </div>
+                        );
+                      }
+                      if (!avail.unlimitedAvailability) {
+                        if (
+                          avail.availabilityCount == 0 ||
+                          (avail.availabilityCount ?? 0) < totalGuests
+                        ) {
+                          return (
+                            <div className="w-full flex flex-col items-center justify-center text-muted-foreground relative overflow-hidden h-full">
+                              <span className="sm:text-sm text-xs">
+                                {date.getDate()}
+                              </span>
+                              <span className="w-4 h-4 bg-destructive absolute -top-2 -right-2 rotate-45"></span>
+                            </div>
+                          );
+                        }
+
+                        if (
+                          (avail.minParticipantsToBookNow ?? 0) > totalGuests
+                        ) {
+                          return (
+                            <button className="w-full flex flex-col items-center justify-center relative overflow-hidden h-full">
+                              <span className="sm:text-sm text-xs">
+                                {date.getDate()}
+                              </span>
+                              <span className="text-[0.5rem] text-foreground font-normal flex flex-row items-center gap-1 justify-center text-center">
+                                Min {avail.minParticipantsToBookNow}{" "}
+                                <Users className="w-2 h-2 shrink-0" />
+                              </span>
+                              <span className="w-4 h-4 bg-yellow-300 absolute -top-2 -right-2 rotate-45"></span>
+                            </button>
+                          );
+                        }
+                      }
+                      const ratePrices = avail.pricesByRate[0];
+                      const prices = ratePrices.pricePerCategoryUnit;
+                      let isPriceAvailable = true;
+                      let displayPrice = 0;
+                      for (const priceCategoryId in guests) {
+                        if (
+                          Object.prototype.hasOwnProperty.call(
+                            guests,
+                            priceCategoryId
+                          )
+                        ) {
+                          const price = prices.find(
+                            (price) =>
+                              price.id.toString() == priceCategoryId &&
+                              price.maxParticipantsRequired >=
+                                guests[priceCategoryId] &&
+                              price.minParticipantsRequired <=
+                                guests[priceCategoryId]
+                          );
+                          if (!price) {
+                            isPriceAvailable = false;
+                          } else {
+                            displayPrice +=
+                              price.amount.amount *
+                              (avail.rates[0].pricedPerPerson ?? true
+                                ? guests[priceCategoryId]
+                                : 1);
+                          }
+                        }
+                      }
+                      if (isPriceAvailable) {
+                        return (
+                          <button
+                            onClick={() => {
+                              setSelectedDate(date);
+                              setSelectedRate(avail.rates[0]);
+                            }}
+                            className="w-full flex flex-col items-center justify-center relative overflow-hidden h-full"
+                          >
+                            <span className="sm:text-sm text-xs">
+                              {date.getDate()}
+                            </span>
+                            {displayPrice && (
+                              <span className="min-[420px]:text-xs text-[0.5rem] text-green-600 font-medium">
+                                €{displayPrice}
                               </span>
                             )}
                             <span className="w-4 h-4 bg-green-300 absolute -top-2 -right-2 rotate-45"></span>
-                          </div>
+                          </button>
                         );
                       }
                       return (
-                        <div className="flex flex-col items-center justify-center text-muted-foreground relative overflow-hidden">
-                          <span>{date.getDate()}</span>
+                        <div className="w-full flex flex-col items-center justify-center text-muted-foreground relative overflow-hidden h-full">
+                          <span className="sm:text-sm text-xs">
+                            {date.getDate()}
+                          </span>
                           <span className="w-4 h-4 bg-destructive absolute -top-2 -right-2 rotate-45"></span>
                         </div>
                       );
-                    }
-
-                    return (
-                      <div className="flex flex-col items-center justify-center text-muted-foreground">
-                        <span>{date.getDate()}</span>
-                      </div>
+                    },
+                  }}
+                  disabled={(date) => {
+                    let shouldBeDisabled = false;
+                    const avail = experienceAvailability.find((avail) =>
+                      isSameDay(new Date(avail.date), new Date())
                     );
-                  },
-                }}
-                disabled={(date) => {
-                  let shouldBeDisabled = false;
-                  const avail = experienceAvailability.find((avail) =>
-                    isSameDay(new Date(avail.date), new Date())
-                  );
-                  if (avail?.unlimitedAvailability) {
-                    shouldBeDisabled = false;
-                    return date < new Date() || (shouldBeDisabled ?? false);
-                  } else {
-                    if (avail?.availabilityCount == 0) {
-                      shouldBeDisabled = true;
+                    if (avail?.unlimitedAvailability) {
+                      shouldBeDisabled = false;
                       return date < new Date() || (shouldBeDisabled ?? false);
+                    } else {
+                      if (avail?.availabilityCount == 0) {
+                        shouldBeDisabled = true;
+                        return date < new Date() || (shouldBeDisabled ?? false);
+                      }
+                      if ((avail?.minParticipantsToBookNow ?? 0) > 1) {
+                        shouldBeDisabled = true;
+                        return date < new Date() || (shouldBeDisabled ?? false);
+                      }
+                      return date < new Date();
                     }
-                    if ((avail?.minParticipantsToBookNow ?? 0) > 1) {
-                      shouldBeDisabled = true;
-                      return date < new Date() || (shouldBeDisabled ?? false);
-                    }
-                    return date < new Date();
-                  }
-                }}
-              />
+                  }}
+                />
+              )}
+              {selectedDate && selectedAvailability && (
+                <div className="w-full flex flex-col gap-4 items-start">
+                  <Button
+                    variant={"link"}
+                    onClick={() => {
+                      setSelectedDate(undefined);
+                    }}
+                    className="px-0! h-fit!"
+                  >
+                    <ChevronLeft />{" "}
+                    {format(selectedDate, "dd MMMM yyyy", {
+                      locale: localeMap[locale as keyof typeof localeMap],
+                    })}
+                  </Button>
+                  <div className="w-full flex flex-col items-center gap-6">
+                    {selectedAvailability.rates.map((rate) => {
+                      const totalGuests = Object.values(guests).reduce(
+                        (sum, val) => sum + val,
+                        0
+                      );
+                      if (!selectedAvailability.unlimitedAvailability) {
+                        if (
+                          selectedAvailability.availabilityCount == 0 ||
+                          (selectedAvailability.availabilityCount ?? 0) <
+                            totalGuests
+                        ) {
+                          setSelectedDate(undefined);
+                        }
+
+                        if (
+                          (selectedAvailability.minParticipantsToBookNow ?? 0) >
+                          totalGuests
+                        ) {
+                          setSelectedDate(undefined);
+                        }
+                      }
+                      const prices = selectedAvailability.pricesByRate.find(
+                        (priceByRate) => priceByRate.activityRateId == rate.id
+                      )?.pricePerCategoryUnit;
+                      let isPriceAvailable = true;
+                      let displayPrice = 0;
+                      for (const priceCategoryId in guests) {
+                        if (
+                          Object.prototype.hasOwnProperty.call(
+                            guests,
+                            priceCategoryId
+                          )
+                        ) {
+                          const price = prices?.find(
+                            (price) =>
+                              price.id.toString() == priceCategoryId &&
+                              price.maxParticipantsRequired >=
+                                guests[priceCategoryId] &&
+                              price.minParticipantsRequired <=
+                                guests[priceCategoryId]
+                          );
+                          if (!price) {
+                            isPriceAvailable = false;
+                          } else {
+                            displayPrice +=
+                              price.amount.amount *
+                              (rate.pricedPerPerson ?? true
+                                ? guests[priceCategoryId]
+                                : 1);
+                          }
+                        }
+                      }
+                      if (!isPriceAvailable) {
+                        setSelectedDate(undefined);
+                      }
+                      return (
+                        <button
+                          onClick={() => {
+                            setSelectedRate(rate);
+                          }}
+                          key={rate.id}
+                          className={cn(
+                            "w-full p-3! gap-2 relative border shadow rounded-lg flex flex-col",
+                            selectedRate?.id == rate.id && "border-primary"
+                          )}
+                        >
+                          {selectedRate?.id == rate.id && (
+                            <div className="absolute right-1/10 -top-4 bg-primary rounded-lg shadow z-10 text-primary-foreground">
+                              <p className="font-bold flex flex-row items-center gap-2 text-sm px-2 py-1">
+                                <Check className="w-3 h-3 shrink-0" /> Selected
+                              </p>
+                            </div>
+                          )}
+                          <div className="flex flex-row items-center gap-8 w-full justify-between text-left">
+                            <h1 className="text-sm font-semibold max-w-[60%}">
+                              {rate.title}
+                            </h1>
+                            <p className="text-sm font-medium max-w-[30%]">
+                              {displayPrice}€
+                            </p>
+                          </div>
+                          <Separator />
+                          {experience.meetingType.type !=
+                            "MEET_ON_LOCATION" && (
+                            <div className="flex flex-row items-center justify-start gap-1">
+                              <BusFront className="w-4 h-4 shrink-0" />
+                              <p className="min-[420px]:text-sm text-xs text-left">
+                                {t("pickup-available")}
+                                {rate.pickupPricingType ==
+                                  "INCLUDED_IN_PRICE" &&
+                                  ` (${t("included-in-price")})`}
+                              </p>
+                            </div>
+                          )}
+                          {!selectedAvailability.unlimitedAvailability && (
+                            <div className="flex flex-row items-center justify-start gap-1">
+                              <Info className="w-4 h-4 shrink-0" />
+                              <p className="min-[420px]:text-sm text-xs text-left">
+                                {t("booking-capacity", {
+                                  max: rate.maxPerBooking,
+                                })}
+                              </p>
+                            </div>
+                          )}
+                          {experience.privateExperience && (
+                            <div className="flex flex-row items-center justify-start gap-1">
+                              <Users className="w-4 h-4 shrink-0" />
+                              <p className="min-[420px]:text-sm text-xs text-left">
+                                {t("private-experience-desc")}
+                              </p>
+                            </div>
+                          )}
+                          {!experience.privateExperience && (
+                            <div className="flex flex-row items-center justify-start gap-1">
+                              <Users className="w-4 h-4 shrink-0" />
+                              <p className="min-[420px]:text-sm text-xs text-left">
+                                {selectedAvailability.bookedParticipants}/
+                                {selectedAvailability.availabilityCount +
+                                  selectedAvailability.bookedParticipants}
+                                {selectedAvailability.bookedParticipants > 0
+                                  ? `${t("booked-people", {
+                                      count:
+                                        selectedAvailability.bookedParticipants,
+                                    })}`
+                                  : ""}
+                              </p>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                    {selectedRate &&
+                      experience.startTimes.some(
+                        (startTime) =>
+                          startTime.hour >= 0 && startTime.minute >= 0
+                      ) && (
+                        <div className="w-full flex flex-col gap-2">
+                          <p className="text-sm text-left font-semibold w-full">
+                            {t("start-times")}:
+                          </p>
+                          <div className="flex flex-row items-center justify-start gap-2 flex-wrap w-full">
+                            {selectedRate &&
+                              selectedRate.allStartTimes &&
+                              experience.startTimes.map((startTime) => {
+                                return (
+                                  <Button
+                                    className={cn(
+                                      startTime.externalLabel && "h-fit"
+                                    )}
+                                    key={startTime.id}
+                                  >
+                                    {startTime.externalLabel ? (
+                                      <div className="flex flex-col gap-1 items-center">
+                                        <div className="flex flex-row items-center gap-2">
+                                          <Clock />
+                                          {format(
+                                            new Date(
+                                              0,
+                                              0,
+                                              0,
+                                              startTime.hour ?? 0,
+                                              startTime.minute ?? 0
+                                            ),
+                                            "HH:mm"
+                                          )}
+                                        </div>
+                                        <div className="flex flex-row items-center p-1 border rounded">
+                                          <p className="text-xs font-semibold">
+                                            {startTime.externalLabel}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <Clock />
+                                        {format(
+                                          new Date(
+                                            0,
+                                            0,
+                                            0,
+                                            startTime.hour ?? 0,
+                                            startTime.minute ?? 0
+                                          ),
+                                          "HH:mm"
+                                        )}
+                                      </>
+                                    )}
+                                  </Button>
+                                );
+                              })}
+                            {selectedRate &&
+                              !selectedRate.allStartTimes &&
+                              experience.startTimes
+                                .filter((startTime) =>
+                                  selectedRate.startTimeIds.find(
+                                    (st) => st == startTime.id
+                                  )
+                                    ? true
+                                    : false
+                                )
+                                .map((startTime) => {
+                                  return (
+                                    <Button key={startTime.id}>
+                                      <Clock />
+                                      {format(
+                                        new Date(
+                                          0,
+                                          0,
+                                          0,
+                                          startTime.hour ?? 0,
+                                          startTime.minute ?? 0
+                                        ),
+                                        "HH:mm"
+                                      )}
+                                    </Button>
+                                  );
+                                })}
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                </div>
+              )}
             </Card>
           )}
         </div>

@@ -69,29 +69,12 @@ export default async function Page({
         {flatIds.map(async (id) => {
           const experience = await bokunRequest<ActivityPreviewResponse>({
             method: "GET",
-            path: `/restapi/v2.0/experience/${id}/components?componentType=MIN_AGE&componentType=PHOTOS&componentType=PRICING&componentType=PRICING_CATEGORIES&componentType=TITLE&componentType=SHORT_DESCRIPTION&componentType=LOCATION&componentType=DURATION`,
+            path: `/restapi/v2.0/experience/${id}/components?componentType=MIN_AGE&componentType=PHOTOS&componentType=PRICING&componentType=PRICING_CATEGORIES&componentType=TITLE&componentType=SHORT_DESCRIPTION&componentType=LOCATION&componentType=DURATION&componentType=DIFFICULTY_LEVEL`,
           });
           if (!experience.success) {
             return;
           }
-          let locality = "";
-          try {
-            const res = await fetch(
-              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${experience.location.latitude}&longitude=${experience.location.longitude}&localityLanguage=en`
-            );
-            const jsonRes = await res.json();
-            locality = `${jsonRes.locality}, ${jsonRes.city}`;
-          } catch (error) {
-            console.log(error);
-            locality = `${experience.location.city}`;
-          }
-          return (
-            <ActivityPreviewCard
-              key={id}
-              activity={experience}
-              locality={locality}
-            />
-          );
+          return <ActivityPreviewCard key={id} activity={experience} />;
         })}
       </div>
     </main>

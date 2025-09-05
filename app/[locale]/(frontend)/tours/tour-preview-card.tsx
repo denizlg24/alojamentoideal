@@ -13,7 +13,6 @@ import {
   CircleUser,
   Clock,
   Loader2,
-  MapPin,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
@@ -21,11 +20,9 @@ import { useState } from "react";
 
 export const ActivityPreviewCard = ({
   activity,
-  locality,
   className,
 }: {
   activity: ActivityPreviewResponse;
-  locality: string;
   className?: string;
 }) => {
   const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(true);
@@ -139,11 +136,36 @@ export const ActivityPreviewCard = ({
       <CardContent className="flex flex-col w-full p-4 gap-2 h-full justify-between">
         <div className="flex flex-col w-full gap-1">
           <div className="flex flex-row items-center justify-between">
-            <div className="flex flex-row items-center justify-start gap-1 w-full max-w-[55%]">
-              <MapPin className="w-3 h-3 shrink-0" />
-              <p className="text-xs text-muted-foreground truncate">
-                {locality}
-              </p>
+            <div className="flex flex-row items-center gap-1">
+              {(() => {
+                switch (activity.difficultyLevel) {
+                  case "VERY_EASY":
+                    return (
+                      <div className="w-3 h-3 shrink-0 rounded-full border bg-green-300"></div>
+                    );
+                  case "EASY":
+                    return (
+                      <div className="w-3 h-3 shrink-0 rounded-full border bg-green-500"></div>
+                    );
+                  case "MODERATE":
+                    return (
+                      <div className="w-3 h-3 shrink-0 rounded-full border bg-yellow-400"></div>
+                    );
+                  case "CHALLENGING":
+                    return (
+                      <div className="w-3 h-3 shrink-0 rounded-full border bg-amber-600"></div>
+                    );
+                  case "DEMANDING":
+                    return (
+                      <div className="w-3 h-3 shrink-0 rounded-full border bg-red-500"></div>
+                    );
+                  case "EXTREME":
+                    return (
+                      <div className="w-3 h-3 shrink-0 rounded-full border bg-red-800"></div>
+                    );
+                }
+              })()}
+              <p className="text-sm">{t(activity.difficultyLevel)}</p>
             </div>
             <div className="flex flex-row items-center justify-end gap-1 w-full max-w-[45%]">
               <CircleUser className="w-3 h-3 shrink-0" />

@@ -229,6 +229,7 @@ export interface ActivityPreviewResponse {
             defaultCurrency: string;
         }[];
     };
+    difficultyLevel: ExperienceDifficultyLevelDto;
 }
 
 export type ExperienceTypeDto = 'DAY_TOUR_OR_ACTIVITY' | 'ATTRACTION' | 'EVENT' | 'TRANSPORT' | 'MULTI_DAY_TOUR'
@@ -419,7 +420,7 @@ export interface ExperienceRecurrenceRuleDto {
     maxCapacityForPickup: number;
     minTotalPax: number;
     allStartTimes: boolean;
-    startTimes: { id: number, externalId: string }[];
+    startTimeIds: { id: number, externalId: string }[];
     guidedLanguages: string[];
 }
 
@@ -475,7 +476,7 @@ export interface ExperienceRateDto {
     tiers: ExperienceRateTierDto[]
     extraConfigs: ExperienceRateExtraConfigDto[]
     allStartTimes: boolean;
-    startTimes: { id: number, externalId: string }[];
+    startTimeIds: number[];
     allPricingCategories: boolean;
     pricingCategoryIds: number[]
 }
@@ -646,7 +647,7 @@ export interface FullExperienceType {
     seasonalOpeningHours: SeasonalOpeningHoursDtp[];
     cutoff: ExperienceCutoffDto;
     capacityType: 'FREE_SALE' | 'LIMITED' | 'ON_REQUEST';
-    startTime: ExperienceStartTimeDto[];
+    startTimes: ExperienceStartTimeDto[];
     availabilityRules: ExperienceRecurrenceRuleDto[];
     passSettings: ExperiencePassSettingsDto;
     pricingCategories: ExperiencePricingCategoriesDto;

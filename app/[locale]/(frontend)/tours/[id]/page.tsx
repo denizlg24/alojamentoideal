@@ -94,7 +94,6 @@ export default async function Page({
       break;
   }
   const availability = await GetActivityAvailability(response.id.toString());
-  console.log(availability);
   if (!availability) {
     notFound();
   }
