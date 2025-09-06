@@ -259,7 +259,8 @@
     "empty": "O seu carrinho está vazio.",
     "nights_guests": "{nights} noites - {guests} hóspedes",
     "total": "Total: ",
-    "checkout": "Finalizar compra - {total} €"
+    "checkout": "Finalizar compra - {total} €",
+    "group-of": "Grupo de {count}"
   },
   "checkout": {
     "checkin": "Entrada",
@@ -1233,6 +1234,11 @@
     "PASSPORT_REQUIRED": "Passaporte obrigatório",
     "DRESS_CODE": "Código de vestuário",
     "private-experience-desc": "Esta é uma experiência privada. Serás o único grupo.",
-    "booked-people": "- ({count} pessoas reservaram esta experiência)"
+    "booked-people": "{count, plural, =0 { (Ninguém reservou esta experiência ainda)} one { ({count} pessoa reservou esta experiência)} other { ({count} pessoas reservaram esta experiência)}}",
+    "book-now": "Reservar agora",
+    "add-to-cart": "Adicionar ao carrinho",
+    "selected": "Selecionado",
+    "show-all-photos": "Mostrar todas as fotos",
+    "added": "Adicionado"
   }
 }

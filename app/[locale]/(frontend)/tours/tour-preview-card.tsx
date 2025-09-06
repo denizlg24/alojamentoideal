@@ -81,7 +81,7 @@ export const ActivityPreviewCard = ({
       )}
     >
       {isLoadingThumbnail && (
-        <Skeleton className="w-full h-auto aspect-[1/0.75] flex items-center justify-center  rounded-t-lg absolute top-0">
+        <Skeleton className="w-full h-auto aspect-[1/0.75] flex items-center justify-center rounded-t-lg absolute top-0">
           <Loader2 className="animate-spin mx-auto w-4 h-4 text-primary" />
         </Skeleton>
       )}

@@ -259,7 +259,8 @@
     "empty": "Your Cart is empty.",
     "nights_guests": "{nights} nights - {guests} guests",
     "total": "Total: ",
-    "checkout": "Checkout - {total} €"
+    "checkout": "Checkout - {total} €",
+    "group-of": "Group of {count}"
   },
   "checkout": {
     "checkin": "Check-in",
@@ -1230,6 +1231,15 @@
     "PASSPORT_REQUIRED": "Passport required",
     "DRESS_CODE": "Dress code",
     "private-experience-desc": "This is a private experience. You will be the only group.",
-    "booked-people": " - ({count} people have booked this experience)"
+    "booked-people": "{count, plural, =0 { (No one has booked this experience yet)} one { ({count} person has booked this experience)} other { ({count} people have booked this experience)}}",
+    "book-now": "Book now",
+    "add-to-cart": "Add to cart",
+    "selected": "Selected",
+    "show-all-photos": "Show all photos",
+    "added": "Added",
+    "flexible-info": "Start time is flexible."
+  },
+  "checkout-activity-card": {
+    "total": "Total"
   }
 }

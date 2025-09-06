@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
@@ -38,24 +39,21 @@ export const Cart = () => {
         </Button>
       </SheetTrigger>
       <SheetContent className="flex flex-col z-[99]! p-0 pb-4 w-[310px] sm:w-[540px]">
-        <SheetHeader className="hidden">
-          <SheetTitle>My cart</SheetTitle>
+        <SheetHeader className="gap-0">
+          <SheetTitle>{t("title", { cartLength: cart.length })}</SheetTitle>
+          <SheetDescription>
+            <Button
+              variant="link"
+              className="text-xs text-right p-0 h-fit!"
+              onClick={() => {
+                clearCart();
+                setOpen(false);
+              }}
+            >
+              {t("clear")}
+            </Button>
+          </SheetDescription>
         </SheetHeader>
-        <div className="w-full flex flex-row items-center sticky top-0 justify-between bg-card p-4 pb-2 mt-2">
-          <p className="font-semibold text-sm">
-            {t("title", { cartLength: cart.length })}
-          </p>
-          <Button
-            variant="link"
-            className="text-xs text-right"
-            onClick={() => {
-              clearCart();
-              setOpen(false);
-            }}
-          >
-            {t("clear")}
-          </Button>
-        </div>
         <div className="flex flex-col gap-4 w-full items-center px-4">
           {cart.length == 0 && <p className="text-xs">{t("empty")}</p>}
           {cart.length > 0 &&
@@ -100,6 +98,48 @@ export const Cart = () => {
                         <p className="text-xs">
                           <span className="font-semibold">{t("total")}:</span>
                           {cartItem.front_end_price} €
+                        </p>
+                      </div>
+                    </div>
+                  </React.Fragment>
+                );
+              }
+              if (cartItem.type == "activity") {
+                return (
+                  <React.Fragment key={cartItem.id + "-index:" + index}>
+                    <Separator />
+                    <div className="w-full flex flex-row items-start justify-between gap-2 relative">
+                      <Image
+                        src={cartItem.photo}
+                        alt="cart-logo"
+                        width={1080}
+                        height={1080}
+                        className="w-20! h-auto aspect-video! object-cover rounded"
+                      />
+                      <Button
+                        onClick={() => {
+                          removeItem(index);
+                        }}
+                        variant="destructive"
+                        className="absolute w-4! h-auto aspect-square! rounded-full p-0 -top-2 -left-2 hover:scale-105 transition-transform"
+                      >
+                        <Trash2 className="w-full h-full" />
+                      </Button>
+                      <div className="w-full grow flex flex-col truncate">
+                        <h1 className="w-full font-semibold text-xs truncate">
+                          {cartItem.name}
+                        </h1>
+                        <p className="text-xs">
+                          {t("group-of", {
+                            count: Object.values(cartItem.guests).reduce(
+                              (acc, c) => (acc += c),
+                              0
+                            ),
+                          })}
+                        </p>
+                        <p className="text-xs">
+                          <span className="font-semibold">{t("total")}:</span>
+                          {cartItem.price} €
                         </p>
                       </div>
                     </div>

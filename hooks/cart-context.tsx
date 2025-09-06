@@ -1,6 +1,12 @@
 "use client";
 
 import { FeeType } from "@/schemas/price.schema";
+import {
+  ExperienceAvailabilityDto,
+  ExperienceRateDto,
+  ExperienceStartTimeDto,
+} from "@/utils/bokun-requests";
+import { isSameDay } from "date-fns";
 import React, {
   createContext,
   useContext,
@@ -20,6 +26,19 @@ export type ECommerceItem = {
   invoice?: string;
 };
 
+export type TourItem = {
+  id: number;
+  type: "activity";
+  name: string;
+  price: number;
+  selectedDate: Date;
+  selectedRateId: number;
+  selectedStartTimeId: number;
+  guests: { [categoryId: number]: number };
+  photo: string;
+  invoice?: string;
+};
+
 export type AccommodationItem = {
   type: "accommodation";
   property_id: number;
@@ -36,7 +55,7 @@ export type AccommodationItem = {
   invoice?: string;
 };
 
-export type CartItem = ECommerceItem | AccommodationItem;
+export type CartItem = ECommerceItem | AccommodationItem | TourItem;
 
 type CartContextType = {
   cart: CartItem[];
@@ -84,6 +103,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
           );
         }
         return [...prev, item];
+      } else if (item.type === "activity") {
+        const exists = prev.find(
+          (i) =>
+            i.type === "activity" &&
+            i.id === item.id &&
+            isSameDay(i.selectedDate, item.selectedDate) &&
+            i.selectedStartTimeId == item.selectedStartTimeId
+        );
+        return exists ? prev : [...prev, item];
       } else {
         const exists = prev.find(
           (i) =>
@@ -124,6 +152,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return cart.reduce((total, item) => {
       if (item.type === "product") {
         return total + item.price * item.quantity;
+      } else if (item.type === "activity") {
+        return total + item.price;
       } else {
         return total + item.front_end_price;
       }

@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { Card } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
 import { localeMap } from "@/lib/utils";
+import { CheckoutActivityCard } from "./checkout-activity-card";
 export const CheckoutHolder = () => {
   const locale = useLocale();
   const supportedLocales = [
@@ -174,6 +175,9 @@ export const CheckoutHolder = () => {
                   </div>
                 </div>
               );
+            }
+            if (cartItem.type == "activity") {
+              return <CheckoutActivityCard activityItem={cartItem} />;
             }
           })}
 

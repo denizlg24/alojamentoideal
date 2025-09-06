@@ -42,6 +42,19 @@ export async function registerOrder(data: RegisterOrderInput) {
                     description: item.description,
                     invoice: item.invoice
                 };
+            } else if (item.type == "activity") {
+                return {
+                    id: item.id,
+                    type: "activity",
+                    name: item.name,
+                    price: item.price,
+                    selectedDate: item.selectedDate,
+                    selectedRateId: item.selectedRateId,
+                    selectedStartTimeId: item.selectedStartTimeId,
+                    guests: item.guests,
+                    photo: item.photo,
+                    invoice: item.invoice
+                }
             } else {
                 return {
                     type: "accommodation",

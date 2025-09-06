@@ -71,7 +71,7 @@ const ItemSchema = new mongoose.Schema<CartItem>(
     {
         type: {
             type: String,
-            enum: ["product", "accommodation"],
+            enum: ["product", "accommodation", "activity"],
             required: true,
         },
         id: { type: String },
@@ -90,6 +90,16 @@ const ItemSchema = new mongoose.Schema<CartItem>(
         pets: { type: Number },
         front_end_price: { type: Number },
         fees: { type: [FeeSchema] },
+        guests: {
+            type: Map,
+            of: Number,
+        },
+        selectedDate: {
+            type: Date,
+        },
+        selectedRateId: { type: Number },
+        selectedStartTimeId: { type: Number },
+
     },
     { _id: false }
 );
