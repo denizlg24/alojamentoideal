@@ -20,7 +20,9 @@ export function CountrySelect({
   defaultValue,
   className,
   value,
+  placeholder,
 }: {
+  placeholder?: string;
   value?: string;
   onChange?: (code: string) => void;
   defaultValue?: string;
@@ -29,6 +31,26 @@ export function CountrySelect({
   const countryObj = countries.getNames("en", { select: "official" }); // { "AF": "Afghanistan", "AL": "Albania", ... }
   const entries = Object.entries(countryObj); // [ ["AF", "Afghanistan"], ... ]
 
+  if (!defaultValue) {
+    return (
+      <Select value={value} onValueChange={(val) => onChange?.(val)}>
+        <SelectTrigger className={className}>
+          <SelectValue placeholder={placeholder ?? "Select a country"} />
+        </SelectTrigger>
+        <SelectContent className={cn("z-99 w-fit!", className)} side="bottom">
+          {entries.map(([code, name]) => {
+            const Flag = flags[code as Country];
+            return (
+              <SelectItem key={code} value={alpha2ToAlpha3(code) || code}>
+                {Flag && <Flag title={name} />} {name}
+              </SelectItem>
+            );
+          })}
+        </SelectContent>
+      </Select>
+    );
+  }
+
   return (
     <Select
       defaultValue={defaultValue}
@@ -36,7 +58,7 @@ export function CountrySelect({
       onValueChange={(val) => onChange?.(val)}
     >
       <SelectTrigger className={className}>
-        <SelectValue placeholder="Select a country" />
+        <SelectValue placeholder={placeholder ?? "Select a country"} />
       </SelectTrigger>
       <SelectContent className={cn("z-99 w-fit!", className)} side="bottom">
         {entries.map(([code, name]) => {

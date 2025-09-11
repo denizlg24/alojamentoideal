@@ -115,7 +115,7 @@ export const CheckoutHolder = () => {
         )}
 
         {!cartLoading &&
-          cart.map((cartItem) => {
+          cart.map((cartItem, indx) => {
             if (cartItem.type == "accommodation") {
               return (
                 <div
@@ -127,7 +127,7 @@ export const CheckoutHolder = () => {
                     alt="cart-logo"
                     width={1080}
                     height={1080}
-                    className="w-full max-w-48 h-auto aspect-video! object-cover rounded"
+                    className="w-full lg:max-w-48 md:max-w-46 sm:max-w-42 min-[420px]:max-w-36 max-w-24 h-auto aspect-video! object-cover rounded"
                   />
                   <div className="w-full grow flex flex-col truncate gap-1">
                     <div className="flex flex-col w-full gap-0">
@@ -177,7 +177,13 @@ export const CheckoutHolder = () => {
               );
             }
             if (cartItem.type == "activity") {
-              return <CheckoutActivityCard activityItem={cartItem} />;
+              return (
+                <CheckoutActivityCard
+                  key={cartItem.id}
+                  activityItem={cartItem}
+                  index={indx}
+                />
+              );
             }
           })}
 

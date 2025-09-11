@@ -652,7 +652,7 @@ export const CheckoutForm = () => {
                     variant={"ghost"}
                     className="h-fit! p-1! text-xs gap-1"
                   >
-                    Edit <Edit3 />
+                    {t("edit")} <Edit3 />
                   </Button>
                 </Card>
               )}

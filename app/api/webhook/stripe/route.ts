@@ -68,7 +68,7 @@ export async function POST(req: Request) {
                     }
                     const plainItems = foundOrder.items;
                     const total = plainItems.reduce((prev, i) => {
-                        return i.type == "accommodation" ? prev + (i.front_end_price ?? 0) : prev + ((i.price ?? 0) * (i.quantity ?? 0))
+                        return i.type == "accommodation" ? prev + (i.front_end_price ?? 0) : i.type == 'activity' ? prev + (i.price ?? 0) : prev + ((i.price ?? 0) * (i.quantity ?? 0))
                     }, 0)
                     let products_html = ""
                     let a = 0;

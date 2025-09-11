@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
 const BOKUN_BASE_URL = "https://api.bokun.io";
-
+//const BOKUN_BASE_URL = "https://api.bokuntest.com";
 interface BokunRequestOptions {
     method: "GET" | "POST" | "PUT" | "DELETE";
     path: string; // must start with "/"
@@ -470,7 +470,7 @@ export interface ExperienceRateDto {
     pickupPricingType: 'INCLUDED_IN_PRICE' | 'PRICED_SEPARATELY',
     pickupPricedPerPerson: boolean;
     dropoffSelectionType: 'OPTIONAL' | 'PRESELECTED' | 'UNAVAILABLE'
-    cancelationPolicyId: number;
+    cancellationPolicy: { id: number; created: number[]; title: string; penaltyRules: { id: number; created: number[], cutoffHours: number; percentage: number; }[]; policyType: 'NON_REFUNDABLE' | 'FULL_REFUND' | 'SIMPLE' | 'ADVANCED' };
     pricedPerPerson: boolean;
     tieredPricingEnabled: boolean;
     tiers: ExperienceRateTierDto[]
@@ -798,4 +798,36 @@ export interface ExperienceAvailabilityDto {
     unavailable: boolean;
     pickupSoldOut: boolean;
     soldOut: boolean;
+}
+
+export const categoriesMap: { [key: number]: { title: string, min?: number, max?: number } } = {
+    //tests
+    23724: { title: 'adult', min: 18, max: 80 },
+    23726: { title: 'child', min: 6, max: 18 },
+    //tests
+    931209: { title: 'adult', min: 6, max: 80 },
+    913896: { title: 'adult', min: 11, max: 65 },
+    913891: { title: 'adult', min: 12, max: 80 },
+    913885: { title: 'adult', min: 12, max: 99 },
+    913887: { title: 'adult', min: 12, max: 100 },
+    913884: { title: 'adult', min: 12, max: 120 },
+    913890: { title: 'adult', min: 14, max: 75 },
+    920301: { title: 'adult', min: 16, max: 65 },
+    913893: { title: 'adult', min: 16, max: 75 },
+    913894: { title: 'adult', min: 16, max: 99 },
+    913889: { title: 'adult', min: 18, max: 99 },
+    916615: { title: 'adult', min: 12, max: 80 },
+    910476: { title: 'adult', min: undefined, max: undefined },
+    913895: { title: 'child', min: 4, max: 15 },
+    927059: { title: 'child', min: 6, max: 11 },
+    913892: { title: 'child', min: 6, max: 11 },
+    910478: { title: 'child', min: undefined, max: undefined },
+    910479: { title: 'infant', min: undefined, max: undefined },
+    913897: { title: 'infant', min: 4, max: 10 },
+    913888: { title: 'infant', min: 5, max: 11 },
+    913886: { title: 'infant', min: 6, max: 11 },
+    923685: { title: 'jipe', min: 4, max: 10 },
+    916196: { title: 'passenger', min: 6, max: 80 },
+    910480: { title: 'senior', min: undefined, max: undefined },
+    910477: { title: 'youth', min: undefined, max: undefined }
 }

@@ -1,11 +1,6 @@
 "use client";
 
 import { FeeType } from "@/schemas/price.schema";
-import {
-  ExperienceAvailabilityDto,
-  ExperienceRateDto,
-  ExperienceStartTimeDto,
-} from "@/utils/bokun-requests";
 import { isSameDay } from "date-fns";
 import React, {
   createContext,
@@ -24,6 +19,7 @@ export type ECommerceItem = {
   photo: string;
   description?: string;
   invoice?: string;
+  disabled?: boolean;
 };
 
 export type TourItem = {
@@ -37,6 +33,7 @@ export type TourItem = {
   guests: { [categoryId: number]: number };
   photo: string;
   invoice?: string;
+  disabled?: boolean;
 };
 
 export type AccommodationItem = {
@@ -53,6 +50,7 @@ export type AccommodationItem = {
   photo: string;
   fees: Partial<FeeType>[];
   invoice?: string;
+  disabled?: boolean;
 };
 
 export type CartItem = ECommerceItem | AccommodationItem | TourItem;
@@ -64,6 +62,7 @@ type CartContextType = {
   clearCart: () => void;
   updateQuantity: (idOrPropertyId: string | number, quantity: number) => void;
   getTotal: () => number;
+  disableItem: (index: number) => void;
   cartLoading: boolean;
 };
 
@@ -102,7 +101,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               : i
           );
         }
-        return [...prev, item];
+        return [...prev, { ...item, disabled: true }];
       } else if (item.type === "activity") {
         const exists = prev.find(
           (i) =>
@@ -111,7 +110,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             isSameDay(i.selectedDate, item.selectedDate) &&
             i.selectedStartTimeId == item.selectedStartTimeId
         );
-        return exists ? prev : [...prev, item];
+        return exists ? prev : [...prev, { ...item, disabled: false }];
       } else {
         const exists = prev.find(
           (i) =>
@@ -120,7 +119,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             i.start_date === item.start_date &&
             i.end_date === item.end_date
         );
-        return exists ? prev : [...prev, item];
+        return exists ? prev : [...prev, { ...item, disabled: false }];
       }
     });
   };
@@ -130,6 +129,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const old = [...prev];
       old.splice(index, 1);
       return old;
+    });
+  };
+
+  const disableItem = (index: number) => {
+    setCart((prev) => {
+      const old = [...prev];
+      const removed = old[index];
+      old.splice(index, 1);
+      const disabledItem: CartItem = { ...removed, disabled: true };
+      const updated = [...old, disabledItem];
+      return updated;
     });
   };
 
@@ -150,6 +160,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
   const getTotal = () => {
     return cart.reduce((total, item) => {
+      if (item.disabled) {
+        return total;
+      }
       if (item.type === "product") {
         return total + item.price * item.quantity;
       } else if (item.type === "activity") {
@@ -170,6 +183,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateQuantity,
         getTotal,
         cartLoading,
+        disableItem,
       }}
     >
       {children}

@@ -360,7 +360,9 @@ export default async function Home({
                     {order.items.reduce((total, item) => {
                       if (item.type === "accommodation") {
                         return total + item.front_end_price;
-                      } else {
+                      } else if(item.type == "activity"){
+                        return total + item.price;
+                      }else {
                         return total + item.quantity * item.price;
                       }
                     }, 0)}

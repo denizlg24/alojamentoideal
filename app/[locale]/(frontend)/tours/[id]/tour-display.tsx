@@ -18,6 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  categoriesMap,
   ExperienceAvailabilityDto,
   ExperienceRateDto,
   ExperienceStartTimeDto,
@@ -26,7 +27,7 @@ import {
 } from "@/utils/bokun-requests";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
-import React, { use, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { cn, localeMap } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { AnimatePresence, motion } from "framer-motion";
@@ -714,8 +715,10 @@ export const TourDisplay = ({
                           if (!prev[key]) {
                             return { ...prev, [key]: 0 };
                           }
-                          if (prev[key] == 0) {
-                            return { ...prev, [key]: 0 };
+                          if (prev[key] == 1) {
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                            const { [key]: _, ...rest } = prev;
+                            return rest;
                           }
                           return { ...prev, [key]: prev[key] - 1 };
                         });
@@ -751,7 +754,7 @@ export const TourDisplay = ({
                 </div>
               ) : (
                 experienceAvailability[0].rates[0].pricingCategoryIds.map(
-                  (id, indx) => {
+                  (id) => {
                     return (
                       <div
                         key={id}
@@ -759,14 +762,16 @@ export const TourDisplay = ({
                       >
                         <div className="flex flex-col gap-0 shrink-0">
                           <p className="text-sm font-semibold text-left">
-                            {t(["adults", "children"][indx])}
+                            {t(categoriesMap[id].title)}
                           </p>
-                          <p className="text-xs text-left">
-                            {t("ages-range", {
-                              min: [12, experience.minAge][indx],
-                              max: [80, 11][indx],
-                            })}
-                          </p>
+                          {categoriesMap[id].min && categoriesMap[id].max && (
+                            <p className="text-xs text-left">
+                              {t("ages-range", {
+                                min: categoriesMap[id].min,
+                                max: categoriesMap[id].max,
+                              })}
+                            </p>
+                          )}
                         </div>
 
                         <div className="flex flex-row items-center justify-between w-fit gap-2 mt-2">
@@ -778,8 +783,10 @@ export const TourDisplay = ({
                                 if (!prev[key]) {
                                   return { ...prev, [key]: 0 };
                                 }
-                                if (prev[key] == 0) {
-                                  return { ...prev, [key]: 0 };
+                                if (prev[key] == 1) {
+                                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                  const { [key]: _, ...rest } = prev;
+                                  return rest;
                                 }
                                 return { ...prev, [key]: prev[key] - 1 };
                               });
@@ -854,6 +861,7 @@ export const TourDisplay = ({
                           </div>
                         );
                       }
+                      console.log(avail);
                       if (!avail.unlimitedAvailability) {
                         if (
                           avail.availabilityCount == 0 ||
@@ -897,14 +905,15 @@ export const TourDisplay = ({
                             priceCategoryId
                           )
                         ) {
-                          const price = prices.find(
-                            (price) =>
+                          const price = prices.find((price) => {
+                            return (
                               price.id.toString() == priceCategoryId &&
                               price.maxParticipantsRequired >=
                                 guests[priceCategoryId] &&
                               price.minParticipantsRequired <=
                                 guests[priceCategoryId]
-                          );
+                            );
+                          });
                           if (!price) {
                             isPriceAvailable = false;
                           } else {
@@ -1097,7 +1106,7 @@ export const TourDisplay = ({
                                 {selectedAvailability.bookedParticipants}/
                                 {selectedAvailability.availabilityCount +
                                   selectedAvailability.bookedParticipants}
-                                {selectedAvailability.bookedParticipants > 0
+                                {selectedAvailability.bookedParticipants >= 0
                                   ? `${t("booked-people", {
                                       count:
                                         selectedAvailability.bookedParticipants,
@@ -1275,7 +1284,15 @@ export const TourDisplay = ({
                     (selectedTime || selectedAvailability.flexible) && (
                       <div className="flex flex-col gap-1 w-full">
                         <Button asChild className="w-full">
-                          <Link href={`/tours/checkout/${experience.id}`}>
+                          <Link
+                            href={`/tours/checkout/${
+                              experience.id
+                            }?selectedRateId=${
+                              selectedRate.id
+                            }&date=${selectedDate}&startTimeId=${
+                              selectedTime ? selectedTime.id : 0
+                            }&guests=${JSON.stringify(guests)}`}
+                          >
                             {t("book-now")} <ArrowRight />
                           </Link>
                         </Button>

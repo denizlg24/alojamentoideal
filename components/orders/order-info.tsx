@@ -222,8 +222,10 @@ export const OrderInfo = ({
                   {order.items.reduce((total, item) => {
                     if (item.type === "accommodation") {
                       return total + item.front_end_price;
-                    } else {
+                    } else if (item.type === "product") {
                       return total + item.quantity * item.price;
+                    } else {
+                      return total + item.price;
                     }
                   }, 0)}
                   €
