@@ -56,7 +56,6 @@ import { Appearance } from "@stripe/stripe-js";
 import flags from "react-phone-number-input/flags";
 import {
   ContactInformationDto,
-  ContactInformationTypeDto,
   ExperienceBookingQuestionDto,
   PickupPlaceDto,
 } from "@/utils/bokun-requests";
@@ -96,7 +95,7 @@ const elementStyle: Appearance = {
   },
 };
 
-const FlagComponent = ({
+export const FlagComponent = ({
   country,
   countryName,
 }: {
@@ -112,7 +111,7 @@ const FlagComponent = ({
   );
 };
 
-function isPaxInfoQuestion(
+export function isPaxInfoQuestion(
   obj: any
 ): obj is ContactInformationDto & { value: string; id: string } {
   return (
@@ -138,7 +137,7 @@ function isPaxInfoQuestion(
   );
 }
 
-function isPaxBookingQuestion(
+export function isPaxBookingQuestion(
   obj: any
 ): obj is ExperienceBookingQuestionDto & { value: string } {
   return (
@@ -389,10 +388,6 @@ export const TourCheckoutForm = ({
     )
   );
 
-  const [] = useState<{
-    [indx: number]: Record<ContactInformationTypeDto | number, any>;
-  }>({});
-
   const [otherPaxCurrentAnswers, setOtherPaxCurrentAnswers] = useState<
 Record<string, string>
   >({});
@@ -429,6 +424,7 @@ Record<string, string>
       setQuestionsError(t("questions-incomplete-error"));
       return;
     }
+    setStep("paying");
   };
 
   const handleBookingAnswerChange = useCallback(
@@ -460,6 +456,7 @@ Record<string, string>
           );
         })
       );
+      setQuestionsError("");
     },
     []
   );
@@ -648,6 +645,7 @@ Record<string, string>
               )}
             />
             <Button
+            type="button"
               onClick={async () => {
                 const result = await clientInfo.trigger();
                 if (!result) {
@@ -1165,6 +1163,7 @@ Record<string, string>
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       <Button
+                                      type="button"
                                         variant="outline"
                                         id="date"
                                         className="w-full justify-between font-normal"
@@ -1257,7 +1256,6 @@ Record<string, string>
                               );
                           }
                         }
-                        console.log(bookingQuestion);
                       })}
                     </>
                   )}
@@ -1296,6 +1294,7 @@ Record<string, string>
                       .map((otherPaxAnswer, indx) => {
                         return (
                           <Button
+                          type="button"
                             key={indx}
                             onClick={() => {
                               const currentAnswers: Record<string,string> = {};
@@ -1327,6 +1326,7 @@ Record<string, string>
                     >
                       <DialogTrigger asChild>
                         <Button
+                        type="button"
                           variant={"secondary"}
                           className={cn(
                             "h-fit! w-fit p-2 rounded-full",
@@ -1361,8 +1361,13 @@ Record<string, string>
                           {otherPaxAnswers.length > 0 && (
                             <>
                               {otherPaxAnswers[
-                                addOtherPaxDialogIndex ?? 0
-                              ].map((bookingQuestion) => {
+                                addOtherPaxDialogIndex ?? otherPaxAnswers.filter(
+                                  (answer) =>
+                                    !answer.some((ans) =>
+                                      !ans.touched
+                                    )
+                                ).length
+                              ]?.map((bookingQuestion) => {
                                 if (isPaxBookingQuestion(bookingQuestion)) {
                                   return (
                                     <div
@@ -2126,15 +2131,17 @@ Record<string, string>
                                           >
                                             <PopoverTrigger asChild>
                                               <Button
+                                              type="button"
                                                 variant="outline"
                                                 id="date"
                                                 className="w-full justify-between font-normal"
                                               >
-                                                {(otherPaxCurrentAnswers[
+                                                 {(otherPaxCurrentAnswers[
                                                   bookingQuestion.id
                                                 ] ?? "") == "" ? "Select date" : otherPaxCurrentAnswers[
                                                   bookingQuestion.id
                                                 ]}
+                                               
                                                 <CalendarIcon />
                                               </Button>
                                             </PopoverTrigger>
@@ -2159,6 +2166,7 @@ Record<string, string>
                                                 onSelect={(date) => {
                                                   setOtherPaxCurrentAnswers(
                                                     (prev) => {
+                                                    
                                                       return {
                                                         ...prev,
                                                         [bookingQuestion.id]:
@@ -2259,6 +2267,7 @@ Record<string, string>
                           )}
                         </div>
                         <Button
+                        type="button"
                           onClick={() => {
                             const index = addOtherPaxDialogIndex ?? otherPaxAnswers.filter(
                               (answer) =>
@@ -2279,10 +2288,10 @@ Record<string, string>
                   </div>
                 </>
               )}
-            <Button onClick={handleSubmitAnswers} className="w-full">
+            <Button type="button" onClick={handleSubmitAnswers} className="w-full">
               {t("proceed-payment")} <ArrowRight />
             </Button>
-            {questionsError && <p className="text-sm font-semibold text-destructive">{questionsError}</p>}
+            {questionsError && <p className="text-xs font-semibold text-destructive w-full text-center">{questionsError}</p>}
           </div>
         )}
 
@@ -2320,6 +2329,7 @@ Record<string, string>
                 </div>
 
                 <Button
+                type="button"
                   disabled={!stripe || loading || priceLoading}
                   onClick={() => {
                     setStep("client_info");

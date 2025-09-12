@@ -861,7 +861,6 @@ export const TourDisplay = ({
                           </div>
                         );
                       }
-                      console.log(avail);
                       if (!avail.unlimitedAvailability) {
                         if (
                           avail.availabilityCount == 0 ||
@@ -1285,7 +1284,7 @@ export const TourDisplay = ({
                       <div className="flex flex-col gap-1 w-full">
                         <Button asChild className="w-full">
                           <Link
-                            href={`/tours/checkout/${
+                            href={`/checkout/activity/${
                               experience.id
                             }?selectedRateId=${
                               selectedRate.id
