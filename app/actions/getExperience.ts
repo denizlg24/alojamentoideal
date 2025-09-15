@@ -133,9 +133,6 @@ export async function getCheckoutData(cart: TourItem[]) {
         }
 
         return {
-          bookingQuestions: response.bookingQuestions,
-          mainPaxInfo: response.mainPaxInfo,
-          otherPaxInfo: response.otherPaxInfo,
           guests: guests,
           rateId: selectedRate.id,
           selectedStartTimeId: startTime?.id ?? undefined,

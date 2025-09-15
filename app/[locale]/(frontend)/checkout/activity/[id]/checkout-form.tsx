@@ -155,7 +155,7 @@ export const TourCheckoutForm = ({
   const [_amount, setAmount] = useState(0);
   const [priceLoading, setPriceLoading] = useState(true);
   //const [checking, setChecking] = useState(true);
-  const [loadingMessage /*setLoadingMessage*/] = useState("");
+  const [loadingMessage ,setLoadingMessage] = useState("");
   const [addressData, setAddressData] = useState<{
     name: string;
     firstName?: string | undefined;
@@ -227,8 +227,10 @@ export const TourCheckoutForm = ({
     setLoading(true);
     if (!addressData) {
       setLoading(false);
+      setError("provide_information");
       return;
     }
+    setLoadingMessage("loading_create_res");
     const response = await createBookingRequest({
       mainContactDetails: mainContactDetails.map((question) => ({
         questionId: question.questionId,
@@ -288,6 +290,7 @@ export const TourCheckoutForm = ({
       setLoading(false);
       return;
     }
+    setLoadingMessage("loading_process_pay");
     if (selectedTab == "card") {
       const cardNumberElement = elements?.getElement(CardNumberElement);
       if (!stripe || !cardNumberElement) throw new Error("Stripe not ready");
@@ -934,6 +937,7 @@ export const TourCheckoutForm = ({
                       {t("pickup-place")}
                     </Label>
                     <Select
+                      disabled={pickupQuestionsLoading}
                       value={selectedPickupPlaceId}
                       onValueChange={async (v) => {
                         setPickupPlaceId(v);

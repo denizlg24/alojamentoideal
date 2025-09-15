@@ -1,4 +1,3 @@
-
 "use client";
 
 import { calculateAmount } from "@/app/actions/calculateAmount";
@@ -30,11 +29,7 @@ import {
 } from "../ui/form";
 import { useTranslations } from "next-intl";
 import { buyCart } from "@/app/actions/completeCheckout";
-import {
-  Loader2,
-  ArrowRight,
-  Edit3,
-} from "lucide-react";
+import { Loader2, ArrowRight, Edit3 } from "lucide-react";
 import { Appearance, PaymentRequest } from "@stripe/stripe-js";
 import { Separator } from "../ui/separator";
 import { checkVAT, countries } from "jsvat";
@@ -57,11 +52,15 @@ import sepaSvg from "@/public/stripe-sepa.svg";
 import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  ContactInformationDto,
-  ExperienceBookingQuestionDto,
+  ActivityBookingQuestionsDto,
   PickupPlaceDto,
+  QuestionSpecificationDto,
 } from "@/utils/bokun-requests";
 import { Skeleton } from "../ui/skeleton";
+import {
+  getShoppingCartQuestion,
+  startShoppingCart,
+} from "@/app/actions/getExperience";
 
 const elementStyle: Appearance = {
   variables: {
@@ -98,7 +97,9 @@ const FlagComponent = ({
 
 export const CheckoutForm = ({
   activities,
+  cartId,
 }: {
+  cartId: string;
   activities: {
     meeting:
       | {
@@ -112,11 +113,8 @@ export const CheckoutForm = ({
           type: "MEET_ON_LOCATION_OR_PICK_UP";
           pickUpPlaces: PickupPlaceDto[];
         };
-    bookingQuestions: ExperienceBookingQuestionDto[];
     rateId: number;
     experienceId: number;
-    mainPaxInfo: ContactInformationDto[];
-    otherPaxInfo?: ContactInformationDto[];
     selectedDate: Date;
     selectedStartTimeId: number | undefined;
     guests: { [categoryId: number]: number };
@@ -154,13 +152,42 @@ export const CheckoutForm = ({
   const [step, setStep] = useState<"client_info" | number | "paying">(
     "client_info"
   );
+  const [mainContactDetails, setMainContactDetails] = useState<
+    QuestionSpecificationDto[]
+  >([]);
+  const [activityBookings, setActivityBookings] = useState<
+    ActivityBookingQuestionsDto[]
+  >([]);
 
   const router = useRouter();
   useEffect(() => {
     const getAmount = async () => {
       setPriceLoading(true);
       const amount = await calculateAmount(cart);
-      setAmount(amount);
+      for (const activity of cart.filter((item) => item.type == "activity")) {
+        const shopping = await startShoppingCart(
+          cartId,
+          activity.id,
+          activity.selectedRateId,
+          activity.selectedStartTimeId,
+          activity.selectedDate,
+          activity.guests
+        );
+        if (!shopping.success) {
+          setError("error-processing-request");
+          return;
+        }
+      }
+      const response = await getShoppingCartQuestion(cartId);
+      if (!response.success) {
+        return;
+      }
+      const selectedOption = response.options.find(
+        (option) => option.type === "CUSTOMER_FULL_PAYMENT"
+      );
+      setMainContactDetails(response.questions.mainContactDetails);
+      setActivityBookings(response.questions.activityBookings);
+      setAmount(amount + ((selectedOption?.amount ?? 0) * 100 || 0));
       setPriceLoading(false);
     };
     if (cart.length == 0 && !cartLoading) {
@@ -443,7 +470,7 @@ export const CheckoutForm = ({
     cart,
   ]);
 
-  if (checking) return <Skeleton className="w-full h-full min-h-[250px]"/>;
+  if (checking) return <Skeleton className="w-full h-full min-h-[250px]" />;
 
   return (
     <Card className="p-4">
@@ -646,7 +673,7 @@ export const CheckoutForm = ({
                     return;
                   }
                   if (activities.length > 0) {
-                    setStep(0);
+                    setStep("paying");
                   } else {
                     setStep("paying");
                   }
@@ -692,7 +719,7 @@ export const CheckoutForm = ({
                   </div>
 
                   <Button
-                  type="button"
+                    type="button"
                     disabled={!stripe || loading || priceLoading}
                     onClick={() => {
                       setStep("client_info");

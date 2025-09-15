@@ -12,13 +12,9 @@ import { Card } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
 import { localeMap } from "@/lib/utils";
 import { CheckoutActivityCard } from "./checkout-activity-card";
-import {
-  ContactInformationDto,
-  ExperienceBookingQuestionDto,
-  PickupPlaceDto,
-} from "@/utils/bokun-requests";
+import { PickupPlaceDto } from "@/utils/bokun-requests";
 import { getCheckoutData } from "@/app/actions/getExperience";
-export const CheckoutHolder = () => {
+export const CheckoutHolder = ({ cartId }: { cartId: string }) => {
   const locale = useLocale();
   const supportedLocales = [
     "auto",
@@ -99,11 +95,8 @@ export const CheckoutHolder = () => {
             type: "MEET_ON_LOCATION_OR_PICK_UP";
             pickUpPlaces: PickupPlaceDto[];
           };
-      bookingQuestions: ExperienceBookingQuestionDto[];
       rateId: number;
       experienceId: number;
-      mainPaxInfo: ContactInformationDto[];
-      otherPaxInfo?: ContactInformationDto[];
       selectedDate: Date;
       selectedStartTimeId: number | undefined;
       guests: { [categoryId: number]: number };
@@ -246,7 +239,7 @@ export const CheckoutHolder = () => {
           <Elements stripe={stripePromise}>
             {cart.filter((item) => item.type == "activity").length == 0 ||
             mappedActivities.length != 0 ? (
-              <CheckoutForm activities={mappedActivities} />
+              <CheckoutForm cartId={cartId} activities={mappedActivities} />
             ) : (
               <Skeleton className="w-full h-full min-h-[250px]" />
             )}
