@@ -36,7 +36,6 @@ export async function POST(req: Request) {
                 const payment_method_id = event.data.object.payment_method;
                 if (foundOrder) {
                     if (typeof payment_method_id === "string") {
-                        console.log("Found payment method id: ", payment_method_id)
                         await OrderModel.findOneAndUpdate({ payment_id }, { payment_method_id });
                     }
                     for (let index = 0; index < foundOrder.reservationIds.length; index++) {
@@ -68,30 +67,35 @@ export async function POST(req: Request) {
                         ])
                         console.log("reservation update: ", reservation_request, " transaction_update", transaction_request);
                     }
-                    if(foundOrder.activityBookingReferences){
+                    if (foundOrder.activityBookingReferences) {
                         for (let index = 0; index < foundOrder.activityBookingReferences.length; index++) {
                             const bookingCode = foundOrder.activityBookingReferences[index];
                             const chargeResponse = await getPaymentIntent(payment_id);
-                            if(!chargeResponse.charge){
+                            if (!chargeResponse.charge) {
                                 continue;
                             }
-                            const confirmationResponse = await bokunRequest({method:"POST",path:`/checkout.json/confirm-reserved/${bookingCode}`,body:{
-                                externalBookingReference:foundOrder.orderId,
-                                externalBookingEntityName:"Alojamento Ideal",
-                                sendNotificationToMainContact:false,
-                                transactionDetails:{
-                                    transactionDate:format(new Date,"yyyy-MM-dd"),
-                                    transactionId:chargeResponse.charge.id,
-                                    cardBrand:chargeResponse.charge.payment_method_details?.card?.brand ?? 'Bank',
-                                    last4:chargeResponse.charge.payment_method_details?.card?.last4 ?? '',
-                                },
-                                amount:chargeResponse.charge.amount/100,
-                                currency:chargeResponse.charge.currency
-                            }})
-                            console.log(confirmationResponse);
+                            const confirmationResponse = await bokunRequest<{ travelDocuments: { invoice: string, activityTickets: { bookingId: string, productTitle: string, productConfirmationCode: string, ticket: string }[] } }>({
+                                method: "POST", path: `/checkout.json/confirm-reserved/${bookingCode}`, body: {
+                                    externalBookingReference: foundOrder.orderId,
+                                    externalBookingEntityName: "Alojamento Ideal",
+                                    sendNotificationToMainContact: false,
+                                    transactionDetails: {
+                                        transactionDate: format(new Date, "yyyy-MM-dd"),
+                                        transactionId: chargeResponse.charge.id,
+                                        cardBrand: chargeResponse.charge.payment_method_details?.card?.brand ?? 'Bank',
+                                        last4: chargeResponse.charge.payment_method_details?.card?.last4 ?? '',
+                                    },
+                                    amount: chargeResponse.charge.amount / 100,
+                                    currency: chargeResponse.charge.currency.toUpperCase()
+                                }
+                            })
+                            if (!confirmationResponse.success) {
+                                continue;
+                            }
+                            console.log(confirmationResponse.travelDocuments);
                         }
                     }
-                    
+
                     const plainItems = foundOrder.items;
                     const total = plainItems.reduce((prev, i) => {
                         return i.type == "accommodation" ? prev + (i.front_end_price ?? 0) : i.type == 'activity' ? prev + (i.price ?? 0) : prev + ((i.price ?? 0) * (i.quantity ?? 0))

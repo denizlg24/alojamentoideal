@@ -260,7 +260,6 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
       source: 'DIRECT_REQUEST'
     },
   });
-  console.log(response);
   if (!response.success || response.booking.status == 'ERROR' || !response.booking.totalPrice) {
     return false;
   }
