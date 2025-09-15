@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -35,16 +34,9 @@ import {
   IbanElement,
 } from "@stripe/react-stripe-js";
 import { checkVAT, countries } from "jsvat";
-import {
-  ArrowRight,
-  CalendarIcon,
-  Edit2,
-  Edit3,
-  Loader2,
-  Plus,
-} from "lucide-react";
+import { ArrowRight, CalendarIcon, Edit3, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 //import { FaApplePay } from "react-icons/fa6";
 import { Country } from "react-phone-number-input";
@@ -55,28 +47,38 @@ import sepaSvg from "@/public/stripe-sepa.svg";
 import { Appearance } from "@stripe/stripe-js";
 import flags from "react-phone-number-input/flags";
 import {
+  ActivityBookingQuestionsDto,
+  categoriesMap,
   ContactInformationDto,
   ExperienceBookingQuestionDto,
   PickupPlaceDto,
+  QuestionSpecificationDto,
 } from "@/utils/bokun-requests";
-import { CountrySelect } from "@/components/orders/country-select";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { DialogTitle } from "@radix-ui/react-dialog";
-import { PhoneInput } from "@/components/ui/phone-input";
 import { format, parse } from "date-fns";
 import { cn } from "@/lib/utils";
+import {
+  createBookingRequest,
+  getShoppingCartQuestion,
+  removeActivity,
+  startShoppingCart,
+} from "@/app/actions/getExperience";
+import { Label } from "@/components/ui/label";
+import { PopoverClose } from "@radix-ui/react-popover";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "@/i18n/navigation";
 //import { startShoppingCart } from "@/app/actions/getExperience";
 const elementStyle: Appearance = {
   variables: {
@@ -111,77 +113,16 @@ export const FlagComponent = ({
   );
 };
 
-export function isPaxInfoQuestion(
-  obj: any
-): obj is ContactInformationDto & { value: string; id: string } {
-  return (
-    typeof obj.touched === "boolean" &&
-    typeof obj.id === "string" &&
-    typeof obj.value === "string" &&
-    typeof obj.required === "boolean" &&
-    typeof obj.requiredBeforeDeparture === "boolean" &&
-    (obj.type == "TITLE" ||
-      obj.type == "FIRST_NAME" ||
-      obj.type == "LAST_NAME" ||
-      obj.type == "PERSONAL_ID_NUMBER" ||
-      obj.type == "EMAIL" ||
-      obj.type == "PHONE_NUMBER" ||
-      obj.type == "NATIONALITY" ||
-      obj.type == "GENDER" ||
-      obj.type == "ORGANIZATION" ||
-      obj.type == "PASSPORT_ID" ||
-      obj.type == "PASSPORT_EXPIRY" ||
-      obj.type == "ADDRESS" ||
-      obj.type == "DATE_OF_BIRTH" ||
-      obj.type == "LANGUAGE")
-  );
-}
-
-export function isPaxBookingQuestion(
-  obj: any
-): obj is ExperienceBookingQuestionDto & { value: string } {
-  return (
-    typeof obj.touched === "boolean" &&
-    typeof obj.value === "string" &&
-    typeof obj.id === "string" &&
-    typeof obj.created === "number" &&
-    typeof obj.lastModified === "number" &&
-    typeof obj.label === "string" &&
-    typeof obj.personalData === "boolean" &&
-    typeof obj.required === "boolean" &&
-    typeof obj.requiredBeforeDeparture === "boolean" &&
-    typeof obj.help === "string" &&
-    typeof obj.placeholder === "string" &&
-    (obj.dataType === "SHORT_TEXT" ||
-      obj.dataType === "LONG_TEXT" ||
-      obj.dataType === "INT" ||
-      obj.dataType === "DOUBLE" ||
-      obj.dataType === "BOOLEAN" ||
-      obj.dataType === "CHECKBOX_TOGGLE" ||
-      obj.dataType === "DATE" ||
-      obj.dataType === "DATE_AND_TIME" ||
-      obj.dataType === "OPTIONS") &&
-    typeof obj.defaultValue === "string" &&
-    typeof (
-      obj.context === "BOOKING" ||
-      obj.context === "PASSENGER" ||
-      obj.context === "EXTRA"
-    ) &&
-    typeof obj.placeholder === "string"
-  );
-}
-
 export const TourCheckoutForm = ({
-  bookingQuestions,
+  cartId,
   meeting,
   rateId,
-  mainPaxInfo,
-  otherPaxInfo,
   guests,
   selectedStartTimeId,
   experienceId,
   selectedDate,
 }: {
+  cartId: string;
   meeting:
     | {
         type: "PICK_UP";
@@ -203,44 +144,18 @@ export const TourCheckoutForm = ({
   selectedStartTimeId: number | undefined;
   guests: { [categoryId: number]: number };
 }) => {
+  const displayT = useTranslations("tourDisplay");
   const t = useTranslations("checkout_form");
 
-  const PaxInfoErrorComponent = ({
-    value,
-    validator,
-    required,
-  }: {
-    value: any | undefined;
-    validator: (arg0: any) => string | false;
-    required: boolean;
-  }) => {
-    if (!required) {
-      return <></>;
-    }
-    if (!value) {
-      return (
-        <p className="text-xs w-full text-destructive font-medium">
-          {t("required")}
-        </p>
-      );
-    }
-    const validation = validator(value);
-    if (validation)
-      return (
-        <p className="text-xs w-full text-destructive font-medium">
-          {t(validation)}
-        </p>
-      );
-  };
   const stripe = useStripe();
   const elements = useElements();
   elements?.update({ appearance: elementStyle });
-  const [loading, /*setLoading*/] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [_amount, /*setAmount*/] = useState(0);
-  const [priceLoading, /*setPriceLoading*/] = useState(true);
+  const [_amount, setAmount] = useState(0);
+  const [priceLoading, setPriceLoading] = useState(true);
   //const [checking, setChecking] = useState(true);
-  const [loadingMessage, /*setLoadingMessage*/] = useState("");
+  const [loadingMessage /*setLoadingMessage*/] = useState("");
   const [addressData, setAddressData] = useState<{
     name: string;
     firstName?: string | undefined;
@@ -255,12 +170,6 @@ export const TourCheckoutForm = ({
     };
     phone?: string | undefined;
   }>();
-  const [addOtherPaxDialogOpen, setAddOtherPaxDialogOpen] = useState(false);
-  const [addOtherPaxBirthdayOpen, setAddOtherPaxBirthdayOpen] = useState(false);
-  const [addOtherPaxDialogIndex, setAddOtherPaxDialogIndx] = useState<
-    number | undefined
-  >(undefined);
-  console.log(meeting,selectedStartTimeId,experienceId,selectedDate);
   const [needCompanySwitch, setNeedCompanySwitch] = useState(false);
   const [vatCountryCode, setVatCountryCode] = useState("PT");
   const [selectedTab, selectTab] = useState("card");
@@ -312,154 +221,225 @@ export const TourCheckoutForm = ({
     },
   });
 
-  const [bookingAnswers, setBookingAnswers] = useState(
-    bookingQuestions
-      .filter((question) => question.context == "BOOKING")
-      .map((question) => {
-        return {
-          ...question,
-          value: "",
-        };
-      })
-  );
-
-  const [mainPaxAnswers, setMainPaxAnswers] = useState([
-    ...bookingQuestions
-      .filter((question) => question.context == "PASSENGER")
-      .map((question) => {
-        return {
-          ...question,
-          value: "",
-          id: question.id.toString(),
-          touched:true,
-        };
-      }),
-    ...mainPaxInfo
-      .map((mainPaxInfoQuestion, indx) => {
-        if (
-          [
-            "FIRST_NAME",
-            "LAST_NAME",
-            "PHONE_NUMBER",
-            "EMAIL",
-            "ADDRESS",
-          ].includes(mainPaxInfoQuestion.type)
-        ) {
-          return undefined;
-        } else {
-          return {
-            ...mainPaxInfoQuestion,
-            value: "",
-            id: `main-pax-info-${indx}`,
-            touched:true,
-          };
-        }
-      })
-      .filter((info) => info != undefined),
-  ]);
-
-  const [otherPaxAnswers, setOtherPaxAnswers] = useState(
-    Array.from(
-      {
-        length: Object.values(guests).reduce((acc, curr) => acc + curr, 0) - 1,
-      },
-      (_v, k) => {
-        return [
-          ...bookingQuestions
-            .filter((question) => question.context == "PASSENGER")
-            .map((question) => {
-              return {
-                ...question,
-                value: "",
-                id: question.id.toString(),
-                touched:false
-              };
-            }),
-          ...(otherPaxInfo?.map((mainPaxInfoQuestion, indx) => {
-            return {
-              ...mainPaxInfoQuestion,
-              value: "",
-              id: `other-pax-${k}-${indx}`,
-              touched:false
-            };
-          }) ?? []),
-        ];
-      }
-    )
-  );
-
-  const [otherPaxCurrentAnswers, setOtherPaxCurrentAnswers] = useState<
-Record<string, string>
-  >({});
-
-  const [questionsError, setQuestionsError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (data: z.infer<typeof FormSchema>) => {
-    console.log(data);
-  };
-
-  const handleSubmitAnswers = async () => {
-    const bookingAnswersIncomplete = bookingAnswers.some(
-      (answer) =>
-        answer.value == "" &&
-        (answer.required == true || answer.requiredBeforeDeparture == true)
-    );
-    const mainPaxAnswersIncomplete = mainPaxAnswers.some(
-      (answer) =>
-        answer.value == "" &&
-        (answer.required == true || answer.requiredBeforeDeparture == true)
-    );
-    const otherPaxAnswersIncomplete = otherPaxAnswers.some((pax) =>
-      pax.some(
-        (answer) =>
-          answer.value == "" &&
-          (answer.required == true || answer.requiredBeforeDeparture == true)
-      )
-    );
-    if (
-      mainPaxAnswersIncomplete ||
-      otherPaxAnswersIncomplete ||
-      bookingAnswersIncomplete
-    ) {
-      setQuestionsError(t("questions-incomplete-error"));
+    setLoading(true);
+    if (!addressData) {
+      setLoading(false);
       return;
     }
-    setStep("paying");
+    const response = await createBookingRequest({
+      mainContactDetails: mainContactDetails.map((question) => ({
+        questionId: question.questionId,
+        values: question.answers,
+      })),
+      activityBookings: activityBookings.map((activity) => ({
+        activityId: activity.activityId,
+        answers: activity.questions.map((question) => ({
+          questionId: question.questionId,
+          values: question.answers,
+        })),
+        pickupAnswers: activity.pickupQuestions.map((question) => ({
+          questionId: question.questionId,
+          values: question.answers,
+        })),
+        pickup: selectedPickupPlaceId == "custom" ? false : true,
+        pickupPlaceId:
+          selectedPickupPlaceId == "custom" ? undefined : selectedPickupPlaceId,
+        rateId: rateId,
+        startTimeId: selectedStartTimeId,
+        date: format(selectedDate, "yyyy-MM-dd"),
+        passengers: activity.passengers.map((passenger) => ({
+          pricingCategoryId: passenger.pricingCategoryId,
+          groupSize: 1,
+          passengerDetails: passenger.passengerDetails.map((question) => ({
+            questionId: question.questionId,
+            values: question.answers,
+          })),
+          answers: passenger.questions.map((question) => ({
+            questionId: question.questionId,
+            values: question.answers,
+          })),
+        })),
+      })),
+      checkoutOptionAnswers: [],
+      clientName:
+        addressData.name ?? addressData.firstName + " " + addressData.lastName,
+      clientEmail: data.email,
+      clientPhone: addressData.phone ?? "",
+      clientAddress: addressData.address,
+      isCompany: needCompanySwitch,
+      selectedRateId: [rateId],
+      guests: [guests],
+      selectedStartTimeId: [selectedStartTimeId ?? 0],
+      clientNotes: data.note,
+      clientTax: data.vat,
+      companyName: data.business_name,
+    });
+    if (!response) {
+      setError("error_reservation");
+      setLoading(false);
+      return;
+    }
+    const { success, client_secret, payment_id, order_id } = response;
+    if (!success || !client_secret || !payment_id) {
+      setError("error_reservation");
+      setLoading(false);
+      return;
+    }
+    if (selectedTab == "card") {
+      const cardNumberElement = elements?.getElement(CardNumberElement);
+      if (!stripe || !cardNumberElement) throw new Error("Stripe not ready");
+      const result = await stripe.confirmCardPayment(client_secret, {
+        payment_method: {
+          card: cardNumberElement,
+          billing_details: {
+            name:
+              addressData.name ??
+              addressData.firstName + " " + addressData.lastName,
+            email: data.email,
+            phone: addressData.phone ?? "",
+            address: addressData.address,
+          },
+        },
+      });
+      if (result.error) {
+        setError(result.error.message || "Payment failed");
+        setLoading(false);
+        return;
+      }
+      if (success && order_id) {
+        localStorage.clear();
+        router.push(`/orders/${order_id}`);
+      } else {
+        setLoading(false);
+      }
+    } else {
+      const ibanNumberElement = elements?.getElement(IbanElement);
+      if (!stripe || !ibanNumberElement) throw new Error("Stripe not ready");
+      const result = await stripe.confirmSepaDebitPayment(client_secret, {
+        payment_method: {
+          sepa_debit: ibanNumberElement,
+          billing_details: {
+            name:
+              addressData.name ??
+              addressData.firstName + " " + addressData.lastName,
+            email: data.email,
+            phone: addressData.phone ?? "",
+            address: addressData.address,
+          },
+        },
+      });
+      if (result.error) {
+        setError(result.error.message || "Payment failed");
+        setLoading(false);
+        return;
+      }
+      if (success && order_id) {
+        localStorage.clear();
+        router.push(`/orders/${order_id}`);
+      } else {
+        setLoading(false);
+      }
+    }
+    setLoading(false);
+  };
+  const [mainContactDetails, setMainContactDetails] = useState<
+    QuestionSpecificationDto[]
+  >([]);
+  const [activityBookings, setActivityBookings] = useState<
+    ActivityBookingQuestionsDto[]
+  >([]);
+  const [selectedPickupPlaceId, setPickupPlaceId] = useState("custom");
+
+  const [pickupQuestionsLoading, setPickupQuestionsLoading] = useState(false);
+
+  const updateBookingPickUpQuestions = async (
+    bookingId: number,
+    activityId: number,
+    pickupPlaceId: string | undefined
+  ) => {
+    const removed = await removeActivity(cartId, bookingId);
+    if (removed) {
+      await startShoppingCart(
+        cartId,
+        activityId,
+        rateId,
+        selectedStartTimeId,
+        selectedDate,
+        guests,
+        pickupPlaceId
+      );
+      const response = await getShoppingCartQuestion(cartId);
+      if (!response.success) {
+        return;
+      }
+      const newBookingId = response.questions.activityBookings.find(
+        (activity) => activity.activityId == activityId
+      )?.bookingId;
+      const newPickUpQuestion = response.questions.activityBookings.find(
+        (activity) => activity.activityId == activityId
+      )?.pickupQuestions;
+      setActivityBookings((prev) =>
+        prev.map((activity) =>
+          activity.activityId == activityId
+            ? {
+                ...activity,
+                bookingId: newBookingId ?? 0,
+                pickupQuestions: newPickUpQuestion ?? [],
+              }
+            : activity
+        )
+      );
+    }
   };
 
-  const handleBookingAnswerChange = useCallback(
-    (id: number, value: string) => {
-      setBookingAnswers((prev) =>
-        prev.map((q) => (q.id === id ? { ...q, value } : q))
+  useEffect(() => {
+    const startShopping = async () => {
+      const shopping = await startShoppingCart(
+        cartId,
+        experienceId,
+        rateId,
+        selectedStartTimeId,
+        selectedDate,
+        guests
       );
-      setQuestionsError("");
-    },
-    [setBookingAnswers]
-  );
-
-  const handleMainPaxChange = useCallback((id: string, value: string) => {
-    setMainPaxAnswers((prev) =>
-      prev.map((answer) => (answer.id === id ? { ...answer, value } : answer))
-    );
-    setQuestionsError("");
-  }, []);
-
-  const handleOtherPaxBulkChange = useCallback(
-    (indx: number, values: Record<string, string>) => {
-      setOtherPaxAnswers((prev) =>
-        prev.map((paxAnswers, paxIndex) => {
-          if (paxIndex !== indx) return paxAnswers;
-          return paxAnswers.map((answer) =>
-            values.hasOwnProperty(answer.id)
-              ? { ...answer, value: values[answer.id],  touched:true }
-              : {...answer,touched:true}
-          );
-        })
+      if (!shopping.success) {
+        setError("error-processing-request");
+        return;
+      }
+      const response = await getShoppingCartQuestion(cartId);
+      if (!response.success) {
+        return;
+      }
+      const selectedOption = response.options.find(
+        (option) => option.type === "CUSTOMER_FULL_PAYMENT"
       );
-      setQuestionsError("");
-    },
-    []
-  );
+      setAmount((selectedOption?.amount ?? 0) * 100 || 0);
+      setMainContactDetails(response.questions.mainContactDetails);
+      setActivityBookings(response.questions.activityBookings);
+      setPriceLoading(false);
+    };
+    if (
+      cartId &&
+      experienceId &&
+      guests &&
+      rateId &&
+      selectedDate &&
+      priceLoading
+    ) {
+      startShopping();
+    }
+  }, [
+    cartId,
+    experienceId,
+    guests,
+    priceLoading,
+    rateId,
+    selectedDate,
+    selectedStartTimeId,
+  ]);
 
   return (
     <Form {...clientInfo}>
@@ -645,7 +625,7 @@ Record<string, string>
               )}
             />
             <Button
-            type="button"
+              type="button"
               onClick={async () => {
                 const result = await clientInfo.trigger();
                 if (!result) {
@@ -659,18 +639,10 @@ Record<string, string>
                   setError("provide_information");
                   return;
                 }
-                const bookingQuestion = bookingQuestions.filter((question) => {
-                  const isRateSpecific =
-                    question.rateTriggerSelection == "SELECTED_ONLY";
-                  if (!isRateSpecific) {
-                    return true;
-                  }
-                  const found = question.rateTriggers.find(
-                    (trigger) => trigger.id == rateId
-                  );
-                  return found ? true : false;
-                });
-                if (bookingQuestion.length > 0) {
+                if (
+                  mainContactDetails.length > 0 ||
+                  activityBookings.length > 0
+                ) {
                   setStep("booking_questions");
                 } else {
                   setStep("paying");
@@ -683,1615 +655,1660 @@ Record<string, string>
         )}
 
         {step == "booking_questions" && (
-          <div className="w-full flex flex-col gap-4 items-start">
-            {bookingAnswers.length > 0 && (
-              <p className="sm:text-base text-sm pb-1 border-b-2 w-full max-w-[230px] border-b-primary font-semibold">
-                {t("booking-questions")}
-              </p>
-            )}
-            <div className="w-full flex flex-col gap-2 items-start">
-              {bookingAnswers.map((bookingQuestion) => {
-                return (
-                  <div
-                    key={bookingQuestion.id}
-                    className="flex flex-col gap-1 w-full items-start"
-                  >
-                    <FormLabel>
-                      {bookingQuestion.label}
-                      {bookingQuestion.required && (
-                        <span className="text-xs font-semibold text-destructive">
-                          *
-                        </span>
-                      )}
-                    </FormLabel>
-                    {(() => {
-                      switch (bookingQuestion.dataType) {
-                        case "SHORT_TEXT":
-                          return (
-                            <Input
-                              value={bookingQuestion.value}
-                              onChange={(e) => {
-                                handleBookingAnswerChange(
-                                  bookingQuestion.id,
-                                  e.target.value
-                                );
-                              }}
-                              placeholder={bookingQuestion.placeholder ?? ""}
-                              className="w-full"
-                            />
-                          );
-                        case "LONG_TEXT":
-                          return (
-                            <Textarea
-                              value={bookingQuestion.value}
-                              onChange={(e) => {
-                                handleBookingAnswerChange(
-                                  bookingQuestion.id,
-                                  e.target.value
-                                );
-                              }}
-                              placeholder={bookingQuestion.placeholder ?? ""}
-                              className="w-full resize-none h-16"
-                            />
-                          );
-                        case "INT":
-                          return (
-                            <Input
-                              value={bookingQuestion.value}
-                              onChange={(e) => {
-                                handleBookingAnswerChange(
-                                  bookingQuestion.id,
-                                  e.target.value
-                                );
-                              }}
-                              placeholder={bookingQuestion.placeholder ?? ""}
-                              type="number"
-                              step={1}
-                              className="w-full"
-                            />
-                          );
-                        case "DOUBLE":
-                          return (
-                            <Input
-                              value={bookingQuestion.value}
-                              onChange={(e) => {
-                                handleBookingAnswerChange(
-                                  bookingQuestion.id,
-                                  e.target.value
-                                );
-                              }}
-                              placeholder={bookingQuestion.placeholder ?? ""}
-                              type="number"
-                              step="any"
-                              className="w-full"
-                            />
-                          );
-                        case "BOOLEAN":
-                          return <></>;
-                        case "CHECKBOX_TOGGLE":
-                          return <></>;
-                        case "DATE":
-                          return <></>;
-                        case "DATE_AND_TIME":
-                          return <></>;
-                        case "OPTIONS":
-                          return <></>;
-                      }
-                    })()}
-                  </div>
-                );
-              })}
-            </div>
-            {mainPaxAnswers.length > 0 && (
-              <>
-                <p className="sm:text-base text-sm pb-1 border-b-2 w-full max-w-[230px] border-b-primary font-semibold">
-                  {t("main-pax-title")}
+          <div className="w-full flex flex-col gap-4">
+            {activityBookings[0]?.questions.length > 0 && (
+              <div className="w-full flex flex-col gap-2 items-start">
+                <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
+                  {t("booking-details")}
                 </p>
-                <div className="w-full flex flex-col gap-2 items-start">
-                  {mainPaxAnswers.length > 0 && (
-                    <>
-                      {mainPaxAnswers.map((bookingQuestion) => {
-                        if (isPaxBookingQuestion(bookingQuestion)) {
+                {activityBookings[0].questions.map((question) => {
+                  if (
+                    question.dataType == "OPTIONS" ||
+                    question.selectFromOptions
+                  ) {
+                    return (
+                      <div
+                        key={question.questionId}
+                        className="w-full flex flex-col gap-1 items-start"
+                      >
+                        <Label className="text-sm font-normal">
+                          {question.label}
+                          {question.required && (
+                            <span className="text-xs text-destructive">*</span>
+                          )}
+                        </Label>
+                        <Select
+                          defaultValue={question.defaultValue ?? undefined}
+                          value={question.answers ? question.answers[0] : ""}
+                          onValueChange={(v) =>
+                            setActivityBookings((prev) =>
+                              prev.map((activity, indx) =>
+                                indx == 0
+                                  ? {
+                                      ...activity,
+                                      questions: activity.questions.map((q) =>
+                                        q.questionId == question.questionId
+                                          ? { ...q, answers: [v] }
+                                          : q
+                                      ),
+                                    }
+                                  : activity
+                              )
+                            )
+                          }
+                        >
+                          <SelectTrigger
+                            className={cn(
+                              "w-full",
+                              (question.answers ? question.answers[0] : "") ==
+                                "" &&
+                                question.required &&
+                                "border border-destructive"
+                            )}
+                          >
+                            <SelectValue
+                              placeholder={
+                                question.placeholder ?? t("choose-one")
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {question.answerOptions.map((option) => {
+                              if (option.value && option.label)
+                                return (
+                                  <SelectItem
+                                    value={option.value}
+                                    key={option.value}
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+                  }
+                  if (
+                    question.dataType == "CHECKBOX_TOGGLE" ||
+                    question.dataType == "BOOLEAN"
+                  ) {
+                    return (
+                      <div
+                        key={question.questionId}
+                        className="w-full flex flex-row gap-1 items-center"
+                      >
+                        <Checkbox
+                          checked={
+                            (question.answers ? question.answers[0] : "no") !=
+                            "no"
+                          }
+                          onCheckedChange={(c) => {
+                            setActivityBookings((prev) =>
+                              prev.map((activity, indx) =>
+                                indx == 0
+                                  ? {
+                                      ...activity,
+                                      questions: activity.questions.map((q) =>
+                                        q.questionId == question.questionId
+                                          ? {
+                                              ...q,
+                                              answers: [c ? "yes" : "no"],
+                                            }
+                                          : q
+                                      ),
+                                    }
+                                  : activity
+                              )
+                            );
+                          }}
+                        />
+                        <Label className="text-sm font-normal">
+                          {question.label}
+                          {question.required && (
+                            <span className="text-xs text-destructive">*</span>
+                          )}
+                        </Label>
+                      </div>
+                    );
+                  }
+                  if (question.dataType == "DATE") {
+                    return (
+                      <div
+                        key={question.questionId}
+                        className="w-full flex flex-col gap-1 items-start"
+                      >
+                        <Label className="text-sm font-normal">
+                          {question.label}
+                          {question.required && (
+                            <span className="text-xs text-destructive">*</span>
+                          )}
+                        </Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              data-empty={
+                                (question.answers ? question.answers[0] : "") ==
+                                ""
+                              }
+                              className={
+                                "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
+                              }
+                            >
+                              <CalendarIcon />
+                              {(question.answers ? question.answers[0] : "") !=
+                              "" ? (
+                                format(question.answers[0], "PPP")
+                              ) : (
+                                <span>{t("select-date")}</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              captionLayout="dropdown"
+                              showOutsideDays={false}
+                              mode="single"
+                              selected={
+                                question.answers
+                                  ? parse(
+                                      question.answers[0],
+                                      "yyyy-MM-dd",
+                                      new Date()
+                                    )
+                                  : undefined
+                              }
+                              onSelect={(date) => {
+                                if (!date) {
+                                  setActivityBookings((prev) =>
+                                    prev.map((activity, indx) =>
+                                      indx == 0
+                                        ? {
+                                            ...activity,
+                                            questions: activity.questions.map(
+                                              (q) =>
+                                                q.questionId ==
+                                                question.questionId
+                                                  ? { ...q, answers: [""] }
+                                                  : q
+                                            ),
+                                          }
+                                        : activity
+                                    )
+                                  );
+                                } else {
+                                  setActivityBookings((prev) =>
+                                    prev.map((activity, indx) =>
+                                      indx == 0
+                                        ? {
+                                            ...activity,
+                                            questions: activity.questions.map(
+                                              (q) =>
+                                                q.questionId ==
+                                                question.questionId
+                                                  ? {
+                                                      ...q,
+                                                      answers: [
+                                                        format(
+                                                          date,
+                                                          "yyyy-MM-dd"
+                                                        ),
+                                                      ],
+                                                    }
+                                                  : q
+                                            ),
+                                          }
+                                        : activity
+                                    )
+                                  );
+                                }
+                                document
+                                  .querySelector<HTMLButtonElement>(
+                                    `[data-popover-close="${question.questionId}"]`
+                                  )
+                                  ?.click();
+                              }}
+                            />
+                            <PopoverClose asChild>
+                              <button
+                                type="button"
+                                hidden
+                                data-popover-close={question.questionId}
+                              />
+                            </PopoverClose>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div
+                      key={question.questionId}
+                      className="w-full flex flex-col gap-1 items-start"
+                    >
+                      <Label className="text-sm font-normal">
+                        {question.label}
+                        {question.required && (
+                          <span className="text-xs text-destructive">*</span>
+                        )}
+                      </Label>
+                      <Input
+                        value={question.answers ? question.answers[0] : ""}
+                        onChange={(e) => {
+                          setActivityBookings((prev) =>
+                            prev.map((activity, indx) =>
+                              indx == 0
+                                ? {
+                                    ...activity,
+                                    questions: activity.questions.map((q) =>
+                                      q.questionId == question.questionId
+                                        ? { ...q, answers: [e.target.value] }
+                                        : q
+                                    ),
+                                  }
+                                : activity
+                            )
+                          );
+                        }}
+                        className={cn(
+                          "w-full",
+                          (question.answers ? question.answers[0] : "") == "" &&
+                            question.required &&
+                            "border border-destructive"
+                        )}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {activityBookings[0].pickupQuestions?.length > 0 && (
+              <div className="w-full flex flex-col gap-2 items-start">
+                <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
+                  {t("pickup-details")}
+                </p>
+                {meeting.type != "MEET_ON_LOCATION" && (
+                  <div className="w-full flex flex-col gap-1 items-start">
+                    <Label className="text-sm font-normal">
+                      {t("pickup-place")}
+                    </Label>
+                    <Select
+                      value={selectedPickupPlaceId}
+                      onValueChange={async (v) => {
+                        setPickupPlaceId(v);
+                        setPickupQuestionsLoading(true);
+                        await updateBookingPickUpQuestions(
+                          activityBookings[0].bookingId,
+                          experienceId,
+                          v == "custom" ? undefined : v
+                        );
+                        setPickupQuestionsLoading(false);
+                      }}
+                    >
+                      <SelectTrigger className={cn("w-full")}>
+                        <SelectValue placeholder={t("choose-one")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={"custom"}>
+                          {t("i-want-to-select-my-own")}
+                        </SelectItem>
+                        {meeting.pickUpPlaces.map((option) => {
+                          return (
+                            <SelectItem
+                              value={option.id.toString()}
+                              key={option.id}
+                            >
+                              {option.title}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {pickupQuestionsLoading && (
+                  <Skeleton className="w-full h-[80px]" />
+                )}
+                {!pickupQuestionsLoading &&
+                  activityBookings[0].pickupQuestions.map((question) => {
+                    if (
+                      question.dataType == "OPTIONS" ||
+                      question.selectFromOptions
+                    ) {
+                      return (
+                        <div
+                          key={question.questionId}
+                          className="w-full flex flex-col gap-1 items-start"
+                        >
+                          <Label className="text-sm font-normal">
+                            {question.label}
+                            {question.required && (
+                              <span className="text-xs text-destructive">
+                                *
+                              </span>
+                            )}
+                          </Label>
+                          <Select
+                            defaultValue={question.defaultValue ?? undefined}
+                            value={question.answers ? question.answers[0] : ""}
+                            onValueChange={(v) =>
+                              setActivityBookings((prev) =>
+                                prev.map((activity, indx) =>
+                                  indx == 0
+                                    ? {
+                                        ...activity,
+                                        questions: activity.questions.map((q) =>
+                                          q.questionId == question.questionId
+                                            ? { ...q, answers: [v] }
+                                            : q
+                                        ),
+                                      }
+                                    : activity
+                                )
+                              )
+                            }
+                          >
+                            <SelectTrigger
+                              className={cn(
+                                "w-full",
+                                (question.answers ? question.answers[0] : "") ==
+                                  "" &&
+                                  question.required &&
+                                  "border border-destructive"
+                              )}
+                            >
+                              <SelectValue
+                                placeholder={
+                                  question.placeholder ?? t("choose-one")
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {question.answerOptions.map((option) => {
+                                if (option.value && option.label)
+                                  return (
+                                    <SelectItem
+                                      value={option.value}
+                                      key={option.value}
+                                    >
+                                      {option.label}
+                                    </SelectItem>
+                                  );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      );
+                    }
+                    if (
+                      question.dataType == "CHECKBOX_TOGGLE" ||
+                      question.dataType == "BOOLEAN"
+                    ) {
+                      return (
+                        <div
+                          key={question.questionId}
+                          className="w-full flex flex-row gap-1 items-center"
+                        >
+                          <Checkbox
+                            checked={
+                              (question.answers ? question.answers[0] : "no") !=
+                              "no"
+                            }
+                            onCheckedChange={(c) => {
+                              setActivityBookings((prev) =>
+                                prev.map((activity, indx) =>
+                                  indx == 0
+                                    ? {
+                                        ...activity,
+                                        pickupQuestions:
+                                          activity.pickupQuestions.map((q) =>
+                                            q.questionId == question.questionId
+                                              ? {
+                                                  ...q,
+                                                  answers: [c ? "yes" : "no"],
+                                                }
+                                              : q
+                                          ),
+                                      }
+                                    : activity
+                                )
+                              );
+                            }}
+                          />
+                          <Label className="text-sm font-normal">
+                            {question.label}
+                            {question.required && (
+                              <span className="text-xs text-destructive">
+                                *
+                              </span>
+                            )}
+                          </Label>
+                        </div>
+                      );
+                    }
+                    if (question.dataType == "DATE") {
+                      return (
+                        <div
+                          key={question.questionId}
+                          className="w-full flex flex-col gap-1 items-start"
+                        >
+                          <Label className="text-sm font-normal">
+                            {question.label}
+                            {question.required && (
+                              <span className="text-xs text-destructive">
+                                *
+                              </span>
+                            )}
+                          </Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                data-empty={
+                                  (question.answers
+                                    ? question.answers[0]
+                                    : "") == ""
+                                }
+                                className={
+                                  "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
+                                }
+                              >
+                                <CalendarIcon />
+                                {(question.answers
+                                  ? question.answers[0]
+                                  : "") != "" ? (
+                                  format(question.answers[0], "PPP")
+                                ) : (
+                                  <span>{t("select-date")}</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                captionLayout="dropdown"
+                                showOutsideDays={false}
+                                mode="single"
+                                selected={
+                                  question.answers
+                                    ? parse(
+                                        question.answers[0],
+                                        "yyyy-MM-dd",
+                                        new Date()
+                                      )
+                                    : undefined
+                                }
+                                onSelect={(date) => {
+                                  if (!date) {
+                                    setActivityBookings((prev) =>
+                                      prev.map((activity, indx) =>
+                                        indx == 0
+                                          ? {
+                                              ...activity,
+                                              pickupQuestions:
+                                                activity.pickupQuestions.map(
+                                                  (q) =>
+                                                    q.questionId ==
+                                                    question.questionId
+                                                      ? { ...q, answers: [""] }
+                                                      : q
+                                                ),
+                                            }
+                                          : activity
+                                      )
+                                    );
+                                  } else {
+                                    setActivityBookings((prev) =>
+                                      prev.map((activity, indx) =>
+                                        indx == 0
+                                          ? {
+                                              ...activity,
+                                              pickupQuestions:
+                                                activity.pickupQuestions.map(
+                                                  (q) =>
+                                                    q.questionId ==
+                                                    question.questionId
+                                                      ? {
+                                                          ...q,
+                                                          answers: [
+                                                            format(
+                                                              date,
+                                                              "yyyy-MM-dd"
+                                                            ),
+                                                          ],
+                                                        }
+                                                      : q
+                                                ),
+                                            }
+                                          : activity
+                                      )
+                                    );
+                                  }
+                                  document
+                                    .querySelector<HTMLButtonElement>(
+                                      `[data-popover-close="${question.questionId}"]`
+                                    )
+                                    ?.click();
+                                }}
+                              />
+                              <PopoverClose asChild>
+                                <button
+                                  type="button"
+                                  hidden
+                                  data-popover-close={question.questionId}
+                                />
+                              </PopoverClose>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div
+                        key={question.questionId}
+                        className="w-full flex flex-col gap-1 items-start"
+                      >
+                        <Label className="text-sm font-normal">
+                          {question.label}
+                          {question.required && (
+                            <span className="text-xs text-destructive">*</span>
+                          )}
+                        </Label>
+                        <Input
+                          value={question.answers ? question.answers[0] : ""}
+                          onChange={(e) => {
+                            setActivityBookings((prev) =>
+                              prev.map((activity, indx) =>
+                                indx == 0
+                                  ? {
+                                      ...activity,
+                                      pickupQuestions:
+                                        activity.pickupQuestions.map((q) =>
+                                          q.questionId == question.questionId
+                                            ? {
+                                                ...q,
+                                                answers: [e.target.value],
+                                              }
+                                            : q
+                                        ),
+                                    }
+                                  : activity
+                              )
+                            );
+                          }}
+                          className={cn(
+                            "w-full",
+                            (question.answers ? question.answers[0] : "") ==
+                              "" &&
+                              question.required &&
+                              "border border-destructive"
+                          )}
+                        />
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+            {mainContactDetails?.filter(
+              (question) =>
+                !["firstName", "lastName", "email", "phoneNumber"].includes(
+                  question.questionId
+                )
+            )?.length > 0 && (
+              <div className="w-full flex flex-col gap-2 items-start">
+                <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
+                  {t("additional-contact-information")}
+                </p>
+                {mainContactDetails
+                  .filter(
+                    (question) =>
+                      ![
+                        "firstName",
+                        "lastName",
+                        "email",
+                        "phoneNumber",
+                      ].includes(question.questionId)
+                  )
+                  .map((question) => {
+                    if (
+                      question.dataType == "OPTIONS" ||
+                      question.selectFromOptions
+                    ) {
+                      return (
+                        <div
+                          key={question.questionId}
+                          className="w-full flex flex-col gap-1 items-start"
+                        >
+                          <Label className="text-sm font-normal">
+                            {question.label}
+                            {question.required && (
+                              <span className="text-xs text-destructive">
+                                *
+                              </span>
+                            )}
+                          </Label>
+                          <Select
+                            defaultValue={question.defaultValue ?? undefined}
+                            value={question.answers ? question.answers[0] : ""}
+                            onValueChange={(v) =>
+                              setMainContactDetails((prev) =>
+                                prev.map((q) =>
+                                  q.questionId == question.questionId
+                                    ? { ...q, answers: [v] }
+                                    : q
+                                )
+                              )
+                            }
+                          >
+                            <SelectTrigger
+                              className={cn(
+                                "w-full",
+                                (question.answers ? question.answers[0] : "") ==
+                                  "" &&
+                                  question.required &&
+                                  "border border-destructive"
+                              )}
+                            >
+                              <SelectValue
+                                placeholder={
+                                  question.placeholder ?? t("choose-one")
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {question.answerOptions.map((option) => {
+                                if (option.value && option.label)
+                                  return (
+                                    <SelectItem
+                                      value={option.value}
+                                      key={option.value}
+                                    >
+                                      {option.label}
+                                    </SelectItem>
+                                  );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      );
+                    }
+                    if (
+                      question.dataType == "CHECKBOX_TOGGLE" ||
+                      question.dataType == "BOOLEAN"
+                    ) {
+                      return (
+                        <div
+                          key={question.questionId}
+                          className="w-full flex flex-row gap-1 items-center"
+                        >
+                          <Checkbox
+                            checked={
+                              (question.answers ? question.answers[0] : "no") !=
+                              "no"
+                            }
+                            onCheckedChange={(c) => {
+                              setMainContactDetails((prev) =>
+                                prev.map((q) =>
+                                  q.questionId == question.questionId
+                                    ? { ...q, answers: [c ? "yes" : "no"] }
+                                    : q
+                                )
+                              );
+                            }}
+                          />
+                          <Label className="text-sm font-normal">
+                            {question.label}
+                            {question.required && (
+                              <span className="text-xs text-destructive">
+                                *
+                              </span>
+                            )}
+                          </Label>
+                        </div>
+                      );
+                    }
+                    if (question.dataType == "DATE") {
+                      return (
+                        <div
+                          key={question.questionId}
+                          className="w-full flex flex-col gap-1 items-start"
+                        >
+                          <Label className="text-sm font-normal">
+                            {question.label}
+                            {question.required && (
+                              <span className="text-xs text-destructive">
+                                *
+                              </span>
+                            )}
+                          </Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                data-empty={
+                                  (question.answers
+                                    ? question.answers[0]
+                                    : "") == ""
+                                }
+                                className={
+                                  "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
+                                }
+                              >
+                                <CalendarIcon />
+                                {(question.answers
+                                  ? question.answers[0]
+                                  : "") != "" ? (
+                                  format(question.answers[0], "PPP")
+                                ) : (
+                                  <span>{t("select-date")}</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                captionLayout="dropdown"
+                                showOutsideDays={false}
+                                mode="single"
+                                selected={
+                                  question.answers
+                                    ? parse(
+                                        question.answers[0],
+                                        "yyyy-MM-dd",
+                                        new Date()
+                                      )
+                                    : undefined
+                                }
+                                onSelect={(date) => {
+                                  if (!date) {
+                                    setMainContactDetails((prev) =>
+                                      prev.map((q) =>
+                                        q.questionId == question.questionId
+                                          ? { ...q, answers: [""] }
+                                          : q
+                                      )
+                                    );
+                                  } else {
+                                    setMainContactDetails((prev) =>
+                                      prev.map((q) =>
+                                        q.questionId == question.questionId
+                                          ? {
+                                              ...q,
+                                              answers: [
+                                                format(date, "yyyy-MM-dd"),
+                                              ],
+                                            }
+                                          : q
+                                      )
+                                    );
+                                  }
+                                  document
+                                    .querySelector<HTMLButtonElement>(
+                                      `[data-popover-close="${question.questionId}"]`
+                                    )
+                                    ?.click();
+                                }}
+                              />
+                              <PopoverClose asChild>
+                                <button
+                                  type="button"
+                                  hidden
+                                  data-popover-close={question.questionId}
+                                />
+                              </PopoverClose>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div
+                        key={question.questionId}
+                        className="w-full flex flex-col gap-1 items-start"
+                      >
+                        <Label className="text-sm font-normal">
+                          {question.label}
+                          {question.required && (
+                            <span className="text-xs text-destructive">*</span>
+                          )}
+                        </Label>
+                        <Input
+                          value={question.answers ? question.answers[0] : ""}
+                          onChange={(e) => {
+                            setMainContactDetails((prev) =>
+                              prev.map((q) =>
+                                q.questionId == question.questionId
+                                  ? { ...q, answers: [e.target.value] }
+                                  : q
+                              )
+                            );
+                          }}
+                          className={cn(
+                            "w-full",
+                            (question.answers ? question.answers[0] : "") ==
+                              "" &&
+                              question.required &&
+                              "border border-destructive"
+                          )}
+                        />
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+            {activityBookings[0].passengers.length > 0 && (
+              <Carousel className="w-full mx-auto border shadow p-2 rounded-lg">
+                <CarouselContent className="p-0">
+                  {activityBookings[0].passengers.map((passenger, pIndx) => {
+                    return (
+                      <CarouselItem
+                        key={passenger.bookingId}
+                        className="w-full flex flex-col gap-2 items-start mx-auto"
+                      >
+                        <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
+                          {t("traveler-info", {
+                            count: pIndx + 1,
+                            category: displayT(
+                              categoriesMap[passenger.pricingCategoryId].title
+                            ),
+                          })}
+                        </p>
+                        {passenger.passengerDetails.map((question) => {
+                          if (
+                            question.dataType == "OPTIONS" ||
+                            question.selectFromOptions
+                          ) {
+                            return (
+                              <div
+                                key={question.questionId}
+                                className="w-full flex flex-col gap-1 items-start"
+                              >
+                                <Label className="text-sm font-normal">
+                                  {question.label}
+                                  {question.required && (
+                                    <span className="text-xs text-destructive">
+                                      *
+                                    </span>
+                                  )}
+                                </Label>
+                                <Select
+                                  defaultValue={
+                                    question.defaultValue ?? undefined
+                                  }
+                                  value={
+                                    question.answers ? question.answers[0] : ""
+                                  }
+                                  onValueChange={(v) =>
+                                    setActivityBookings((prev) =>
+                                      prev.map((activity, i) =>
+                                        i == 0
+                                          ? {
+                                              ...activity,
+                                              passengers:
+                                                activity.passengers.map(
+                                                  (passenger, pI) =>
+                                                    pI == pIndx
+                                                      ? {
+                                                          ...passenger,
+                                                          passengerDetails:
+                                                            passenger.passengerDetails.map(
+                                                              (pQuestion) =>
+                                                                pQuestion.questionId ==
+                                                                question.questionId
+                                                                  ? {
+                                                                      ...pQuestion,
+                                                                      answers: [
+                                                                        v,
+                                                                      ],
+                                                                    }
+                                                                  : pQuestion
+                                                            ),
+                                                        }
+                                                      : passenger
+                                                ),
+                                            }
+                                          : activity
+                                      )
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger
+                                    className={cn(
+                                      "w-full",
+                                      (question.answers
+                                        ? question.answers[0]
+                                        : "") == "" &&
+                                        question.required &&
+                                        "border border-destructive"
+                                    )}
+                                  >
+                                    <SelectValue
+                                      placeholder={
+                                        question.placeholder ?? t("choose-one")
+                                      }
+                                    />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {question.answerOptions.map((option) => {
+                                      if (option.value && option.label)
+                                        return (
+                                          <SelectItem
+                                            value={option.value}
+                                            key={option.value}
+                                          >
+                                            {option.label}
+                                          </SelectItem>
+                                        );
+                                    })}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            );
+                          }
+                          if (
+                            question.dataType == "CHECKBOX_TOGGLE" ||
+                            question.dataType == "BOOLEAN"
+                          ) {
+                            return (
+                              <div
+                                key={question.questionId}
+                                className="w-full flex flex-row gap-1 items-center"
+                              >
+                                <Checkbox
+                                  checked={
+                                    (question.answers
+                                      ? question.answers[0]
+                                      : "no") != "no"
+                                  }
+                                  onCheckedChange={(c) => {
+                                    setActivityBookings((prev) =>
+                                      prev.map((activity, i) =>
+                                        i == 0
+                                          ? {
+                                              ...activity,
+                                              passengers:
+                                                activity.passengers.map(
+                                                  (passenger, pI) =>
+                                                    pI == pIndx
+                                                      ? {
+                                                          ...passenger,
+                                                          passengerDetails:
+                                                            passenger.passengerDetails.map(
+                                                              (pQuestion) =>
+                                                                pQuestion.questionId ==
+                                                                question.questionId
+                                                                  ? {
+                                                                      ...pQuestion,
+                                                                      answers: [
+                                                                        c
+                                                                          ? "yes"
+                                                                          : "no",
+                                                                      ],
+                                                                    }
+                                                                  : pQuestion
+                                                            ),
+                                                        }
+                                                      : passenger
+                                                ),
+                                            }
+                                          : activity
+                                      )
+                                    );
+                                  }}
+                                />
+                                <Label className="text-sm font-normal">
+                                  {question.label}
+                                  {question.required && (
+                                    <span className="text-xs text-destructive">
+                                      *
+                                    </span>
+                                  )}
+                                </Label>
+                              </div>
+                            );
+                          }
+                          if (question.dataType == "DATE") {
+                            return (
+                              <div
+                                key={question.questionId}
+                                className="w-full flex flex-col gap-1 items-start"
+                              >
+                                <Label className="text-sm font-normal">
+                                  {question.label}
+                                  {question.required && (
+                                    <span className="text-xs text-destructive">
+                                      *
+                                    </span>
+                                  )}
+                                </Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      data-empty={
+                                        (question.answers
+                                          ? question.answers[0]
+                                          : "") == ""
+                                      }
+                                      className={
+                                        "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
+                                      }
+                                    >
+                                      <CalendarIcon />
+                                      {(question.answers
+                                        ? question.answers[0]
+                                        : "") != "" ? (
+                                        format(question.answers[0], "PPP")
+                                      ) : (
+                                        <span>{t("select-date")}</span>
+                                      )}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      captionLayout="dropdown"
+                                      showOutsideDays={false}
+                                      mode="single"
+                                      selected={
+                                        question.answers
+                                          ? parse(
+                                              question.answers[0],
+                                              "yyyy-MM-dd",
+                                              new Date()
+                                            )
+                                          : undefined
+                                      }
+                                      onSelect={(date) => {
+                                        if (!date) {
+                                          setActivityBookings((prev) =>
+                                            prev.map((activity, i) =>
+                                              i == 0
+                                                ? {
+                                                    ...activity,
+                                                    passengers:
+                                                      activity.passengers.map(
+                                                        (passenger, pI) =>
+                                                          pI == pIndx
+                                                            ? {
+                                                                ...passenger,
+                                                                passengerDetails:
+                                                                  passenger.passengerDetails.map(
+                                                                    (
+                                                                      pQuestion
+                                                                    ) =>
+                                                                      pQuestion.questionId ==
+                                                                      question.questionId
+                                                                        ? {
+                                                                            ...pQuestion,
+                                                                            answers:
+                                                                              [
+                                                                                "",
+                                                                              ],
+                                                                          }
+                                                                        : pQuestion
+                                                                  ),
+                                                              }
+                                                            : passenger
+                                                      ),
+                                                  }
+                                                : activity
+                                            )
+                                          );
+                                        } else {
+                                          setActivityBookings((prev) =>
+                                            prev.map((activity, i) =>
+                                              i == 0
+                                                ? {
+                                                    ...activity,
+                                                    passengers:
+                                                      activity.passengers.map(
+                                                        (passenger, pI) =>
+                                                          pI == pIndx
+                                                            ? {
+                                                                ...passenger,
+                                                                passengerDetails:
+                                                                  passenger.passengerDetails.map(
+                                                                    (
+                                                                      pQuestion
+                                                                    ) =>
+                                                                      pQuestion.questionId ==
+                                                                      question.questionId
+                                                                        ? {
+                                                                            ...pQuestion,
+                                                                            answers:
+                                                                              [
+                                                                                format(
+                                                                                  date,
+                                                                                  "yyyy-MM-dd"
+                                                                                ),
+                                                                              ],
+                                                                          }
+                                                                        : pQuestion
+                                                                  ),
+                                                              }
+                                                            : passenger
+                                                      ),
+                                                  }
+                                                : activity
+                                            )
+                                          );
+                                        }
+                                        document
+                                          .querySelector<HTMLButtonElement>(
+                                            `[data-popover-close="${question.questionId}"]`
+                                          )
+                                          ?.click();
+                                      }}
+                                    />
+                                    <PopoverClose asChild>
+                                      <button
+                                        type="button"
+                                        hidden
+                                        data-popover-close={question.questionId}
+                                      />
+                                    </PopoverClose>
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+                            );
+                          }
                           return (
                             <div
-                              key={bookingQuestion.id}
-                              className="flex flex-col gap-1 w-full items-start"
+                              key={question.questionId}
+                              className="w-full flex flex-col gap-1 items-start"
                             >
-                              <FormLabel>
-                                {bookingQuestion.label}
-                                {bookingQuestion.required && (
-                                  <span className="text-xs font-semibold text-destructive">
+                              <Label className="text-sm font-normal">
+                                {question.label}
+                                {question.required && (
+                                  <span className="text-xs text-destructive">
                                     *
                                   </span>
                                 )}
-                              </FormLabel>
-                              {(() => {
-                                switch (bookingQuestion.dataType) {
-                                  case "SHORT_TEXT":
-                                    return (
-                                      <Input
-                                        value={bookingQuestion.value}
-                                        onChange={(e) =>
-                                          handleMainPaxChange(
-                                            bookingQuestion.id,
-                                            e.target.value
-                                          )
-                                        }
-                                        placeholder={
-                                          bookingQuestion.placeholder ?? ""
-                                        }
-                                        className="w-full"
-                                      />
-                                    );
-                                  case "LONG_TEXT":
-                                    return (
-                                      <Textarea
-                                        value={bookingQuestion.value}
-                                        onChange={(e) =>
-                                          handleMainPaxChange(
-                                            bookingQuestion.id,
-                                            e.target.value
-                                          )
-                                        }
-                                        placeholder={
-                                          bookingQuestion.placeholder ?? ""
-                                        }
-                                        className="w-full resize-none h-16"
-                                      />
-                                    );
-                                  case "INT":
-                                    return (
-                                      <Input
-                                        value={bookingQuestion.value}
-                                        onChange={(e) =>
-                                          handleMainPaxChange(
-                                            bookingQuestion.id,
-                                            e.target.value
-                                          )
-                                        }
-                                        placeholder={
-                                          bookingQuestion.placeholder ?? ""
-                                        }
-                                        type="number"
-                                        step={1}
-                                        className="w-full"
-                                      />
-                                    );
-                                  case "DOUBLE":
-                                    return (
-                                      <Input
-                                        value={bookingQuestion.value}
-                                        onChange={(e) =>
-                                          handleMainPaxChange(
-                                            bookingQuestion.id,
-                                            e.target.value
-                                          )
-                                        }
-                                        placeholder={
-                                          bookingQuestion.placeholder ?? ""
-                                        }
-                                        type="number"
-                                        step="any"
-                                        className="w-full"
-                                      />
-                                    );
-                                  case "BOOLEAN":
-                                    return <>BOOLEAN</>;
-                                  case "CHECKBOX_TOGGLE":
-                                    return <>CHECKBOX</>;
-                                  case "DATE":
-                                    return <>DATE</>;
-                                  case "DATE_AND_TIME":
-                                    return <>DATE_AND_TIME</>;
-                                  case "OPTIONS":
-                                    return <>OPTIONS</>;
+                              </Label>
+                              <Input
+                                value={
+                                  question.answers ? question.answers[0] : ""
                                 }
-                              })()}
+                                onChange={(e) => {
+                                  setActivityBookings((prev) =>
+                                    prev.map((activity, i) =>
+                                      i == 0
+                                        ? {
+                                            ...activity,
+                                            passengers: activity.passengers.map(
+                                              (passenger, pI) =>
+                                                pI == pIndx
+                                                  ? {
+                                                      ...passenger,
+                                                      passengerDetails:
+                                                        passenger.passengerDetails.map(
+                                                          (pQuestion) =>
+                                                            pQuestion.questionId ==
+                                                            question.questionId
+                                                              ? {
+                                                                  ...pQuestion,
+                                                                  answers: [
+                                                                    e.target
+                                                                      .value,
+                                                                  ],
+                                                                }
+                                                              : pQuestion
+                                                        ),
+                                                    }
+                                                  : passenger
+                                            ),
+                                          }
+                                        : activity
+                                    )
+                                  );
+                                }}
+                                className={cn(
+                                  "w-full",
+                                  (question.answers
+                                    ? question.answers[0]
+                                    : "") == "" &&
+                                    question.required &&
+                                    "border border-destructive"
+                                )}
+                              />
                             </div>
                           );
-                        }
-                        if (isPaxInfoQuestion(bookingQuestion)) {
-                          switch (bookingQuestion.type) {
-                            case "TITLE":
-                              return (
-                                <div
-                                  key={bookingQuestion.type}
-                                  className="w-full flex flex-col gap-2 items-start"
-                                >
-                                  <FormLabel>{t("title")}</FormLabel>
-                                  <Select
-                                    onValueChange={(v) => {
-                                      handleMainPaxChange(
-                                        bookingQuestion.id,
-                                        v
-                                      );
-                                    }}
-                                    value={bookingQuestion.value}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue
-                                        placeholder={t("choose-one")}
-                                      />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="sr">
-                                        {t("sr")}
-                                      </SelectItem>
-                                      <SelectItem value="mrs">
-                                        {t("msr")}
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <PaxInfoErrorComponent
-                                    value={bookingQuestion.value}
-                                    required={bookingQuestion.required}
-                                    validator={(arg0: any) => {
-                                      if (
-                                        (arg0.toString() as string).length > 0
-                                      ) {
-                                        return false;
-                                      }
-                                      return "invalid-language";
-                                    }}
-                                  />
-                                </div>
-                              );
-                            case "PERSONAL_ID_NUMBER":
-                              return (
-                                <div
-                                  key={bookingQuestion.type}
-                                  className="w-full flex flex-col gap-2 items-start"
-                                >
-                                  <FormLabel>{t("cc-number-title")}</FormLabel>
-                                  <Input
-                                    value={bookingQuestion.value}
-                                    onChange={(e) => {
-                                      handleMainPaxChange(
-                                        bookingQuestion.id,
-                                        e.target.value
-                                      );
-                                    }}
-                                    type="text"
-                                    className="w-full"
-                                  />
-                                  <PaxInfoErrorComponent
-                                    value={bookingQuestion.value}
-                                    required={bookingQuestion.required}
-                                    validator={(arg0: any) => {
-                                      const regex = /^[A-Z0-9]{6,15}$/i;
-                                      if (
-                                        regex.test(
-                                          (arg0.toString() as string).trim()
-                                        )
-                                      ) {
-                                        return false;
-                                      }
-                                      return "invalid-cc";
-                                    }}
-                                  />
-                                </div>
-                              );
-                            case "NATIONALITY":
-                              return (
-                                <div
-                                  key={bookingQuestion.type}
-                                  className="w-full flex flex-col gap-2 items-start"
-                                >
-                                  <FormLabel>{t("nationality")}</FormLabel>
-                                  <CountrySelect
-                                    placeholder={t("choose-nationality")}
-                                    value={bookingQuestion.value}
-                                    onChange={(e) => {
-                                      handleMainPaxChange(
-                                        bookingQuestion.id,
-                                        e
-                                      );
-                                    }}
-                                    className="w-full"
-                                  />
-                                  <PaxInfoErrorComponent
-                                    value={bookingQuestion.value}
-                                    required={bookingQuestion.required}
-                                    validator={(arg0: any) => {
-                                      if (
-                                        (arg0.toString() as string).length > 0
-                                      ) {
-                                        return false;
-                                      }
-                                      return "invalid-country";
-                                    }}
-                                  />
-                                </div>
-                              );
-                            case "GENDER":
-                              return (
-                                <div
-                                  key={bookingQuestion.type}
-                                  className="w-full flex flex-col gap-2 items-start"
-                                >
-                                  <FormLabel>{t("gender")}</FormLabel>
-                                  <Select
-                                    onValueChange={(v) => {
-                                      handleMainPaxChange(
-                                        bookingQuestion.id,
-                                        v
-                                      );
-                                    }}
-                                    value={bookingQuestion.value}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue
-                                        placeholder={t("choose-one")}
-                                      />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="male">
-                                        {t("male")}
-                                      </SelectItem>
-                                      <SelectItem value="female">
-                                        {t("female")}
-                                      </SelectItem>
-                                      <SelectItem value="other">
-                                        {t("gende-other")}
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <PaxInfoErrorComponent
-                                    value={bookingQuestion.value}
-                                    required={bookingQuestion.required}
-                                    validator={(arg0: any) => {
-                                      if (
-                                        (arg0.toString() as string).length > 0
-                                      ) {
-                                        return false;
-                                      }
-                                      return "invalid-gender";
-                                    }}
-                                  />
-                                </div>
-                              );
-                            case "ORGANIZATION":
-                              return (
-                                <div
-                                  key={bookingQuestion.type}
-                                  className="w-full flex flex-col gap-2 items-start"
-                                >
-                                  <FormLabel>{t("company-name")}</FormLabel>
-                                  <Input
-                                    value={bookingQuestion.value}
-                                    onChange={(e) => {
-                                      handleMainPaxChange(
-                                        bookingQuestion.id,
-                                        e.target.value
-                                      );
-                                    }}
-                                    type="text"
-                                    className="w-full"
-                                  />
-                                  <PaxInfoErrorComponent
-                                    value={bookingQuestion.value}
-                                    required={bookingQuestion.required}
-                                    validator={(arg0: any) => {
-                                      if (
-                                        (arg0.toString() as string).trim()
-                                          .length >= 2
-                                      ) {
-                                        return false;
-                                      }
-                                      return "invalid-company";
-                                    }}
-                                  />
-                                </div>
-                              );
-                            case "PASSPORT_ID":
-                              return (
-                                <div
-                                  key={bookingQuestion.type}
-                                  className="w-full flex flex-col gap-2 items-start"
-                                >
-                                  <FormLabel>{t("passport-number")}</FormLabel>
-                                  <Input
-                                    value={bookingQuestion.value}
-                                    onChange={(e) => {
-                                      handleMainPaxChange(
-                                        bookingQuestion.id,
-                                        e.target.value
-                                      );
-                                    }}
-                                    type="text"
-                                    className="w-full"
-                                  />
-                                  <PaxInfoErrorComponent
-                                    value={bookingQuestion.value}
-                                    required={bookingQuestion.required}
-                                    validator={(arg0: any) => {
-                                      const regex = /^[A-Z0-9]{6,12}$/i;
-                                      if (
-                                        regex.test(
-                                          (arg0.toString() as string).trim()
-                                        )
-                                      ) {
-                                        return false;
-                                      }
-                                      return "invalid-passport";
-                                    }}
-                                  />
-                                </div>
-                              );
-                            case "PASSPORT_EXPIRY":
-                              return (
-                                <div
-                                  key={bookingQuestion.type}
-                                  className="w-full flex flex-col gap-2 items-start"
-                                >
-                                  <FormLabel>{t("passport-expiry")}</FormLabel>
-                                  <Input
-                                    value={bookingQuestion.value}
-                                    onChange={(e) => {
-                                      handleMainPaxChange(
-                                        bookingQuestion.id,
-                                        e.target.value
-                                      );
-                                    }}
-                                    type="number"
-                                    className="w-full"
-                                  />
-                                  <PaxInfoErrorComponent
-                                    value={bookingQuestion.value}
-                                    required={bookingQuestion.required}
-                                    validator={(arg0: any) => {
-                                      const regex = /^(0[1-9]|1[0-2])\/\d{2}$/;
-                                      if (
-                                        regex.test(
-                                          (arg0.toString() as string).trim()
-                                        )
-                                      ) {
-                                        return false;
-                                      }
-                                      return "invalid-expiry";
-                                    }}
-                                  />
-                                </div>
-                              );
-                            case "DATE_OF_BIRTH":
-                              return (
-                                <div
-                                  key={bookingQuestion.type}
-                                  className="w-full flex flex-col gap-2 items-start"
-                                >
-                                  <FormLabel>{t("birthdate")}</FormLabel>
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button
-                                      type="button"
-                                        variant="outline"
-                                        id="date"
-                                        className="w-full justify-between font-normal"
-                                      >
-                                        {bookingQuestion.value
-                                          ? bookingQuestion.value
-                                          : t("select-date")}
-                                        <CalendarIcon />
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent
-                                      className="w-auto overflow-hidden p-0"
-                                      align="start"
-                                    >
-                                      <Calendar
-                                        selected={
-                                          bookingQuestion.value
-                                            ? parse(
-                                                bookingQuestion.value,
-                                                "yyyy-MM-dd",
-                                                new Date()
-                                              )
-                                            : undefined
-                                        }
-                                        onSelect={(date) => {
-                                          handleMainPaxChange(
-                                            bookingQuestion.id,
-                                            date
-                                              ? format(date, "yyyy-MM-dd")
-                                              : ""
-                                          );
-                                        }}
-                                        mode="single"
-                                        captionLayout="dropdown"
-                                      />
-                                    </PopoverContent>
-                                  </Popover>
-                                  <PaxInfoErrorComponent
-                                    value={bookingQuestion.value}
-                                    required={bookingQuestion.required}
-                                    validator={(arg0: any) => {
-                                      try {
-                                        const parsed = parse(
-                                          arg0.toString() as string,
-                                          "yyyy-MM-dd",
-                                          new Date()
-                                        );
-                                        if (parsed) {
-                                          return false;
-                                        }
-                                        return "invalid-date";
-                                      } catch {
-                                        return "invalid-date";
-                                      }
-                                    }}
-                                  />
-                                </div>
-                              );
-                            case "LANGUAGE":
-                              return (
-                                <div
-                                  key={bookingQuestion.type}
-                                  className="w-full flex flex-col gap-2 items-start"
-                                >
-                                  <FormLabel>{t("your-language")}</FormLabel>
-                                  <CountrySelect
-                                    placeholder={t("lang-placeholder")}
-                                    value={bookingQuestion.value}
-                                    onChange={(e) => {
-                                      handleMainPaxChange(
-                                        bookingQuestion.id,
-                                        e
-                                      );
-                                    }}
-                                    className="w-full"
-                                  />
-                                  <PaxInfoErrorComponent
-                                    value={bookingQuestion.value}
-                                    required={bookingQuestion.required}
-                                    validator={(arg0: any) => {
-                                      if (
-                                        (arg0.toString() as string).length > 0
-                                      ) {
-                                        return false;
-                                      }
-                                      return "invalid-language";
-                                    }}
-                                  />
-                                </div>
-                              );
-                          }
-                        }
-                      })}
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-            {otherPaxInfo &&
-              otherPaxInfo.length > 0 &&
-              Object.values(guests).reduce((prev, curr) => (prev += curr), 0) -
-                1 >
-                0 && (
-                <>
-                  <p className="sm:text-base text-sm pb-1 border-b-2 w-fit pr-4 border-b-primary font-semibold">
-                    {t("other-travelers-info")}{" "}
-                    {`${
-                      otherPaxAnswers.filter(
-                        (answer) =>
-                          !answer.some((ans) =>
-                            !ans.touched
-                          )
-                      ).length
-                    }/${
-                      Object.values(guests).reduce(
-                        (prev, curr) => (prev += curr),
-                        0
-                      ) - 1
-                    }`}
-                  </p>
-                  <div className="flex flex-row items-center justify-start gap-2 flex-wrap">
-                    {otherPaxAnswers.filter(
-                        (answer) =>
-                          !answer.some((ans) =>
-                            !ans.touched
-                          )
-                      )
-                      .map((otherPaxAnswer, indx) => {
-                        return (
-                          <Button
-                          type="button"
-                            key={indx}
-                            onClick={() => {
-                              const currentAnswers: Record<string,string> = {};
-                              for(const answer of otherPaxAnswer){
-                                currentAnswers[answer.id] = answer.value;
-                              }
-                              setOtherPaxCurrentAnswers(currentAnswers);
-                              setAddOtherPaxDialogIndx(indx);
-                              setAddOtherPaxDialogOpen(true);
-                            }}
-                            variant={"secondary"}
-                            className="h-fit! w-fit p-2 rounded-full relative"
-                          >
-                            P{indx + 1}
-                            <Edit2 className="w-2 h-2 text-primary absolute -right-1 -top-1" />
-                          </Button>
-                        );
-                      })}
-
-                    <Dialog
-                      open={addOtherPaxDialogOpen}
-                      onOpenChange={(b) => {
-                        if (!b) {
-                          setAddOtherPaxDialogIndx(undefined);
-                          setOtherPaxCurrentAnswers({});
-                        }
-                        setAddOtherPaxDialogOpen(b);
-                      }}
-                    >
-                      <DialogTrigger asChild>
-                        <Button
-                        type="button"
-                          variant={"secondary"}
-                          className={cn(
-                            "h-fit! w-fit p-2 rounded-full",
-                            otherPaxAnswers.filter(
-                              (answer) =>
-                                !answer.some((ans) =>
-                                  !ans.touched
-                                )
-                            ).length <
-                              Object.values(guests).reduce(
-                                (prev, curr) => (prev += curr),
-                                0
-                              ) -
-                                1
-                              ? "flex"
-                              : "hidden"
-                          )}
-                        >
-                          <Plus />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>{t("add-other-title")}</DialogTitle>
-                          <DialogDescription>
-                            {t("other-guests-desc")}
-                          </DialogDescription>
-                        </DialogHeader>
-
-                        <div className="w-full flex flex-col gap-2 items-start">
-                          <Separator className="mb-4 bg-primary w-full h-[2px]" />
-                          {otherPaxAnswers.length > 0 && (
-                            <>
-                              {otherPaxAnswers[
-                                addOtherPaxDialogIndex ?? otherPaxAnswers.filter(
-                                  (answer) =>
-                                    !answer.some((ans) =>
-                                      !ans.touched
-                                    )
-                                ).length
-                              ]?.map((bookingQuestion) => {
-                                if (isPaxBookingQuestion(bookingQuestion)) {
-                                  return (
-                                    <div
-                                      key={bookingQuestion.id}
-                                      className="flex flex-col gap-1 w-full items-start"
-                                    >
-                                      <FormLabel>
-                                        {bookingQuestion.label}
-                                        {bookingQuestion.required && (
-                                          <span className="text-xs font-semibold text-destructive">
-                                            *
-                                          </span>
-                                        )}
-                                      </FormLabel>
-                                      {(() => {
-                                        switch (bookingQuestion.dataType) {
-                                          case "SHORT_TEXT":
-                                            return (
-                                              <Input
-                                                value={
-                                                  otherPaxCurrentAnswers[
-                                                    bookingQuestion.id
-                                                  ] ?? ""
-                                                }
-                                                onChange={(e) => {
-                                                  setOtherPaxCurrentAnswers(
-                                                    (prev) => {
-                                                      return {
-                                                        ...prev,
-                                                        [bookingQuestion.id]:
-                                                          e.target.value,
-                                                      };
-                                                    }
-                                                  );
-                                                }}
-                                                placeholder={
-                                                  bookingQuestion.placeholder ??
-                                                  ""
-                                                }
-                                                className="w-full"
-                                              />
-                                            );
-                                          case "LONG_TEXT":
-                                            return (
-                                              <Textarea
-                                                value={
-                                                  otherPaxCurrentAnswers[
-                                                    bookingQuestion.id
-                                                  ] ?? ""
-                                                }
-                                                onChange={(e) => {
-                                                  setOtherPaxCurrentAnswers(
-                                                    (prev) => {
-                                                      return {
-                                                        ...prev,
-                                                        [bookingQuestion.id]:
-                                                          e.target.value,
-                                                      };
-                                                    }
-                                                  );
-                                                }}
-                                                placeholder={
-                                                  bookingQuestion.placeholder ??
-                                                  ""
-                                                }
-                                                className="w-full resize-none h-16"
-                                              />
-                                            );
-                                          case "INT":
-                                            return (
-                                              <Input
-                                                value={
-                                                  otherPaxCurrentAnswers[
-                                                    bookingQuestion.id
-                                                  ] ?? ""
-                                                }
-                                                onChange={(e) => {
-                                                  setOtherPaxCurrentAnswers(
-                                                    (prev) => {
-                                                      return {
-                                                        ...prev,
-                                                        [bookingQuestion.id]:
-                                                          e.target.value,
-                                                      };
-                                                    }
-                                                  );
-                                                }}
-                                                placeholder={
-                                                  bookingQuestion.placeholder ??
-                                                  ""
-                                                }
-                                                type="number"
-                                                step={1}
-                                                className="w-full"
-                                              />
-                                            );
-                                          case "DOUBLE":
-                                            return (
-                                              <Input
-                                                value={
-                                                  otherPaxCurrentAnswers[
-                                                    bookingQuestion.id
-                                                  ] ?? ""
-                                                }
-                                                onChange={(e) => {
-                                                  setOtherPaxCurrentAnswers(
-                                                    (prev) => {
-                                                      return {
-                                                        ...prev,
-                                                        [bookingQuestion.id]:
-                                                          e.target.value,
-                                                      };
-                                                    }
-                                                  );
-                                                }}
-                                                placeholder={
-                                                  bookingQuestion.placeholder ??
-                                                  ""
-                                                }
-                                                type="number"
-                                                step="any"
-                                                className="w-full"
-                                              />
-                                            );
-                                          case "BOOLEAN":
-                                            return <>BOOLEAN</>;
-                                          case "CHECKBOX_TOGGLE":
-                                            return <>CHECKBOX</>;
-                                          case "DATE":
-                                            return <>DATE</>;
-                                          case "DATE_AND_TIME":
-                                            return <>DATE_AND_TIME</>;
-                                          case "OPTIONS":
-                                            return <>OPTIONS</>;
-                                        }
-                                      })()}
-                                    </div>
-                                  );
-                                }
-                                if (isPaxInfoQuestion(bookingQuestion)) {
-                                  switch (bookingQuestion.type) {
-                                    case "FIRST_NAME":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>
-                                            {t("first-name")}
-                                          </FormLabel>
-                                          <Input
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]:
-                                                      e.target.value,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                            type="text"
-                                            className="w-full"
-                                          />
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={(arg0: any) => {
-                                              if (
-                                                (
-                                                  arg0.toString() as string
-                                                ).trim().length > 2
-                                              ) {
-                                                return false;
-                                              }
-                                              return "invalid-first-name";
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "LAST_NAME":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>
-                                            {t("last-name")}
-                                          </FormLabel>
-                                          <Input
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]:
-                                                      e.target.value,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                            type="text"
-                                            className="w-full"
-                                          />
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={(arg0: any) => {
-                                              if (
-                                                (
-                                                  arg0.toString() as string
-                                                ).trim().length > 2
-                                              ) {
-                                                return false;
-                                              }
-                                              return "invalid-last-name";
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "EMAIL":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>{t("email")}</FormLabel>
-                                          <Input
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]:
-                                                      e.target.value,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                            type="email"
-                                            className="w-full"
-                                          />
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={(arg0: any) => {
-                                              const regex =
-                                                /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                                              if (
-                                                regex.test(
-                                                  (
-                                                    arg0.toString() as string
-                                                  ).trim()
-                                                )
-                                              ) {
-                                                return false;
-                                              }
-                                              return "invalid-email";
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "PHONE_NUMBER":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>{t("phone")}</FormLabel>
-                                          <PhoneInput
-                                            defaultCountry="PT"
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]: e,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                            className="w-full"
-                                          />
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={(arg0: any) => {
-                                              if (
-                                                (
-                                                  arg0.toString() as string
-                                                ).trim().length > 0
-                                              ) {
-                                                return false;
-                                              }
-                                              return "invalid-phone";
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "ADDRESS":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>
-                                            {t("full-address")}
-                                          </FormLabel>
-                                          <Input
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]:
-                                                      e.target.value,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                            type="text"
-                                            className="w-full"
-                                          />
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={(arg0: any) => {
-                                              if (
-                                                (
-                                                  arg0.toString() as string
-                                                ).trim().length >= 2
-                                              ) {
-                                                return false;
-                                              }
-                                              return "invalid-address";
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "TITLE":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>{t("title")}</FormLabel>
-                                          <Select
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onValueChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]: e,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                            defaultValue="sr"
-                                          >
-                                            <SelectTrigger className="w-full">
-                                              <SelectValue
-                                                placeholder={t("choose-one")}
-                                              />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="sr">
-                                                {t("sr")}
-                                              </SelectItem>
-                                              <SelectItem value="mrs">
-                                                {t("msr")}
-                                              </SelectItem>
-                                            </SelectContent>
-                                          </Select>
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={(arg0: any) => {
-                                              if (
-                                                (arg0.toString() as string)
-                                                  .length > 0
-                                              ) {
-                                                return false;
-                                              }
-                                              return "invalid-language";
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "PERSONAL_ID_NUMBER":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>
-                                            {t("cc-number-title")}
-                                          </FormLabel>
-                                          <Input
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]:
-                                                      e.target.value,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                            type="text"
-                                            className="w-full"
-                                          />
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={(arg0: any) => {
-                                              const regex = /^[A-Z0-9]{6,15}$/i;
-                                              if (
-                                                regex.test(
-                                                  (
-                                                    arg0.toString() as string
-                                                  ).trim()
-                                                )
-                                              ) {
-                                                return false;
-                                              }
-                                              return "invalid-cc";
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "NATIONALITY":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>
-                                            {t("nationality")}
-                                          </FormLabel>
-                                          <CountrySelect
-                                            placeholder={t(
-                                              "choose-nationality"
-                                            )}
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]: e,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                            className="w-full"
-                                          />
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""?.toString() ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={() => {
-                                              return false;
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "GENDER":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>{t("gender")}</FormLabel>
-                                          <Select
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onValueChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]: e,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                          >
-                                            <SelectTrigger className="w-full">
-                                              <SelectValue
-                                                placeholder={t("choose-one")}
-                                              />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="male">
-                                                {t("male")}
-                                              </SelectItem>
-                                              <SelectItem value="female">
-                                                {t("female")}
-                                              </SelectItem>
-                                              <SelectItem value="other">
-                                                {t("gende-other")}
-                                              </SelectItem>
-                                            </SelectContent>
-                                          </Select>
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""?.toString() ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={() => {
-                                              return false;
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "ORGANIZATION":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>
-                                            {t("company-name")}
-                                          </FormLabel>
-                                          <Input
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]:
-                                                      e.target.value,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                            type="text"
-                                            className="w-full"
-                                          />
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={(arg0: any) => {
-                                              if (
-                                                (
-                                                  arg0.toString() as string
-                                                ).trim().length >= 2
-                                              ) {
-                                                return false;
-                                              }
-                                              return "invalid-company";
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "PASSPORT_ID":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>
-                                            {t("passport-number")}
-                                          </FormLabel>
-                                          <Input
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]:
-                                                      e.target.value,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                            type="text"
-                                            className="w-full"
-                                          />
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={(arg0: any) => {
-                                              const regex = /^[A-Z0-9]{6,12}$/i;
-                                              if (
-                                                regex.test(
-                                                  (
-                                                    arg0.toString() as string
-                                                  ).trim()
-                                                )
-                                              ) {
-                                                return false;
-                                              }
-                                              return "invalid-cc";
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "PASSPORT_EXPIRY":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>
-                                            {t("passport-expiry")}
-                                          </FormLabel>
-                                          <Input
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]:
-                                                      e.target.value,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                            type="number"
-                                            className="w-full"
-                                          />
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={(arg0: any) => {
-                                              const regex =
-                                                /^(0[1-9]|1[0-2])\/\d{2}$/;
-                                              if (
-                                                regex.test(
-                                                  (
-                                                    arg0.toString() as string
-                                                  ).trim()
-                                                )
-                                              ) {
-                                                return false;
-                                              }
-                                              return "invalid-cc";
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "DATE_OF_BIRTH":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>
-                                            {t("birthdate")}
-                                          </FormLabel>
-                                          <Popover
-                                            open={addOtherPaxBirthdayOpen}
-                                            onOpenChange={
-                                              setAddOtherPaxBirthdayOpen
-                                            }
-                                          >
-                                            <PopoverTrigger asChild>
-                                              <Button
-                                              type="button"
-                                                variant="outline"
-                                                id="date"
-                                                className="w-full justify-between font-normal"
-                                              >
-                                                 {(otherPaxCurrentAnswers[
-                                                  bookingQuestion.id
-                                                ] ?? "") == "" ? "Select date" : otherPaxCurrentAnswers[
-                                                  bookingQuestion.id
-                                                ]}
-                                               
-                                                <CalendarIcon />
-                                              </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent
-                                              className="w-auto overflow-hidden p-0 z-99"
-                                              align="start"
-                                            >
-                                              <Calendar
-                                                selected={
-                                                  (otherPaxCurrentAnswers[
-                                                    bookingQuestion.id
-                                                  ] ?? "")!= ""
-                                                    ? parse(
-                                                        otherPaxCurrentAnswers[
-                                                          bookingQuestion.id
-                                                        ]!,
-                                                        "yyyy-MM-dd",
-                                                        new Date()
-                                                      )
-                                                    : undefined
-                                                }
-                                                onSelect={(date) => {
-                                                  setOtherPaxCurrentAnswers(
-                                                    (prev) => {
-                                                    
-                                                      return {
-                                                        ...prev,
-                                                        [bookingQuestion.id]:
-                                                          date
-                                                            ? format(
-                                                                date,
-                                                                "yyyy-MM-dd"
-                                                              )
-                                                            : "",
-                                                      };
-                                                    }
-                                                  );
-                                                  setAddOtherPaxBirthdayOpen(
-                                                    false
-                                                  );
-                                                }}
-                                                mode="single"
-                                                captionLayout="dropdown"
-                                              />
-                                            </PopoverContent>
-                                          </Popover>
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={(arg0: any) => {
-                                              try {
-                                                const parsed = parse(
-                                                  arg0.toString() as string,
-                                                  "yyyy-MM-dd",
-                                                  new Date()
-                                                );
-                                                if (parsed) {
-                                                  return false;
-                                                }
-                                                return "invalid-date";
-                                              } catch {
-                                                return "invalid-date";
-                                              }
-                                            }}
-                                          />
-                                        </div>
-                                      );
-                                    case "LANGUAGE":
-                                      return (
-                                        <div
-                                          key={bookingQuestion.type}
-                                          className="w-full flex flex-col gap-2 items-start"
-                                        >
-                                          <FormLabel>
-                                            {t("your-language")}
-                                          </FormLabel>
-                                          <CountrySelect
-                                            placeholder={t("lang-placeholder")}
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            onChange={(e) => {
-                                              setOtherPaxCurrentAnswers(
-                                                (prev) => {
-                                                  return {
-                                                    ...prev,
-                                                    [bookingQuestion.id]: e,
-                                                  };
-                                                }
-                                              );
-                                            }}
-                                            className="w-full"
-                                          />
-                                          <PaxInfoErrorComponent
-                                            value={
-                                              otherPaxCurrentAnswers[
-                                                bookingQuestion.id
-                                              ] ?? ""
-                                            }
-                                            required={bookingQuestion.required}
-                                            validator={(arg0: any) => {
-                                              if (
-                                                (arg0.toString() as string)
-                                                  .length > 0
-                                              ) {
-                                                return false;
-                                              }
-                                              return "invalid-language";
-                                            }}
-                                          />
-                                        </div>
-                                      );
+                        })}
+                        {passenger.questions.map((question) => {
+                          if (
+                            question.dataType == "OPTIONS" ||
+                            question.selectFromOptions
+                          ) {
+                            return (
+                              <div
+                                key={question.questionId}
+                                className="w-full flex flex-col gap-1 items-start"
+                              >
+                                <Label className="text-sm font-normal">
+                                  {question.label}
+                                  {question.required && (
+                                    <span className="text-xs text-destructive">
+                                      *
+                                    </span>
+                                  )}
+                                </Label>
+                                <Select
+                                  defaultValue={
+                                    question.defaultValue ?? undefined
                                   }
+                                  value={
+                                    question.answers ? question.answers[0] : ""
+                                  }
+                                  onValueChange={(v) =>
+                                    setActivityBookings((prev) =>
+                                      prev.map((activity, i) =>
+                                        i == 0
+                                          ? {
+                                              ...activity,
+                                              passengers:
+                                                activity.passengers.map(
+                                                  (passenger, pI) =>
+                                                    pI == pIndx
+                                                      ? {
+                                                          ...passenger,
+                                                          questions:
+                                                            passenger.questions.map(
+                                                              (pQuestion) =>
+                                                                pQuestion.questionId ==
+                                                                question.questionId
+                                                                  ? {
+                                                                      ...pQuestion,
+                                                                      answers: [
+                                                                        v,
+                                                                      ],
+                                                                    }
+                                                                  : pQuestion
+                                                            ),
+                                                        }
+                                                      : passenger
+                                                ),
+                                            }
+                                          : activity
+                                      )
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger
+                                    className={cn(
+                                      "w-full",
+                                      (question.answers
+                                        ? question.answers[0]
+                                        : "") == "" &&
+                                        question.required &&
+                                        "border border-destructive"
+                                    )}
+                                  >
+                                    <SelectValue
+                                      placeholder={
+                                        question.placeholder ?? t("choose-one")
+                                      }
+                                    />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {question.answerOptions.map((option) => {
+                                      if (option.value && option.label)
+                                        return (
+                                          <SelectItem
+                                            value={option.value}
+                                            key={option.value}
+                                          >
+                                            {option.label}
+                                          </SelectItem>
+                                        );
+                                    })}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            );
+                          }
+                          if (
+                            question.dataType == "CHECKBOX_TOGGLE" ||
+                            question.dataType == "BOOLEAN"
+                          ) {
+                            return (
+                              <div
+                                key={question.questionId}
+                                className="w-full flex flex-row gap-1 items-center"
+                              >
+                                <Checkbox
+                                  checked={
+                                    (question.answers
+                                      ? question.answers[0]
+                                      : "no") != "no"
+                                  }
+                                  onCheckedChange={(c) => {
+                                    setActivityBookings((prev) =>
+                                      prev.map((activity, i) =>
+                                        i == 0
+                                          ? {
+                                              ...activity,
+                                              passengers:
+                                                activity.passengers.map(
+                                                  (passenger, pI) =>
+                                                    pI == pIndx
+                                                      ? {
+                                                          ...passenger,
+                                                          questions:
+                                                            passenger.questions.map(
+                                                              (pQuestion) =>
+                                                                pQuestion.questionId ==
+                                                                question.questionId
+                                                                  ? {
+                                                                      ...pQuestion,
+                                                                      answers: [
+                                                                        c
+                                                                          ? "yes"
+                                                                          : "no",
+                                                                      ],
+                                                                    }
+                                                                  : pQuestion
+                                                            ),
+                                                        }
+                                                      : passenger
+                                                ),
+                                            }
+                                          : activity
+                                      )
+                                    );
+                                  }}
+                                />
+                                <Label className="text-sm font-normal">
+                                  {question.label}
+                                  {question.required && (
+                                    <span className="text-xs text-destructive">
+                                      *
+                                    </span>
+                                  )}
+                                </Label>
+                              </div>
+                            );
+                          }
+                          if (question.dataType == "DATE") {
+                            return (
+                              <div
+                                key={question.questionId}
+                                className="w-full flex flex-col gap-1 items-start"
+                              >
+                                <Label className="text-sm font-normal">
+                                  {question.label}
+                                  {question.required && (
+                                    <span className="text-xs text-destructive">
+                                      *
+                                    </span>
+                                  )}
+                                </Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      data-empty={
+                                        (question.answers
+                                          ? question.answers[0]
+                                          : "") == ""
+                                      }
+                                      className={
+                                        "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
+                                      }
+                                    >
+                                      <CalendarIcon />
+                                      {(question.answers
+                                        ? question.answers[0]
+                                        : "") != "" ? (
+                                        format(question.answers[0], "PPP")
+                                      ) : (
+                                        <span>{t("select-date")}</span>
+                                      )}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      captionLayout="dropdown"
+                                      showOutsideDays={false}
+                                      mode="single"
+                                      selected={
+                                        question.answers
+                                          ? parse(
+                                              question.answers[0],
+                                              "yyyy-MM-dd",
+                                              new Date()
+                                            )
+                                          : undefined
+                                      }
+                                      onSelect={(date) => {
+                                        if (!date) {
+                                          setActivityBookings((prev) =>
+                                            prev.map((activity, i) =>
+                                              i == 0
+                                                ? {
+                                                    ...activity,
+                                                    passengers:
+                                                      activity.passengers.map(
+                                                        (passenger, pI) =>
+                                                          pI == pIndx
+                                                            ? {
+                                                                ...passenger,
+                                                                questions:
+                                                                  passenger.questions.map(
+                                                                    (
+                                                                      pQuestion
+                                                                    ) =>
+                                                                      pQuestion.questionId ==
+                                                                      question.questionId
+                                                                        ? {
+                                                                            ...pQuestion,
+                                                                            answers:
+                                                                              [
+                                                                                "",
+                                                                              ],
+                                                                          }
+                                                                        : pQuestion
+                                                                  ),
+                                                              }
+                                                            : passenger
+                                                      ),
+                                                  }
+                                                : activity
+                                            )
+                                          );
+                                        } else {
+                                          setActivityBookings((prev) =>
+                                            prev.map((activity, i) =>
+                                              i == 0
+                                                ? {
+                                                    ...activity,
+                                                    passengers:
+                                                      activity.passengers.map(
+                                                        (passenger, pI) =>
+                                                          pI == pIndx
+                                                            ? {
+                                                                ...passenger,
+                                                                questions:
+                                                                  passenger.questions.map(
+                                                                    (
+                                                                      pQuestion
+                                                                    ) =>
+                                                                      pQuestion.questionId ==
+                                                                      question.questionId
+                                                                        ? {
+                                                                            ...pQuestion,
+                                                                            answers:
+                                                                              [
+                                                                                format(
+                                                                                  date,
+                                                                                  "yyyy-MM-dd"
+                                                                                ),
+                                                                              ],
+                                                                          }
+                                                                        : pQuestion
+                                                                  ),
+                                                              }
+                                                            : passenger
+                                                      ),
+                                                  }
+                                                : activity
+                                            )
+                                          );
+                                        }
+                                        document
+                                          .querySelector<HTMLButtonElement>(
+                                            `[data-popover-close="${question.questionId}"]`
+                                          )
+                                          ?.click();
+                                      }}
+                                    />
+                                    <PopoverClose asChild>
+                                      <button
+                                        type="button"
+                                        hidden
+                                        data-popover-close={question.questionId}
+                                      />
+                                    </PopoverClose>
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+                            );
+                          }
+                          return (
+                            <div
+                              key={question.questionId}
+                              className="w-full flex flex-col gap-1 items-start"
+                            >
+                              <Label className="text-sm font-normal">
+                                {question.label}
+                                {question.required && (
+                                  <span className="text-xs text-destructive">
+                                    *
+                                  </span>
+                                )}
+                              </Label>
+                              <Input
+                                value={
+                                  question.answers ? question.answers[0] : ""
                                 }
-                              })}
-                            </>
-                          )}
-                        </div>
-                        <Button
-                        type="button"
-                          onClick={() => {
-                            const index = addOtherPaxDialogIndex ?? otherPaxAnswers.filter(
-                              (answer) =>
-                                !answer.some((ans) =>
-                                  !ans.touched
-                                )
-                            ).length;
-                            handleOtherPaxBulkChange(index,otherPaxCurrentAnswers);
-                            setAddOtherPaxDialogIndx(undefined);
-                            setAddOtherPaxDialogOpen(false);
-                            setOtherPaxCurrentAnswers({});
-                          }}
-                        >
-                          {t("add-traveler-info")}
-                        </Button>
-                      </DialogContent>
-                    </Dialog>
+                                onChange={(e) => {
+                                  setActivityBookings((prev) =>
+                                    prev.map((activity, i) =>
+                                      i == 0
+                                        ? {
+                                            ...activity,
+                                            passengers: activity.passengers.map(
+                                              (passenger, pI) =>
+                                                pI == pIndx
+                                                  ? {
+                                                      ...passenger,
+                                                      questions:
+                                                        passenger.questions.map(
+                                                          (pQuestion) =>
+                                                            pQuestion.questionId ==
+                                                            question.questionId
+                                                              ? {
+                                                                  ...pQuestion,
+                                                                  answers: [
+                                                                    e.target
+                                                                      .value,
+                                                                  ],
+                                                                }
+                                                              : pQuestion
+                                                        ),
+                                                    }
+                                                  : passenger
+                                            ),
+                                          }
+                                        : activity
+                                    )
+                                  );
+                                }}
+                                className={cn(
+                                  "w-full",
+                                  (question.answers
+                                    ? question.answers[0]
+                                    : "") == "" &&
+                                    question.required &&
+                                    "border border-destructive"
+                                )}
+                              />
+                            </div>
+                          );
+                        })}
+                      </CarouselItem>
+                    );
+                  })}
+                </CarouselContent>
+                {activityBookings[0].passengers.length > 1 && (
+                  <div className="absolute top-0 right-0">
+                    <CarouselPrevious className="border-none p-0 right-0 top-4 shadow-none w-fit h-fit" />
+                    <CarouselNext className="border-none p-0 right-2 top-4 shadow-none w-fit h-fit" />
                   </div>
-                </>
-              )}
-            <Button type="button" onClick={handleSubmitAnswers} className="w-full">
+                )}
+              </Carousel>
+            )}
+            <Button
+              type="button"
+              onClick={() => {
+                setMainContactDetails((prev) =>
+                  prev.map((question) =>
+                    ["firstName", "lastName", "email", "phoneNumber"].includes(
+                      question.questionId
+                    )
+                      ? {
+                          ...question,
+                          answers:
+                            question.questionId == "firstName"
+                              ? [addressData?.firstName ?? ""]
+                              : question.questionId == "lastName"
+                              ? [addressData?.lastName ?? ""]
+                              : question.questionId == "email"
+                              ? [clientInfo.getValues("email") ?? ""]
+                              : [addressData?.phone ?? ""],
+                        }
+                      : question
+                  )
+                );
+                setStep("paying");
+              }}
+              disabled={
+                mainContactDetails
+                  .filter(
+                    (question) =>
+                      ![
+                        "firstName",
+                        "lastName",
+                        "email",
+                        "phoneNumber",
+                      ].includes(question.questionId)
+                  )
+                  .some(
+                    (question) =>
+                      question.required &&
+                      (question.answers ? question.answers[0] : "") == ""
+                  ) ||
+                activityBookings.some((activity) =>
+                  activity.passengers.some((passenger) =>
+                    passenger.passengerDetails.some(
+                      (question) =>
+                        question.required &&
+                        (question.answers ? question.answers[0] : "") == ""
+                    )
+                  )
+                ) ||
+                activityBookings.some((activity) =>
+                  activity.passengers.some((passenger) =>
+                    passenger.questions.some(
+                      (question) =>
+                        question.required &&
+                        (question.answers ? question.answers[0] : "") == ""
+                    )
+                  )
+                )
+              }
+              className="w-full"
+            >
               {t("proceed-payment")} <ArrowRight />
             </Button>
-            {questionsError && <p className="text-xs font-semibold text-destructive w-full text-center">{questionsError}</p>}
           </div>
         )}
 
@@ -2329,7 +2346,7 @@ Record<string, string>
                 </div>
 
                 <Button
-                type="button"
+                  type="button"
                   disabled={!stripe || loading || priceLoading}
                   onClick={() => {
                     setStep("client_info");

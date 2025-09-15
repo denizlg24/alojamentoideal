@@ -10,12 +10,13 @@ export async function fetchClientSecret(amount: number, client_name: string, cli
     state: string;
     postal_code: string;
     country: string;
-}) {
+},activityBookings?:string[]) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
     }
 
     const commaSeparatedReservationIds = reservationIds.join(",");
+    const commaSeparatedActivityIds = activityBookings?.join(",");
     try {
         const customer = await stripe.customers.create({
             name: client_name,
@@ -32,12 +33,13 @@ export async function fetchClientSecret(amount: number, client_name: string, cli
             statement_descriptor_suffix: "WWW.ALOJAMENTOIDEAL.PT",
             receipt_email: client_email,
             customer: customer.id,
-            description: `${client_name} - ${commaSeparatedReservationIds} - accommodation`,
+            description:  `${reservationIds.length > 0 ? `${client_name} - ${commaSeparatedReservationIds} - accommodation` : ''}${(commaSeparatedActivityIds?.length ?? 0) > 0 ? `${client_name} - ${commaSeparatedActivityIds} - activity` : ''}`,
             metadata: {
                 client_name,
                 client_email,
                 client_phone_number,
                 reservationIds: commaSeparatedReservationIds,
+                activityBookings:commaSeparatedActivityIds ?? '', 
                 notes: notes || "",
             },
             setup_future_usage: "off_session"

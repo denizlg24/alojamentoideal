@@ -348,7 +348,14 @@
     "your-language": "Seu idioma",
     "other-travelers-info": "Informações sobre outros viajantes:",
     "questions-incomplete-error": "Todos os campos necessários devem ser preenchidos.",
-    "select-date": "Selecione a data"
+    "select-date": "Selecione a data",
+    "additional-contact-information": "Informações de contato adicionais",
+    "booking-details": "Detalhes da reserva",
+    "i-want-to-select-my-own": "Eu quero especificar minha própria recolha",
+    "pickup-details": "Detalhes de recolha",
+    "pickup-place": "Escolha um ponto de recolha",
+    "traveler-info": "Viajante {count} Detalhes - {category}",
+    "your-details": "Seus detalhes"
   },
   "order": {
     "order_info": "Informações do Pedido",

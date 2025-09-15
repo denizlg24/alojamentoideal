@@ -21,6 +21,9 @@ type RegisterOrderInput = {
     tax_number?: string;
     isCompany: boolean;
     companyName?: string;
+    activityBookingIds?: string[],
+    activityBookingReferences?: string[],
+    orderId?: string
 };
 
 export async function registerOrder(data: RegisterOrderInput) {
@@ -77,13 +80,15 @@ export async function registerOrder(data: RegisterOrderInput) {
         const randomOrderId = generateReservationID();
 
         const order = new OrderModel({
-            orderId: randomOrderId,
+            orderId: data.orderId ? data.orderId : randomOrderId,
             name: data.name,
             email: data.email,
             phoneNumber: data.phoneNumber,
             notes: data.notes,
             reservationIds: data.reservationIds,
             reservationReferences: data.reservationReferences,
+            activityBookingIds:data.activityBookingIds ?? [],
+            activityBookingReferences:data.activityBookingReferences ?? [],
             items: plainItems,
             payment_id: data.payment_id,
             transaction_id: data.transaction_id,

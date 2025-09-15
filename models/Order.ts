@@ -19,6 +19,8 @@ export interface OrderDocument extends Document {
     tax_number?: string;
     isCompany: boolean;
     companyName?: string;
+    activityBookingIds?:string[];
+    activityBookingReferences?:string[];
 }
 
 export interface IOrder {
@@ -37,6 +39,8 @@ export interface IOrder {
     tax_number?: string;
     isCompany: boolean;
     companyName?: string;
+    activityBookingIds?:string[];
+    activityBookingReferences?:string[];
 }
 
 const FeeSchema = new mongoose.Schema<FeeType>(
@@ -119,7 +123,9 @@ const OrderSchema = new mongoose.Schema<OrderDocument>(
         tax_number: { type: String },
         transaction_id: [{ type: String }],
         companyName: { type: String },
-        isCompany: { type: Boolean }
+        isCompany: { type: Boolean },
+        activityBookingIds:[{type:String}],
+        activityBookingReferences:[{type:String}]
     },
     { timestamps: true }
 );

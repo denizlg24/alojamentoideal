@@ -10,6 +10,7 @@ import { GetActivityAvailability } from "@/app/actions/getExperienceAvailability
 import { CheckoutHolder } from "./checkout-holder";
 import { redirect } from "@/i18n/navigation";
 import { addDays, isSameDay } from "date-fns";
+import { randomUUID } from "crypto";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -187,9 +188,12 @@ export default async function Page({
     return;
   }
 
+  const cartId = randomUUID();
+
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <CheckoutHolder
+      cartId={cartId}
         selectedDate={new Date(date)}
         selectedRate={selectedRate}
         selectedStartTime={startTime}

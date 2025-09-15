@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
-const BOKUN_BASE_URL = "https://api.bokun.io";
-//const BOKUN_BASE_URL = "https://api.bokuntest.com";
+//const BOKUN_BASE_URL = "https://api.bokun.io";
+const BOKUN_BASE_URL = "https://api.bokuntest.com";
 interface BokunRequestOptions {
     method: "GET" | "POST" | "PUT" | "DELETE";
     path: string; // must start with "/"
@@ -799,6 +799,51 @@ export interface ExperienceAvailabilityDto {
     pickupSoldOut: boolean;
     soldOut: boolean;
 }
+
+export interface QuestionSpecificationDto {
+    questionId:string,
+    questionCode:string,
+    label:string,
+    help:string,
+    placeholder:string,
+    required:boolean,
+    defaultValue:string,
+    dataType:ExperienceBookingQuestionDataTypeDto,
+    dataFormat:"EMAIL_ADDRESS"|"URL"|"PHONE_NUMBER"|"COUNTRY"|"LANGUAGE"|"TIME"|"DAY_OF_MONTH"|"MONTH"|"YEAR"|"PATTERN";
+    flags:string[],
+    selectFromOptions:boolean;
+    selectMultiple:boolean;
+    answerOptions:{value:string,label:string}[],
+    answers:string[];
+    originalQuestion:string;
+}
+
+export interface PassengerQuestionsDto {
+    bookingId:number;
+    pricingCategoryId:number;
+    pricingCategoryTitle:number;
+    passengerDetails:QuestionSpecificationDto[];
+    questions:QuestionSpecificationDto[];
+}
+
+export interface ActivityBookingQuestionsDto{
+    bookingId:number;
+    activityId:number;
+    activityTitle:string;
+    questions:QuestionSpecificationDto[];
+    passengers:PassengerQuestionsDto[];
+    pickupQuestions:QuestionSpecificationDto[];
+    dropoffQuestions:QuestionSpecificationDto[];
+}
+
+export interface CheckoutOption {
+    type:"AGENT_AFFILIATE"|"AGENT_CUSTOMER"|"AGENT_RESELLER"|"CUSTOMER_FULL_PAYMENT"|"CUSTOMER_PARTIAL_PAYMENT"|"CUSTOMER_NO_PAYMENT"
+    label:string;
+    questions:QuestionSpecificationDto[];
+    amount:number;
+    currency:string;
+}
+
 
 export const categoriesMap: { [key: number]: { title: string, min?: number, max?: number } } = {
     //tests

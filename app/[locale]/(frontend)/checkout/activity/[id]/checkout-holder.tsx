@@ -57,6 +57,7 @@ function formatCancellationPolicy(
 }
 
 export const CheckoutHolder = ({
+  cartId,
   experience,
   selectedDate,
   selectedRate,
@@ -66,6 +67,7 @@ export const CheckoutHolder = ({
   guests,
   displayPrice,
 }: {
+  cartId:string,
   displayPrice: number;
   selectedDate: Date;
   selectedStartTime: ExperienceStartTimeDto | undefined;
@@ -262,6 +264,7 @@ export const CheckoutHolder = ({
       <Card className="col-span-2 w-full p-4">
         <Elements stripe={stripePromise}>
           <TourCheckoutForm
+          cartId={cartId}
             bookingQuestions={experience.bookingQuestions}
             mainPaxInfo={experience.mainPaxInfo}
             otherPaxInfo={experience.otherPaxInfo}

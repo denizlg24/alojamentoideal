@@ -348,7 +348,14 @@
     "edit": "Edit",
     "other-travelers-info": "Other travelers info: ",
     "select-date": "Select date",
-    "questions-incomplete-error": "All required fields must be filled in."
+    "questions-incomplete-error": "All required fields must be filled in.",
+    "your-details": "Your details",
+    "booking-details": "Booking Details",
+    "additional-contact-information": "Additional Contact Information",
+    "traveler-info": "Traveler {count} details - {category}",
+    "pickup-details": "Pickup details",
+    "pickup-place": "Choose a pickup spot",
+    "i-want-to-select-my-own": "I want to specify my own pick-up"
   },
   "order": {
     "order_info": "Order Information",
