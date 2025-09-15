@@ -4,13 +4,20 @@ import { Elements } from "@stripe/react-stripe-js";
 import { CheckoutForm } from "@/components/payment-form/checkout-form";
 import { useLocale, useTranslations } from "next-intl";
 import { useCart } from "@/hooks/cart-context";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Separator } from "../ui/separator";
 import Image from "next/image";
 import { format } from "date-fns";
 import { Card } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
 import { localeMap } from "@/lib/utils";
+import { CheckoutActivityCard } from "./checkout-activity-card";
+import {
+  ContactInformationDto,
+  ExperienceBookingQuestionDto,
+  PickupPlaceDto,
+} from "@/utils/bokun-requests";
+import { getCheckoutData } from "@/app/actions/getExperience";
 export const CheckoutHolder = () => {
   const locale = useLocale();
   const supportedLocales = [
@@ -78,7 +85,44 @@ export const CheckoutHolder = () => {
     { locale: safeLocale }
   );
 
+  const [mappedActivities, setMappedActivities] = useState<
+    {
+      meeting:
+        | {
+            type: "PICK_UP";
+            pickUpPlaces: PickupPlaceDto[];
+          }
+        | {
+            type: "MEET_ON_LOCATION";
+          }
+        | {
+            type: "MEET_ON_LOCATION_OR_PICK_UP";
+            pickUpPlaces: PickupPlaceDto[];
+          };
+      bookingQuestions: ExperienceBookingQuestionDto[];
+      rateId: number;
+      experienceId: number;
+      mainPaxInfo: ContactInformationDto[];
+      otherPaxInfo?: ContactInformationDto[];
+      selectedDate: Date;
+      selectedStartTimeId: number | undefined;
+      guests: { [categoryId: number]: number };
+    }[]
+  >([]);
+
   const { cart, getTotal, cartLoading } = useCart();
+
+  useEffect(() => {
+    const mapActivities = async () => {
+      const mapped = (
+        await getCheckoutData(cart.filter((item) => item.type == "activity"))
+      ).filter((v) => v != undefined);
+      setMappedActivities(mapped);
+    };
+    if (!cartLoading && cart.length > 0) {
+      mapActivities();
+    }
+  }, [cart, cartLoading]);
 
   return (
     <div className="lg:grid flex flex-col-reverse grid-cols-5 w-full max-w-7xl px-4 pt-12 gap-8 relative lg:items-start items-center">
@@ -114,7 +158,7 @@ export const CheckoutHolder = () => {
         )}
 
         {!cartLoading &&
-          cart.map((cartItem) => {
+          cart.map((cartItem, indx) => {
             if (cartItem.type == "accommodation") {
               return (
                 <div
@@ -126,7 +170,7 @@ export const CheckoutHolder = () => {
                     alt="cart-logo"
                     width={1080}
                     height={1080}
-                    className="w-full max-w-48 h-auto aspect-video! object-cover rounded"
+                    className="w-full lg:max-w-48 md:max-w-46 sm:max-w-42 min-[420px]:max-w-36 max-w-24 h-auto aspect-video! object-cover rounded"
                   />
                   <div className="w-full grow flex flex-col truncate gap-1">
                     <div className="flex flex-col w-full gap-0">
@@ -175,6 +219,15 @@ export const CheckoutHolder = () => {
                 </div>
               );
             }
+            if (cartItem.type == "activity") {
+              return (
+                <CheckoutActivityCard
+                  key={cartItem.id}
+                  activityItem={cartItem}
+                  index={indx}
+                />
+              );
+            }
           })}
 
         {!cartLoading && (
@@ -189,9 +242,18 @@ export const CheckoutHolder = () => {
         )}
       </Card>
       <div className="col-span-2 w-full">
-        <Elements stripe={stripePromise}>
-          <CheckoutForm />
-        </Elements>
+        {stripePromise ? (
+          <Elements stripe={stripePromise}>
+            {cart.filter((item) => item.type == "activity").length == 0 ||
+            mappedActivities.length != 0 ? (
+              <CheckoutForm activities={mappedActivities} />
+            ) : (
+              <Skeleton className="w-full h-full min-h-[250px]" />
+            )}
+          </Elements>
+        ) : (
+          <Skeleton className="w-full h-full min-h-[250px]" />
+        )}
       </div>
     </div>
   );

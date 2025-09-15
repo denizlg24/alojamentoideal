@@ -1,0 +1,183 @@
+{
+  "id": 1855076,
+  "title": "Douro 4x4 Off track with pic nic and 1 hour boat ride",
+  "description": "",
+  "index": 1,
+  "rateCode": "D4x4 with 1 hour boatride",
+  "pricedPerPerson": true,
+  "minPerBooking": 1,
+  "maxPerBooking": 16,
+  "cancellationPolicy": {
+    "id": 214871,
+    "title": "Non refundable",
+    "penaltyRules": [],
+    "tax": null,
+    "defaultPolicy": true,
+    "policyType": "NON_REFUNDABLE",
+    "simpleCutoffHours": null,
+    "policyTypeEnum": "NON_REFUNDABLE"
+  },
+  "fixedPassExpiryDate": null,
+  "passValidForDays": null,
+  "pickupSelectionType": "PRESELECTED",
+  "pickupPricingType": "INCLUDED_IN_PRICE",
+  "pickupPricedPerPerson": false,
+  "dropoffSelectionType": "UNAVAILABLE",
+  "dropoffPricingType": "INCLUDED_IN_PRICE",
+  "dropoffPricedPerPerson": false,
+  "extraConfigs": [
+    {
+      "id": 475916,
+      "activityExtraId": 197957,
+      "selectionType": "PRESELECTED",
+      "pricingType": "INCLUDED_IN_PRICE",
+      "pricedPerPerson": false
+    }
+  ],
+  "startTimeIds": [3446689],
+  "allStartTimes": false,
+  "tieredPricingEnabled": true,
+  "tiers": [
+    {
+      "id": 3475520,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 1,
+      "maxPassengersRequired": 1,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475521,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 2,
+      "maxPassengersRequired": 2,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475522,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 3,
+      "maxPassengersRequired": 3,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475523,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 4,
+      "maxPassengersRequired": 4,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475524,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 5,
+      "maxPassengersRequired": 5,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475525,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 6,
+      "maxPassengersRequired": 6,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475526,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 7,
+      "maxPassengersRequired": 7,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475527,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 8,
+      "maxPassengersRequired": 8,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475528,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 9,
+      "maxPassengersRequired": 9,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475529,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 10,
+      "maxPassengersRequired": 10,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475530,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 11,
+      "maxPassengersRequired": 11,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475531,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 12,
+      "maxPassengersRequired": 12,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475532,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 13,
+      "maxPassengersRequired": 13,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475533,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 14,
+      "maxPassengersRequired": 14,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475534,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 15,
+      "maxPassengersRequired": 15,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    },
+    {
+      "id": 3475535,
+      "created": [2025, 1, 7, 9, 35, 3, 0],
+      "minPassengersRequired": 16,
+      "maxPassengersRequired": 16,
+      "pricingCategoryId": 916196,
+      "activityRateId": 1855076
+    }
+  ],
+  "pricingCategoryIds": [916196],
+  "allPricingCategories": true,
+  "details": [],
+  "textItems": [
+    {
+      "id": 1855076,
+      "created": [2025, 9, 5, 15, 6, 59, 113431159],
+      "language": "en_GB",
+      "title": "Douro 4x4 Off track with pic nic and 1 hour boat ride",
+      "activityRateId": 1855076,
+      "description": ""
+    }
+  ]
+}

@@ -21,6 +21,9 @@ type RegisterOrderInput = {
     tax_number?: string;
     isCompany: boolean;
     companyName?: string;
+    activityBookingIds?: string[],
+    activityBookingReferences?: string[],
+    orderId?: string
 };
 
 export async function registerOrder(data: RegisterOrderInput) {
@@ -42,6 +45,19 @@ export async function registerOrder(data: RegisterOrderInput) {
                     description: item.description,
                     invoice: item.invoice
                 };
+            } else if (item.type == "activity") {
+                return {
+                    id: item.id,
+                    type: "activity",
+                    name: item.name,
+                    price: item.price,
+                    selectedDate: item.selectedDate,
+                    selectedRateId: item.selectedRateId,
+                    selectedStartTimeId: item.selectedStartTimeId,
+                    guests: item.guests,
+                    photo: item.photo,
+                    invoice: item.invoice
+                }
             } else {
                 return {
                     type: "accommodation",
@@ -64,13 +80,15 @@ export async function registerOrder(data: RegisterOrderInput) {
         const randomOrderId = generateReservationID();
 
         const order = new OrderModel({
-            orderId: randomOrderId,
+            orderId: data.orderId ? data.orderId : randomOrderId,
             name: data.name,
             email: data.email,
             phoneNumber: data.phoneNumber,
             notes: data.notes,
             reservationIds: data.reservationIds,
             reservationReferences: data.reservationReferences,
+            activityBookingIds:data.activityBookingIds ?? [],
+            activityBookingReferences:data.activityBookingReferences ?? [],
             items: plainItems,
             payment_id: data.payment_id,
             transaction_id: data.transaction_id,

@@ -1,9 +1,11 @@
 import { getHtml } from "@/app/actions/getHtml";
+import { getPaymentIntent } from "@/app/actions/getPaymentIntent";
 import { sendMail } from "@/app/actions/sendMail";
 import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
 import GuestDataModel from "@/models/GuestData";
 import OrderModel from "@/models/Order";
+import { bokunRequest } from "@/utils/bokun-requests";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { format } from "date-fns";
 import { getTranslations } from "next-intl/server";
@@ -66,9 +68,33 @@ export async function POST(req: Request) {
                         ])
                         console.log("reservation update: ", reservation_request, " transaction_update", transaction_request);
                     }
+                    if(foundOrder.activityBookingReferences){
+                        for (let index = 0; index < foundOrder.activityBookingReferences.length; index++) {
+                            const bookingCode = foundOrder.activityBookingReferences[index];
+                            const chargeResponse = await getPaymentIntent(payment_id);
+                            if(!chargeResponse.charge){
+                                continue;
+                            }
+                            const confirmationResponse = await bokunRequest({method:"POST",path:`/checkout.json/confirm-reserved/${bookingCode}`,body:{
+                                externalBookingReference:foundOrder.orderId,
+                                externalBookingEntityName:"Alojamento Ideal",
+                                sendNotificationToMainContact:false,
+                                transactionDetails:{
+                                    transactionDate:format(new Date,"yyyy-MM-dd"),
+                                    transactionId:chargeResponse.charge.id,
+                                    cardBrand:chargeResponse.charge.payment_method_details?.card?.brand ?? 'Bank',
+                                    last4:chargeResponse.charge.payment_method_details?.card?.last4 ?? '',
+                                },
+                                amount:chargeResponse.charge.amount/100,
+                                currency:chargeResponse.charge.currency
+                            }})
+                            console.log(confirmationResponse);
+                        }
+                    }
+                    
                     const plainItems = foundOrder.items;
                     const total = plainItems.reduce((prev, i) => {
-                        return i.type == "accommodation" ? prev + (i.front_end_price ?? 0) : prev + ((i.price ?? 0) * (i.quantity ?? 0))
+                        return i.type == "accommodation" ? prev + (i.front_end_price ?? 0) : i.type == 'activity' ? prev + (i.price ?? 0) : prev + ((i.price ?? 0) * (i.quantity ?? 0))
                     }, 0)
                     let products_html = ""
                     let a = 0;

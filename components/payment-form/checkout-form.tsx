@@ -1,3 +1,4 @@
+
 "use client";
 
 import { calculateAmount } from "@/app/actions/calculateAmount";
@@ -29,7 +30,11 @@ import {
 } from "../ui/form";
 import { useTranslations } from "next-intl";
 import { buyCart } from "@/app/actions/completeCheckout";
-import { Loader2, ArrowRight, Edit3 } from "lucide-react";
+import {
+  Loader2,
+  ArrowRight,
+  Edit3,
+} from "lucide-react";
 import { Appearance, PaymentRequest } from "@stripe/stripe-js";
 import { Separator } from "../ui/separator";
 import { checkVAT, countries } from "jsvat";
@@ -51,6 +56,12 @@ import cardSvg from "@/public/stripe-card.svg";
 import sepaSvg from "@/public/stripe-sepa.svg";
 import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  ContactInformationDto,
+  ExperienceBookingQuestionDto,
+  PickupPlaceDto,
+} from "@/utils/bokun-requests";
+import { Skeleton } from "../ui/skeleton";
 
 const elementStyle: Appearance = {
   variables: {
@@ -85,7 +96,32 @@ const FlagComponent = ({
   );
 };
 
-export const CheckoutForm = () => {
+export const CheckoutForm = ({
+  activities,
+}: {
+  activities: {
+    meeting:
+      | {
+          type: "PICK_UP";
+          pickUpPlaces: PickupPlaceDto[];
+        }
+      | {
+          type: "MEET_ON_LOCATION";
+        }
+      | {
+          type: "MEET_ON_LOCATION_OR_PICK_UP";
+          pickUpPlaces: PickupPlaceDto[];
+        };
+    bookingQuestions: ExperienceBookingQuestionDto[];
+    rateId: number;
+    experienceId: number;
+    mainPaxInfo: ContactInformationDto[];
+    otherPaxInfo?: ContactInformationDto[];
+    selectedDate: Date;
+    selectedStartTimeId: number | undefined;
+    guests: { [categoryId: number]: number };
+  }[];
+}) => {
   const t = useTranslations("checkout_form");
   const stripe = useStripe();
   const elements = useElements();
@@ -115,7 +151,9 @@ export const CheckoutForm = () => {
   const [needCompanySwitch, setNeedCompanySwitch] = useState(false);
   const [vatCountryCode, setVatCountryCode] = useState("PT");
   const [selectedTab, selectTab] = useState("card");
-  const [paying, setPaying] = useState(false);
+  const [step, setStep] = useState<"client_info" | number | "paying">(
+    "client_info"
+  );
 
   const router = useRouter();
   useEffect(() => {
@@ -271,6 +309,10 @@ export const CheckoutForm = () => {
     },
   });
 
+  //activities
+
+  //
+
   useEffect(() => {
     if (!loading) return;
 
@@ -401,7 +443,7 @@ export const CheckoutForm = () => {
     cart,
   ]);
 
-  if (checking) return null;
+  if (checking) return <Skeleton className="w-full h-full min-h-[250px]"/>;
 
   return (
     <Card className="p-4">
@@ -410,7 +452,7 @@ export const CheckoutForm = () => {
           onSubmit={clientInfo.handleSubmit(handleSubmit)}
           className="w-full flex flex-col gap-2"
         >
-          {!paying && (
+          {step == "client_info" && (
             <>
               <FormField
                 control={clientInfo.control}
@@ -603,15 +645,20 @@ export const CheckoutForm = () => {
                     setError("provide_information");
                     return;
                   }
-                  setPaying(true);
+                  if (activities.length > 0) {
+                    setStep(0);
+                  } else {
+                    setStep("paying");
+                  }
                 }}
               >
-                {t("proceed-payment")} <ArrowRight />
+                {activities.length > 0 ? t("continue") : t("proceed-payment")}{" "}
+                <ArrowRight />
               </Button>
             </>
           )}
 
-          {paying && (
+          {step == "paying" && (
             <>
               {addressData && (
                 <Card className="p-2 text-sm flex flex-row gap-2 items-start">
@@ -645,14 +692,15 @@ export const CheckoutForm = () => {
                   </div>
 
                   <Button
+                  type="button"
                     disabled={!stripe || loading || priceLoading}
                     onClick={() => {
-                      setPaying(false);
+                      setStep("client_info");
                     }}
                     variant={"ghost"}
                     className="h-fit! p-1! text-xs gap-1"
                   >
-                    Edit <Edit3 />
+                    {t("edit")} <Edit3 />
                   </Button>
                 </Card>
               )}
