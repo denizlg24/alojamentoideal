@@ -2,29 +2,29 @@
 import { Link, usePathname } from "@/i18n/navigation";
 import {
   NavigationMenu,
-  NavigationMenuContent,
+  //NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
+  //NavigationMenuTrigger,
 } from "../ui/navigation-menu";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Hamburger from "hamburger-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
-import { Button } from "../ui/button";
+//import { ChevronDown } from "lucide-react";
+//import { Button } from "../ui/button";
 import { useTranslations } from "next-intl";
-import { Separator } from "../ui/separator";
+//import { Separator } from "../ui/separator";
 import { LocaleSwitcher } from "../ui/locale-switcher";
 import { Cart } from "../ui/cart";
-import {
+/*import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "../ui/accordion";
+} from "../ui/accordion";*/
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -84,7 +84,23 @@ export const Header = () => {
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuTrigger className="w-fit px-0 pr-2">
+              <NavigationMenuLink asChild>
+                <Link
+                  href="/tours"
+                  className="font-medium flex flex-row items-center gap-2"
+                >
+                  <Image
+                    width={128}
+                    height={128}
+                    src={"/tour_icon.png"}
+                    alt="house icon"
+                    priority
+                    className="h-full max-h-6 w-auto aspect-square object-contain"
+                  />
+                  {t("tours")}
+                </Link>
+              </NavigationMenuLink>
+              {/*  <NavigationMenuTrigger className="w-fit px-0 pr-2">
                 <NavigationMenuLink asChild>
                   <Link
                     className="font-medium flex flex-row items-center gap-2 w-full hover:bg-transparent"
@@ -147,7 +163,7 @@ export const Header = () => {
                     </NavigationMenuLink>
                   </li>
                 </ul>
-              </NavigationMenuContent>
+              </NavigationMenuContent>*/}
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuLink className="font-medium" href="/about">
@@ -216,7 +232,26 @@ export const Header = () => {
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
-                    <Accordion className="py-0!" type="single" collapsible>
+                  <NavigationMenuLink asChild>
+                      <Link
+                        onClick={() => {
+                          setOpen(false);
+                        }}
+                        className="font-medium flex flex-row items-center gap-2"
+                        href="/rooms"
+                      >
+                        <Image
+                          width={128}
+                          height={128}
+                          src={"/tour_icon.png"}
+                          alt="house icon"
+                          priority
+                          className="h-full max-h-6 w-auto aspect-square object-contain"
+                        />
+                        {t("tours")}
+                      </Link>
+                    </NavigationMenuLink>
+                    {/* <Accordion className="py-0!" type="single" collapsible>
                       <AccordionItem value="tours">
                         <AccordionTrigger
                           asChild
@@ -329,7 +364,7 @@ export const Header = () => {
                           </ul>
                         </AccordionContent>
                       </AccordionItem>
-                    </Accordion>
+                    </Accordion>*/}
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>

@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
-//const BOKUN_BASE_URL = "https://api.bokun.io";
-const BOKUN_BASE_URL = "https://api.bokuntest.com";
+const BOKUN_BASE_URL = "https://api.bokun.io";
+//const BOKUN_BASE_URL = "https://api.bokuntest.com";
 interface BokunRequestOptions {
     method: "GET" | "POST" | "PUT" | "DELETE";
     path: string; // must start with "/"
@@ -848,6 +848,8 @@ export interface CheckoutOption {
 export const categoriesMap: { [key: number]: { title: string, min?: number, max?: number } } = {
     //tests
     23724: { title: 'adult', min: 18, max: 80 },
+    1053743: { title: 'adult', min: 18, max: 80 },
+    1053745: { title: 'child', min: 6, max: 18 },
     23726: { title: 'child', min: 6, max: 18 },
     //tests
     931209: { title: 'adult', min: 6, max: 80 },
@@ -876,3 +878,34 @@ export const categoriesMap: { [key: number]: { title: string, min?: number, max?
     910480: { title: 'senior', min: undefined, max: undefined },
     910477: { title: 'youth', min: undefined, max: undefined }
 }
+
+type DataFormat =
+  | "EMAIL_ADDRESS"
+  | "URL"
+  | "PHONE_NUMBER"
+  | "COUNTRY"
+  | "LANGUAGE"
+  | "TIME"
+  | "DAY_OF_MONTH"
+  | "MONTH"
+  | "YEAR"
+  | "PATTERN";
+
+export const validators: Record<DataFormat, (value: string) => boolean> = {
+  EMAIL_ADDRESS: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+  URL: (v) => /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(v),
+  PHONE_NUMBER: (v) => /^\+?[0-9\s()-]{7,}$/.test(v),
+  COUNTRY: (v) => v.trim().length > 0, // can expand with ISO codes
+  LANGUAGE: (v) => v.trim().length > 0,
+  TIME: (v) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(v),
+  DAY_OF_MONTH: (v) => /^(0?[1-9]|[12]\d|3[01])$/.test(v),
+  MONTH: (v) => /^(0?[1-9]|1[0-2])$/.test(v),
+  YEAR: (v) => /^\d{4}$/.test(v),
+  PATTERN: () => true, // maybe dynamic pattern from your API
+};
+
+export function isValid(value: string, format?: DataFormat): boolean {
+    if (!format) return true;
+    const validator = validators[format];
+    return validator ? validator(value) : true;
+  }

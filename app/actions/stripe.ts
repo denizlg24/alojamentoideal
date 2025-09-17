@@ -3,20 +3,20 @@
 import { verifySession } from '@/utils/verifySession';
 import { stripe } from '../../lib/stripe'
 
-export async function fetchClientSecret(amount: number, client_name: string, client_email: string, client_phone_number: string, notes: string | undefined, reservationIds: number[], clientAddress: {
+export async function fetchClientSecret(amount: { alojamentoIdeal: number, detours: number }, client_name: string, client_email: string, client_phone_number: string, notes: string | undefined, reservationIds: number[], clientAddress: {
     line1: string;
     line2: string | null;
     city: string;
     state: string;
     postal_code: string;
     country: string;
-},activityBookings?:string[]) {
+}, activityBookings?: string[]) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
     }
 
-    const commaSeparatedReservationIds = reservationIds.join(",");
-    const commaSeparatedActivityIds = activityBookings?.join(",");
+    const commaSeparatedReservationIds = reservationIds.join(", ");
+    const commaSeparatedActivityIds = activityBookings?.join(", ");
     try {
         const customer = await stripe.customers.create({
             name: client_name,
@@ -25,7 +25,7 @@ export async function fetchClientSecret(amount: number, client_name: string, cli
             address: { ...clientAddress, line2: clientAddress.line2 ?? undefined },
         });
         const paymentIntent = await stripe.paymentIntents.create({
-            amount,
+            amount: amount.alojamentoIdeal + amount.detours,
             currency: "eur",
             automatic_payment_methods: {
                 enabled: true,
@@ -33,15 +33,22 @@ export async function fetchClientSecret(amount: number, client_name: string, cli
             statement_descriptor_suffix: "WWW.ALOJAMENTOIDEAL.PT",
             receipt_email: client_email,
             customer: customer.id,
-            description:  `${reservationIds.length > 0 ? `${client_name} - ${commaSeparatedReservationIds} - accommodation` : ''}${(commaSeparatedActivityIds?.length ?? 0) > 0 ? `${client_name} - ${commaSeparatedActivityIds} - activity` : ''}`,
+            description: `${reservationIds.length > 0 ? `${client_name} - ${commaSeparatedReservationIds} - accommodation` : ''} ${(commaSeparatedActivityIds?.length ?? 0) > 0 ? `${client_name} - ${commaSeparatedActivityIds} - activity` : ''}`.trim(),
             metadata: {
                 client_name,
                 client_email,
                 client_phone_number,
                 reservationIds: commaSeparatedReservationIds,
-                activityBookings:commaSeparatedActivityIds ?? '', 
-                notes: notes || "",
+                activityBookings: commaSeparatedActivityIds ?? '',
+                notes: notes || "", 
             },
+            ...(amount.detours > 0
+                ? amount.alojamentoIdeal > 0 ? {
+                    transfer_data: { destination: process.env.DETOURS_STRIPE_ID!, amount: amount.detours },
+                } : {
+                    transfer_data: { destination: process.env.DETOURS_STRIPE_ID! },
+                }
+                : {}),
             setup_future_usage: "off_session"
         });
         return { success: true, client_secret: paymentIntent.client_secret, id: paymentIntent.id };

@@ -275,14 +275,14 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
   }))
 
   const { success, client_secret, id } = await fetchClientSecret(
-    amount,
+    {alojamentoIdeal:0,detours:amount},
     clientName,
     clientEmail,
     clientPhone,
     clientNotes,
     [],
     clientAddress,
-    [response.booking.bookingId.toString()]
+    [response.booking.confirmationCode.toString()]
   );
 
   const { success: order_success, orderId } = await registerOrder({
@@ -299,7 +299,7 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
     tax_number: clientTax,
     isCompany,
     companyName,
-    activityBookingIds:[response.booking.bookingId.toString()],
+    activityBookingIds:response.booking.activityBookings.map((activity) => activity.productConfirmationCode),
     activityBookingReferences:[response.booking.confirmationCode]
   });
 

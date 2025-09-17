@@ -29,7 +29,7 @@ import {
 } from "../ui/form";
 import { useTranslations } from "next-intl";
 import { buyCart } from "@/app/actions/completeCheckout";
-import { Loader2, ArrowRight, Edit3 } from "lucide-react";
+import { Loader2, ArrowRight, Edit3, CalendarIcon } from "lucide-react";
 import { Appearance, PaymentRequest } from "@stripe/stripe-js";
 import { Separator } from "../ui/separator";
 import { checkVAT, countries } from "jsvat";
@@ -53,14 +53,30 @@ import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   ActivityBookingQuestionsDto,
+  categoriesMap,
+  isValid,
   PickupPlaceDto,
   QuestionSpecificationDto,
 } from "@/utils/bokun-requests";
 import { Skeleton } from "../ui/skeleton";
 import {
   getShoppingCartQuestion,
+  removeActivity,
   startShoppingCart,
 } from "@/app/actions/getExperience";
+import { PopoverClose } from "@radix-ui/react-popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Calendar } from "../ui/calendar";
+import { format, parse } from "date-fns";
+import { Label } from "../ui/label";
+import { cn } from "@/lib/utils";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "../ui/carousel";
 
 const elementStyle: Appearance = {
   variables: {
@@ -120,6 +136,7 @@ export const CheckoutForm = ({
     guests: { [categoryId: number]: number };
   }[];
 }) => {
+  const displayT = useTranslations("tourDisplay");
   const t = useTranslations("checkout_form");
   const stripe = useStripe();
   const elements = useElements();
@@ -158,6 +175,14 @@ export const CheckoutForm = ({
   const [activityBookings, setActivityBookings] = useState<
     ActivityBookingQuestionsDto[]
   >([]);
+
+  const [selectedPickupPlaceId, setPickupPlaceId] = useState<string[]>(
+    new Array(activities.length).fill("custom")
+  );
+
+  const [pickupQuestionsLoading, setPickupQuestionsLoading] = useState<
+    boolean[]
+  >(new Array(activities.length).fill(false));
 
   const router = useRouter();
   useEffect(() => {
@@ -230,6 +255,49 @@ export const CheckoutForm = ({
       clientTax,
       isCompany: needCompanySwitch,
       companyName: clientBusiness,
+      mainContactDetails: mainContactDetails.map((question) => ({
+        questionId: question.questionId,
+        values: question.answers,
+      })),
+      activityBookings: activityBookings.map((activity, indx) => ({
+        activityId: activity.activityId,
+        answers: activity.questions.map((question) => ({
+          questionId: question.questionId,
+          values: question.answers,
+        })),
+        pickupAnswers: activity.pickupQuestions.map((question) => ({
+          questionId: question.questionId,
+          values: question.answers,
+        })),
+        pickup: selectedPickupPlaceId[indx] == "custom" ? false : true,
+        pickupPlaceId:
+          selectedPickupPlaceId[indx] == "custom"
+            ? undefined
+            : selectedPickupPlaceId[indx],
+        rateId: cart.filter((i) => i.type == "activity")[indx].selectedRateId,
+        startTimeId:
+          cart.filter((i) => i.type == "activity")[indx].selectedStartTimeId ==
+          0
+            ? undefined
+            : cart.filter((i) => i.type == "activity")[indx]
+                .selectedStartTimeId,
+        date: format(
+          cart.filter((i) => i.type == "activity")[indx].selectedDate,
+          "yyyy-MM-dd"
+        ),
+        passengers: activity.passengers.map((passenger) => ({
+          pricingCategoryId: passenger.pricingCategoryId,
+          groupSize: 1,
+          passengerDetails: passenger.passengerDetails.map((question) => ({
+            questionId: question.questionId,
+            values: question.answers,
+          })),
+          answers: passenger.questions.map((question) => ({
+            questionId: question.questionId,
+            values: question.answers,
+          })),
+        })),
+      })),
     });
     if (!success || !client_secret || !payment_id) {
       setError("error_reservation");
@@ -258,7 +326,6 @@ export const CheckoutForm = ({
         return;
       }
       if (success && order_id) {
-        localStorage.clear();
         router.push(`/orders/${order_id}`);
       } else {
         setLoading(false);
@@ -284,7 +351,6 @@ export const CheckoutForm = ({
         return;
       }
       if (success && order_id) {
-        localStorage.clear();
         router.push(`/orders/${order_id}`);
       } else {
         setLoading(false);
@@ -358,6 +424,58 @@ export const CheckoutForm = ({
     PaymentRequest | undefined
   >(undefined);
 
+  const updateBookingPickUpQuestions = async (
+    bookingId: number,
+    tourItem: {
+      rateId: number;
+      experienceId: number;
+      selectedDate: Date;
+      selectedStartTimeId: number | undefined;
+      guests: { [categoryId: number]: number };
+    },
+    pickupPlaceId: string | undefined
+  ) => {
+    const removed = await removeActivity(cartId, bookingId);
+    console.log(removed);
+    if (removed) {
+      await startShoppingCart(
+        cartId,
+        tourItem.experienceId,
+        tourItem.rateId,
+        tourItem.selectedStartTimeId == 0
+          ? undefined
+          : tourItem.selectedStartTimeId,
+        tourItem.selectedDate,
+        tourItem.guests,
+        pickupPlaceId
+      );
+      const response = await getShoppingCartQuestion(cartId);
+
+      if (!response.success) {
+        return;
+      }
+      const newBookingId =
+        response.questions.activityBookings[
+          response.questions.activityBookings.length - 1
+        ].bookingId;
+      const newPickUpQuestion =
+        response.questions.activityBookings[
+          response.questions.activityBookings.length - 1
+        ].pickupQuestions;
+      setActivityBookings((prev) =>
+        prev.map((activity, i) =>
+          i == step
+            ? {
+                ...activity,
+                bookingId: newBookingId ?? 0,
+                pickupQuestions: newPickUpQuestion ?? [],
+              }
+            : activity
+        )
+      );
+    }
+  };
+
   useEffect(() => {
     if (!stripe) return;
 
@@ -419,6 +537,50 @@ export const CheckoutForm = ({
           clientTax,
           isCompany: needCompanySwitch,
           companyName: clientBusiness,
+          mainContactDetails: mainContactDetails.map((question) => ({
+            questionId: question.questionId,
+            values: question.answers,
+          })),
+          activityBookings: activityBookings.map((activity, indx) => ({
+            activityId: activity.activityId,
+            answers: activity.questions.map((question) => ({
+              questionId: question.questionId,
+              values: question.answers,
+            })),
+            pickupAnswers: activity.pickupQuestions.map((question) => ({
+              questionId: question.questionId,
+              values: question.answers,
+            })),
+            pickup: selectedPickupPlaceId[indx] == "custom" ? false : true,
+            pickupPlaceId:
+              selectedPickupPlaceId[indx] == "custom"
+                ? undefined
+                : selectedPickupPlaceId[indx],
+            rateId: cart.filter((i) => i.type == "activity")[indx]
+              .selectedRateId,
+            startTimeId:
+              cart.filter((i) => i.type == "activity")[indx]
+                .selectedStartTimeId == 0
+                ? undefined
+                : cart.filter((i) => i.type == "activity")[indx]
+                    .selectedStartTimeId,
+            date: format(
+              cart.filter((i) => i.type == "activity")[indx].selectedDate,
+              "yyyy-MM-dd"
+            ),
+            passengers: activity.passengers.map((passenger) => ({
+              pricingCategoryId: passenger.pricingCategoryId,
+              groupSize: 1,
+              passengerDetails: passenger.passengerDetails.map((question) => ({
+                questionId: question.questionId,
+                values: question.answers,
+              })),
+              answers: passenger.questions.map((question) => ({
+                questionId: question.questionId,
+                values: question.answers,
+              })),
+            })),
+          })),
         });
         if (!success || !client_secret || !payment_id || !order_id) {
           event.complete("fail");
@@ -451,7 +613,6 @@ export const CheckoutForm = ({
             return;
           }
         }
-
         router.push(`/orders/${order_id}`);
       } catch (err) {
         console.error(err);
@@ -460,15 +621,7 @@ export const CheckoutForm = ({
         setLoading(false);
       }
     });
-  }, [
-    stripe,
-    _amount,
-    addressData,
-    clientInfo,
-    router,
-    needCompanySwitch,
-    cart,
-  ]);
+  }, [stripe, _amount, addressData, clientInfo, router, needCompanySwitch, cart, mainContactDetails, activityBookings, selectedPickupPlaceId]);
 
   if (checking) return <Skeleton className="w-full h-full min-h-[250px]" />;
 
@@ -673,7 +826,7 @@ export const CheckoutForm = ({
                     return;
                   }
                   if (activities.length > 0) {
-                    setStep("paying");
+                    setStep(0);
                   } else {
                     setStep("paying");
                   }
@@ -683,6 +836,1803 @@ export const CheckoutForm = ({
                 <ArrowRight />
               </Button>
             </>
+          )}
+
+          {typeof step == "number" && (
+            <div className="w-full flex flex-col gap-4">
+              {activityBookings[step]?.questions.length > 0 && (
+                <div className="w-full flex flex-col gap-2 items-start">
+                  <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
+                    {t("booking-details")}
+                  </p>
+                  {activityBookings[step].questions.map((question) => {
+                    if (
+                      question.dataType == "OPTIONS" ||
+                      question.selectFromOptions
+                    ) {
+                      return (
+                        <div
+                          key={question.questionId}
+                          className="w-full flex flex-col gap-1 items-start"
+                        >
+                          <Label className="text-sm font-normal">
+                            {question.label}
+                            {question.required && (
+                              <span className="text-xs text-destructive">
+                                *
+                              </span>
+                            )}
+                          </Label>
+                          <Select
+                            defaultValue={question.defaultValue ?? undefined}
+                            value={question.answers ? question.answers[0] : ""}
+                            onValueChange={(v) =>
+                              setActivityBookings((prev) =>
+                                prev.map((activity, indx) =>
+                                  indx == step
+                                    ? {
+                                        ...activity,
+                                        questions: activity.questions.map((q) =>
+                                          q.questionId == question.questionId
+                                            ? { ...q, answers: [v] }
+                                            : q
+                                        ),
+                                      }
+                                    : activity
+                                )
+                              )
+                            }
+                          >
+                            <SelectTrigger
+                              className={cn(
+                                "w-full",
+                                ((question.answers
+                                  ? question.answers[0]
+                                  : "") == "" &&
+                                  question.required) ||
+                                  !isValid(
+                                    question.answers?.[0] ?? "",
+                                    question.dataFormat
+                                  )
+                                  ? "border border-destructive"
+                                  : ""
+                              )}
+                            >
+                              <SelectValue
+                                placeholder={
+                                  question.placeholder ?? t("choose-one")
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {question.answerOptions.map((option) => {
+                                if (option.value && option.label)
+                                  return (
+                                    <SelectItem
+                                      value={option.value}
+                                      key={option.value}
+                                    >
+                                      {option.label}
+                                    </SelectItem>
+                                  );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      );
+                    }
+                    if (
+                      question.dataType == "CHECKBOX_TOGGLE" ||
+                      question.dataType == "BOOLEAN"
+                    ) {
+                      return (
+                        <div
+                          key={question.questionId}
+                          className="w-full flex flex-row gap-1 items-center"
+                        >
+                          <Checkbox
+                            checked={
+                              (question.answers ? question.answers[0] : "no") !=
+                              "no"
+                            }
+                            onCheckedChange={(c) => {
+                              setActivityBookings((prev) =>
+                                prev.map((activity, indx) =>
+                                  indx == step
+                                    ? {
+                                        ...activity,
+                                        questions: activity.questions.map((q) =>
+                                          q.questionId == question.questionId
+                                            ? {
+                                                ...q,
+                                                answers: [c ? "yes" : "no"],
+                                              }
+                                            : q
+                                        ),
+                                      }
+                                    : activity
+                                )
+                              );
+                            }}
+                          />
+                          <Label className="text-sm font-normal">
+                            {question.label}
+                            {question.required && (
+                              <span className="text-xs text-destructive">
+                                *
+                              </span>
+                            )}
+                          </Label>
+                        </div>
+                      );
+                    }
+                    if (question.dataType == "DATE") {
+                      return (
+                        <div
+                          key={question.questionId}
+                          className="w-full flex flex-col gap-1 items-start"
+                        >
+                          <Label className="text-sm font-normal">
+                            {question.label}
+                            {question.required && (
+                              <span className="text-xs text-destructive">
+                                *
+                              </span>
+                            )}
+                          </Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                data-empty={
+                                  (question.answers
+                                    ? question.answers[0]
+                                    : "") == ""
+                                }
+                                className={
+                                  "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
+                                }
+                              >
+                                <CalendarIcon />
+                                {(question.answers
+                                  ? question.answers[0]
+                                  : "") != "" ? (
+                                  format(question.answers[0], "PPP")
+                                ) : (
+                                  <span>{t("select-date")}</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                captionLayout="dropdown"
+                                showOutsideDays={false}
+                                mode="single"
+                                selected={
+                                  question.answers
+                                    ? parse(
+                                        question.answers[0],
+                                        "yyyy-MM-dd",
+                                        new Date()
+                                      )
+                                    : undefined
+                                }
+                                onSelect={(date) => {
+                                  if (!date) {
+                                    setActivityBookings((prev) =>
+                                      prev.map((activity, indx) =>
+                                        indx == step
+                                          ? {
+                                              ...activity,
+                                              questions: activity.questions.map(
+                                                (q) =>
+                                                  q.questionId ==
+                                                  question.questionId
+                                                    ? { ...q, answers: [""] }
+                                                    : q
+                                              ),
+                                            }
+                                          : activity
+                                      )
+                                    );
+                                  } else {
+                                    setActivityBookings((prev) =>
+                                      prev.map((activity, indx) =>
+                                        indx == step
+                                          ? {
+                                              ...activity,
+                                              questions: activity.questions.map(
+                                                (q) =>
+                                                  q.questionId ==
+                                                  question.questionId
+                                                    ? {
+                                                        ...q,
+                                                        answers: [
+                                                          format(
+                                                            date,
+                                                            "yyyy-MM-dd"
+                                                          ),
+                                                        ],
+                                                      }
+                                                    : q
+                                              ),
+                                            }
+                                          : activity
+                                      )
+                                    );
+                                  }
+                                  document
+                                    .querySelector<HTMLButtonElement>(
+                                      `[data-popover-close="${question.questionId}"]`
+                                    )
+                                    ?.click();
+                                }}
+                              />
+                              <PopoverClose asChild>
+                                <button
+                                  type="button"
+                                  hidden
+                                  data-popover-close={question.questionId}
+                                />
+                              </PopoverClose>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div
+                        key={question.questionId}
+                        className="w-full flex flex-col gap-1 items-start"
+                      >
+                        <Label className="text-sm font-normal">
+                          {question.label}
+                          {question.required && (
+                            <span className="text-xs text-destructive">*</span>
+                          )}
+                        </Label>
+                        <Input
+                          value={question.answers ? question.answers[0] : ""}
+                          onChange={(e) => {
+                            setActivityBookings((prev) =>
+                              prev.map((activity, indx) =>
+                                indx == step
+                                  ? {
+                                      ...activity,
+                                      questions: activity.questions.map((q) =>
+                                        q.questionId == question.questionId
+                                          ? { ...q, answers: [e.target.value] }
+                                          : q
+                                      ),
+                                    }
+                                  : activity
+                              )
+                            );
+                          }}
+                          className={cn(
+                            "w-full",
+                            ((question.answers ? question.answers[0] : "") ==
+                              "" &&
+                              question.required) ||
+                              !isValid(
+                                question.answers?.[0] ?? "",
+                                question.dataFormat
+                              )
+                              ? "border border-destructive"
+                              : ""
+                          )}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {activities[step].meeting.type != "MEET_ON_LOCATION" && (
+                <div className="w-full flex flex-col gap-2 items-start">
+                  <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
+                    {t("pickup-details")}
+                  </p>
+
+                  <div className="w-full flex flex-col gap-1 items-start">
+                    <Label className="text-sm font-normal">
+                      {t("pickup-place")}
+                    </Label>
+                    <Select
+                      disabled={pickupQuestionsLoading[step]}
+                      value={selectedPickupPlaceId[step] || "custom"}
+                      onValueChange={async (v) => {
+                        setPickupPlaceId((prev) =>
+                          prev.map((old, i) => (i == step ? v : old))
+                        );
+                        setPickupQuestionsLoading((prev) =>
+                          prev.map((old, i) => (i == step ? true : old))
+                        );
+                        await updateBookingPickUpQuestions(
+                          activityBookings[step].bookingId,
+                          activities[step],
+                          v == "custom" ? undefined : v
+                        );
+                        setPickupQuestionsLoading((prev) =>
+                          prev.map((old, i) => (i == step ? false : old))
+                        );
+                      }}
+                    >
+                      <SelectTrigger className={cn("w-full")}>
+                        <SelectValue placeholder={t("choose-one")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={"custom"}>
+                          {t("i-want-to-select-my-own")}
+                        </SelectItem>
+                        {activities[step].meeting.pickUpPlaces.map((option) => {
+                          return (
+                            <SelectItem
+                              value={option.id.toString()}
+                              key={option.id}
+                            >
+                              {option.title}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {pickupQuestionsLoading[step] && (
+                    <Skeleton className="w-full h-[80px]" />
+                  )}
+                  {!pickupQuestionsLoading[step] &&
+                    activityBookings[step].pickupQuestions.map((question) => {
+                      if (
+                        question.dataType == "OPTIONS" ||
+                        question.selectFromOptions
+                      ) {
+                        return (
+                          <div
+                            key={question.questionId}
+                            className="w-full flex flex-col gap-1 items-start"
+                          >
+                            <Label className="text-sm font-normal">
+                              {question.label}
+                              {question.required && (
+                                <span className="text-xs text-destructive">
+                                  *
+                                </span>
+                              )}
+                            </Label>
+                            <Select
+                              defaultValue={question.defaultValue ?? undefined}
+                              value={
+                                question.answers ? question.answers[0] : ""
+                              }
+                              onValueChange={(v) =>
+                                setActivityBookings((prev) =>
+                                  prev.map((activity, indx) =>
+                                    indx == step
+                                      ? {
+                                          ...activity,
+                                          questions:
+                                            activity.pickupQuestions.map((q) =>
+                                              q.questionId ==
+                                              question.questionId
+                                                ? { ...q, answers: [v] }
+                                                : q
+                                            ),
+                                        }
+                                      : activity
+                                  )
+                                )
+                              }
+                            >
+                              <SelectTrigger
+                                className={cn(
+                                  "w-full",
+                                  ((question.answers
+                                    ? question.answers[0]
+                                    : "") == "" &&
+                                    question.required) ||
+                                    !isValid(
+                                      question.answers?.[0] ?? "",
+                                      question.dataFormat
+                                    )
+                                    ? "border border-destructive"
+                                    : ""
+                                )}
+                              >
+                                <SelectValue
+                                  placeholder={
+                                    question.placeholder ?? t("choose-one")
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {question.answerOptions.map((option) => {
+                                  if (option.value && option.label)
+                                    return (
+                                      <SelectItem
+                                        value={option.value}
+                                        key={option.value}
+                                      >
+                                        {option.label}
+                                      </SelectItem>
+                                    );
+                                })}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        );
+                      }
+                      if (
+                        question.dataType == "CHECKBOX_TOGGLE" ||
+                        question.dataType == "BOOLEAN"
+                      ) {
+                        return (
+                          <div
+                            key={question.questionId}
+                            className="w-full flex flex-row gap-1 items-center"
+                          >
+                            <Checkbox
+                              checked={
+                                (question.answers
+                                  ? question.answers[0]
+                                  : "no") != "no"
+                              }
+                              onCheckedChange={(c) => {
+                                setActivityBookings((prev) =>
+                                  prev.map((activity, indx) =>
+                                    indx == step
+                                      ? {
+                                          ...activity,
+                                          pickupQuestions:
+                                            activity.pickupQuestions.map((q) =>
+                                              q.questionId ==
+                                              question.questionId
+                                                ? {
+                                                    ...q,
+                                                    answers: [c ? "yes" : "no"],
+                                                  }
+                                                : q
+                                            ),
+                                        }
+                                      : activity
+                                  )
+                                );
+                              }}
+                            />
+                            <Label className="text-sm font-normal">
+                              {question.label}
+                              {question.required && (
+                                <span className="text-xs text-destructive">
+                                  *
+                                </span>
+                              )}
+                            </Label>
+                          </div>
+                        );
+                      }
+                      if (question.dataType == "DATE") {
+                        return (
+                          <div
+                            key={question.questionId}
+                            className="w-full flex flex-col gap-1 items-start"
+                          >
+                            <Label className="text-sm font-normal">
+                              {question.label}
+                              {question.required && (
+                                <span className="text-xs text-destructive">
+                                  *
+                                </span>
+                              )}
+                            </Label>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  data-empty={
+                                    (question.answers
+                                      ? question.answers[0]
+                                      : "") == ""
+                                  }
+                                  className={
+                                    "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
+                                  }
+                                >
+                                  <CalendarIcon />
+                                  {(question.answers
+                                    ? question.answers[0]
+                                    : "") != "" ? (
+                                    format(question.answers[0], "PPP")
+                                  ) : (
+                                    <span>{t("select-date")}</span>
+                                  )}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                  captionLayout="dropdown"
+                                  showOutsideDays={false}
+                                  mode="single"
+                                  selected={
+                                    question.answers
+                                      ? parse(
+                                          question.answers[0],
+                                          "yyyy-MM-dd",
+                                          new Date()
+                                        )
+                                      : undefined
+                                  }
+                                  onSelect={(date) => {
+                                    if (!date) {
+                                      setActivityBookings((prev) =>
+                                        prev.map((activity, indx) =>
+                                          indx == step
+                                            ? {
+                                                ...activity,
+                                                pickupQuestions:
+                                                  activity.pickupQuestions.map(
+                                                    (q) =>
+                                                      q.questionId ==
+                                                      question.questionId
+                                                        ? {
+                                                            ...q,
+                                                            answers: [""],
+                                                          }
+                                                        : q
+                                                  ),
+                                              }
+                                            : activity
+                                        )
+                                      );
+                                    } else {
+                                      setActivityBookings((prev) =>
+                                        prev.map((activity, indx) =>
+                                          indx == step
+                                            ? {
+                                                ...activity,
+                                                pickupQuestions:
+                                                  activity.pickupQuestions.map(
+                                                    (q) =>
+                                                      q.questionId ==
+                                                      question.questionId
+                                                        ? {
+                                                            ...q,
+                                                            answers: [
+                                                              format(
+                                                                date,
+                                                                "yyyy-MM-dd"
+                                                              ),
+                                                            ],
+                                                          }
+                                                        : q
+                                                  ),
+                                              }
+                                            : activity
+                                        )
+                                      );
+                                    }
+                                    document
+                                      .querySelector<HTMLButtonElement>(
+                                        `[data-popover-close="${question.questionId}"]`
+                                      )
+                                      ?.click();
+                                  }}
+                                />
+                                <PopoverClose asChild>
+                                  <button
+                                    type="button"
+                                    hidden
+                                    data-popover-close={question.questionId}
+                                  />
+                                </PopoverClose>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div
+                          key={question.questionId}
+                          className="w-full flex flex-col gap-1 items-start"
+                        >
+                          <Label className="text-sm font-normal">
+                            {question.label}
+                            {question.required && (
+                              <span className="text-xs text-destructive">
+                                *
+                              </span>
+                            )}
+                          </Label>
+                          <Input
+                            value={question.answers ? question.answers[0] : ""}
+                            onChange={(e) => {
+                              setActivityBookings((prev) =>
+                                prev.map((activity, indx) =>
+                                  indx == step
+                                    ? {
+                                        ...activity,
+                                        pickupQuestions:
+                                          activity.pickupQuestions.map((q) =>
+                                            q.questionId == question.questionId
+                                              ? {
+                                                  ...q,
+                                                  answers: [e.target.value],
+                                                }
+                                              : q
+                                          ),
+                                      }
+                                    : activity
+                                )
+                              );
+                            }}
+                            className={cn(
+                              "w-full",
+                              ((question.answers ? question.answers[0] : "") ==
+                                "" &&
+                                question.required) ||
+                                !isValid(
+                                  question.answers?.[0] ?? "",
+                                  question.dataFormat
+                                )
+                                ? "border border-destructive"
+                                : ""
+                            )}
+                          />
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+              {step == 0 &&
+                mainContactDetails?.filter(
+                  (question) =>
+                    !["firstName", "lastName", "email", "phoneNumber"].includes(
+                      question.questionId
+                    )
+                )?.length > 0 && (
+                  <div className="w-full flex flex-col gap-2 items-start">
+                    <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
+                      {t("additional-contact-information")}
+                    </p>
+                    {mainContactDetails
+                      .filter(
+                        (question) =>
+                          ![
+                            "firstName",
+                            "lastName",
+                            "email",
+                            "phoneNumber",
+                          ].includes(question.questionId)
+                      )
+                      .map((question) => {
+                        if (
+                          question.dataType == "OPTIONS" ||
+                          question.selectFromOptions
+                        ) {
+                          return (
+                            <div
+                              key={question.questionId}
+                              className="w-full flex flex-col gap-1 items-start"
+                            >
+                              <Label className="text-sm font-normal">
+                                {question.label}
+                                {question.required && (
+                                  <span className="text-xs text-destructive">
+                                    *
+                                  </span>
+                                )}
+                              </Label>
+                              <Select
+                                defaultValue={
+                                  question.defaultValue ?? undefined
+                                }
+                                value={
+                                  question.answers ? question.answers[0] : ""
+                                }
+                                onValueChange={(v) =>
+                                  setMainContactDetails((prev) =>
+                                    prev.map((q) =>
+                                      q.questionId == question.questionId
+                                        ? { ...q, answers: [v] }
+                                        : q
+                                    )
+                                  )
+                                }
+                              >
+                                <SelectTrigger
+                                  className={cn(
+                                    "w-full",
+                                    ((question.answers
+                                      ? question.answers[0]
+                                      : "") == "" &&
+                                      question.required) ||
+                                      !isValid(
+                                        question.answers?.[0] ?? "",
+                                        question.dataFormat
+                                      )
+                                      ? "border border-destructive"
+                                      : ""
+                                  )}
+                                >
+                                  <SelectValue
+                                    placeholder={
+                                      question.placeholder ?? t("choose-one")
+                                    }
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {question.answerOptions.map((option) => {
+                                    if (option.value && option.label)
+                                      return (
+                                        <SelectItem
+                                          value={option.value}
+                                          key={option.value}
+                                        >
+                                          {option.label}
+                                        </SelectItem>
+                                      );
+                                  })}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          );
+                        }
+                        if (
+                          question.dataType == "CHECKBOX_TOGGLE" ||
+                          question.dataType == "BOOLEAN"
+                        ) {
+                          return (
+                            <div
+                              key={question.questionId}
+                              className="w-full flex flex-row gap-1 items-center"
+                            >
+                              <Checkbox
+                                checked={
+                                  (question.answers
+                                    ? question.answers[0]
+                                    : "no") != "no"
+                                }
+                                onCheckedChange={(c) => {
+                                  setMainContactDetails((prev) =>
+                                    prev.map((q) =>
+                                      q.questionId == question.questionId
+                                        ? { ...q, answers: [c ? "yes" : "no"] }
+                                        : q
+                                    )
+                                  );
+                                }}
+                              />
+                              <Label className="text-sm font-normal">
+                                {question.label}
+                                {question.required && (
+                                  <span className="text-xs text-destructive">
+                                    *
+                                  </span>
+                                )}
+                              </Label>
+                            </div>
+                          );
+                        }
+                        if (question.dataType == "DATE") {
+                          return (
+                            <div
+                              key={question.questionId}
+                              className="w-full flex flex-col gap-1 items-start"
+                            >
+                              <Label className="text-sm font-normal">
+                                {question.label}
+                                {question.required && (
+                                  <span className="text-xs text-destructive">
+                                    *
+                                  </span>
+                                )}
+                              </Label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    data-empty={
+                                      (question.answers
+                                        ? question.answers[0]
+                                        : "") == ""
+                                    }
+                                    className={
+                                      "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
+                                    }
+                                  >
+                                    <CalendarIcon />
+                                    {(question.answers
+                                      ? question.answers[0]
+                                      : "") != "" ? (
+                                      format(question.answers[0], "PPP")
+                                    ) : (
+                                      <span>{t("select-date")}</span>
+                                    )}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                  <Calendar
+                                    captionLayout="dropdown"
+                                    showOutsideDays={false}
+                                    mode="single"
+                                    selected={
+                                      question.answers
+                                        ? parse(
+                                            question.answers[0],
+                                            "yyyy-MM-dd",
+                                            new Date()
+                                          )
+                                        : undefined
+                                    }
+                                    onSelect={(date) => {
+                                      if (!date) {
+                                        setMainContactDetails((prev) =>
+                                          prev.map((q) =>
+                                            q.questionId == question.questionId
+                                              ? { ...q, answers: [""] }
+                                              : q
+                                          )
+                                        );
+                                      } else {
+                                        setMainContactDetails((prev) =>
+                                          prev.map((q) =>
+                                            q.questionId == question.questionId
+                                              ? {
+                                                  ...q,
+                                                  answers: [
+                                                    format(date, "yyyy-MM-dd"),
+                                                  ],
+                                                }
+                                              : q
+                                          )
+                                        );
+                                      }
+                                      document
+                                        .querySelector<HTMLButtonElement>(
+                                          `[data-popover-close="${question.questionId}"]`
+                                        )
+                                        ?.click();
+                                    }}
+                                  />
+                                  <PopoverClose asChild>
+                                    <button
+                                      type="button"
+                                      hidden
+                                      data-popover-close={question.questionId}
+                                    />
+                                  </PopoverClose>
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div
+                            key={question.questionId}
+                            className="w-full flex flex-col gap-1 items-start"
+                          >
+                            <Label className="text-sm font-normal">
+                              {question.label}
+                              {question.required && (
+                                <span className="text-xs text-destructive">
+                                  *
+                                </span>
+                              )}
+                            </Label>
+                            <Input
+                              value={
+                                question.answers ? question.answers[0] : ""
+                              }
+                              onChange={(e) => {
+                                setMainContactDetails((prev) =>
+                                  prev.map((q) =>
+                                    q.questionId == question.questionId
+                                      ? { ...q, answers: [e.target.value] }
+                                      : q
+                                  )
+                                );
+                              }}
+                              className={cn(
+                                "w-full",
+                                ((question.answers
+                                  ? question.answers[0]
+                                  : "") == "" &&
+                                  question.required) ||
+                                  !isValid(
+                                    question.answers?.[0] ?? "",
+                                    question.dataFormat
+                                  )
+                                  ? "border border-destructive"
+                                  : ""
+                              )}
+                            />
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              {activityBookings[step].passengers.length > 0 && (
+                <Carousel className="w-full mx-auto border shadow p-2 rounded-lg">
+                  <CarouselContent className="p-0">
+                    {activityBookings[step].passengers.map(
+                      (passenger, pIndx) => {
+                        return (
+                          <CarouselItem
+                            key={passenger.bookingId}
+                            className="w-full flex flex-col gap-2 items-start mx-auto"
+                          >
+                            <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
+                              {t("traveler-info", {
+                                count: pIndx + 1,
+                                category: displayT(
+                                  categoriesMap[passenger.pricingCategoryId]
+                                    .title
+                                ),
+                              })}
+                            </p>
+                            {passenger.passengerDetails.map((question) => {
+                              if (
+                                question.dataType == "OPTIONS" ||
+                                question.selectFromOptions
+                              ) {
+                                return (
+                                  <div
+                                    key={question.questionId}
+                                    className="w-full flex flex-col gap-1 items-start"
+                                  >
+                                    <Label className="text-sm font-normal">
+                                      {question.label}
+                                      {question.required && (
+                                        <span className="text-xs text-destructive">
+                                          *
+                                        </span>
+                                      )}
+                                    </Label>
+                                    <Select
+                                      defaultValue={
+                                        question.defaultValue ?? undefined
+                                      }
+                                      value={
+                                        question.answers
+                                          ? question.answers[0]
+                                          : ""
+                                      }
+                                      onValueChange={(v) =>
+                                        setActivityBookings((prev) =>
+                                          prev.map((activity, i) =>
+                                            i == step
+                                              ? {
+                                                  ...activity,
+                                                  passengers:
+                                                    activity.passengers.map(
+                                                      (passenger, pI) =>
+                                                        pI == pIndx
+                                                          ? {
+                                                              ...passenger,
+                                                              passengerDetails:
+                                                                passenger.passengerDetails.map(
+                                                                  (pQuestion) =>
+                                                                    pQuestion.questionId ==
+                                                                    question.questionId
+                                                                      ? {
+                                                                          ...pQuestion,
+                                                                          answers:
+                                                                            [v],
+                                                                        }
+                                                                      : pQuestion
+                                                                ),
+                                                            }
+                                                          : passenger
+                                                    ),
+                                                }
+                                              : activity
+                                          )
+                                        )
+                                      }
+                                    >
+                                      <SelectTrigger
+                                        className={cn(
+                                          "w-full",
+                                          ((question.answers
+                                            ? question.answers[0]
+                                            : "") == "" &&
+                                            question.required) ||
+                                            !isValid(
+                                              question.answers?.[0] ?? "",
+                                              question.dataFormat
+                                            )
+                                            ? "border border-destructive"
+                                            : ""
+                                        )}
+                                      >
+                                        <SelectValue
+                                          placeholder={
+                                            question.placeholder ??
+                                            t("choose-one")
+                                          }
+                                        />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {question.answerOptions.map(
+                                          (option) => {
+                                            if (option.value && option.label)
+                                              return (
+                                                <SelectItem
+                                                  value={option.value}
+                                                  key={option.value}
+                                                >
+                                                  {option.label}
+                                                </SelectItem>
+                                              );
+                                          }
+                                        )}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                );
+                              }
+                              if (
+                                question.dataType == "CHECKBOX_TOGGLE" ||
+                                question.dataType == "BOOLEAN"
+                              ) {
+                                return (
+                                  <div
+                                    key={question.questionId}
+                                    className="w-full flex flex-row gap-1 items-center"
+                                  >
+                                    <Checkbox
+                                      checked={
+                                        (question.answers
+                                          ? question.answers[0]
+                                          : "no") != "no"
+                                      }
+                                      onCheckedChange={(c) => {
+                                        setActivityBookings((prev) =>
+                                          prev.map((activity, i) =>
+                                            i == step
+                                              ? {
+                                                  ...activity,
+                                                  passengers:
+                                                    activity.passengers.map(
+                                                      (passenger, pI) =>
+                                                        pI == pIndx
+                                                          ? {
+                                                              ...passenger,
+                                                              passengerDetails:
+                                                                passenger.passengerDetails.map(
+                                                                  (pQuestion) =>
+                                                                    pQuestion.questionId ==
+                                                                    question.questionId
+                                                                      ? {
+                                                                          ...pQuestion,
+                                                                          answers:
+                                                                            [
+                                                                              c
+                                                                                ? "yes"
+                                                                                : "no",
+                                                                            ],
+                                                                        }
+                                                                      : pQuestion
+                                                                ),
+                                                            }
+                                                          : passenger
+                                                    ),
+                                                }
+                                              : activity
+                                          )
+                                        );
+                                      }}
+                                    />
+                                    <Label className="text-sm font-normal">
+                                      {question.label}
+                                      {question.required && (
+                                        <span className="text-xs text-destructive">
+                                          *
+                                        </span>
+                                      )}
+                                    </Label>
+                                  </div>
+                                );
+                              }
+                              if (question.dataType == "DATE") {
+                                return (
+                                  <div
+                                    key={question.questionId}
+                                    className="w-full flex flex-col gap-1 items-start"
+                                  >
+                                    <Label className="text-sm font-normal">
+                                      {question.label}
+                                      {question.required && (
+                                        <span className="text-xs text-destructive">
+                                          *
+                                        </span>
+                                      )}
+                                    </Label>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          data-empty={
+                                            (question.answers
+                                              ? question.answers[0]
+                                              : "") == ""
+                                          }
+                                          className={
+                                            "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
+                                          }
+                                        >
+                                          <CalendarIcon />
+                                          {(question.answers
+                                            ? question.answers[0]
+                                            : "") != "" ? (
+                                            format(question.answers[0], "PPP")
+                                          ) : (
+                                            <span>{t("select-date")}</span>
+                                          )}
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                          captionLayout="dropdown"
+                                          showOutsideDays={false}
+                                          mode="single"
+                                          selected={
+                                            question.answers
+                                              ? parse(
+                                                  question.answers[0],
+                                                  "yyyy-MM-dd",
+                                                  new Date()
+                                                )
+                                              : undefined
+                                          }
+                                          onSelect={(date) => {
+                                            if (!date) {
+                                              setActivityBookings((prev) =>
+                                                prev.map((activity, i) =>
+                                                  i == step
+                                                    ? {
+                                                        ...activity,
+                                                        passengers:
+                                                          activity.passengers.map(
+                                                            (passenger, pI) =>
+                                                              pI == pIndx
+                                                                ? {
+                                                                    ...passenger,
+                                                                    passengerDetails:
+                                                                      passenger.passengerDetails.map(
+                                                                        (
+                                                                          pQuestion
+                                                                        ) =>
+                                                                          pQuestion.questionId ==
+                                                                          question.questionId
+                                                                            ? {
+                                                                                ...pQuestion,
+                                                                                answers:
+                                                                                  [
+                                                                                    "",
+                                                                                  ],
+                                                                              }
+                                                                            : pQuestion
+                                                                      ),
+                                                                  }
+                                                                : passenger
+                                                          ),
+                                                      }
+                                                    : activity
+                                                )
+                                              );
+                                            } else {
+                                              setActivityBookings((prev) =>
+                                                prev.map((activity, i) =>
+                                                  i == step
+                                                    ? {
+                                                        ...activity,
+                                                        passengers:
+                                                          activity.passengers.map(
+                                                            (passenger, pI) =>
+                                                              pI == pIndx
+                                                                ? {
+                                                                    ...passenger,
+                                                                    passengerDetails:
+                                                                      passenger.passengerDetails.map(
+                                                                        (
+                                                                          pQuestion
+                                                                        ) =>
+                                                                          pQuestion.questionId ==
+                                                                          question.questionId
+                                                                            ? {
+                                                                                ...pQuestion,
+                                                                                answers:
+                                                                                  [
+                                                                                    format(
+                                                                                      date,
+                                                                                      "yyyy-MM-dd"
+                                                                                    ),
+                                                                                  ],
+                                                                              }
+                                                                            : pQuestion
+                                                                      ),
+                                                                  }
+                                                                : passenger
+                                                          ),
+                                                      }
+                                                    : activity
+                                                )
+                                              );
+                                            }
+                                            document
+                                              .querySelector<HTMLButtonElement>(
+                                                `[data-popover-close="${question.questionId}"]`
+                                              )
+                                              ?.click();
+                                          }}
+                                        />
+                                        <PopoverClose asChild>
+                                          <button
+                                            type="button"
+                                            hidden
+                                            data-popover-close={
+                                              question.questionId
+                                            }
+                                          />
+                                        </PopoverClose>
+                                      </PopoverContent>
+                                    </Popover>
+                                  </div>
+                                );
+                              }
+                              return (
+                                <div
+                                  key={question.questionId}
+                                  className="w-full flex flex-col gap-1 items-start"
+                                >
+                                  <Label className="text-sm font-normal">
+                                    {question.label}
+                                    {question.required && (
+                                      <span className="text-xs text-destructive">
+                                        *
+                                      </span>
+                                    )}
+                                  </Label>
+                                  <Input
+                                    value={
+                                      question.answers
+                                        ? question.answers[0]
+                                        : ""
+                                    }
+                                    onChange={(e) => {
+                                      setActivityBookings((prev) =>
+                                        prev.map((activity, i) =>
+                                          i == step
+                                            ? {
+                                                ...activity,
+                                                passengers:
+                                                  activity.passengers.map(
+                                                    (passenger, pI) =>
+                                                      pI == pIndx
+                                                        ? {
+                                                            ...passenger,
+                                                            passengerDetails:
+                                                              passenger.passengerDetails.map(
+                                                                (pQuestion) =>
+                                                                  pQuestion.questionId ==
+                                                                  question.questionId
+                                                                    ? {
+                                                                        ...pQuestion,
+                                                                        answers:
+                                                                          [
+                                                                            e
+                                                                              .target
+                                                                              .value,
+                                                                          ],
+                                                                      }
+                                                                    : pQuestion
+                                                              ),
+                                                          }
+                                                        : passenger
+                                                  ),
+                                              }
+                                            : activity
+                                        )
+                                      );
+                                    }}
+                                    className={cn(
+                                      "w-full",
+                                      ((question.answers
+                                        ? question.answers[0]
+                                        : "") == "" &&
+                                        question.required) ||
+                                        !isValid(
+                                          question.answers?.[0] ?? "",
+                                          question.dataFormat
+                                        )
+                                        ? "border border-destructive"
+                                        : ""
+                                    )}
+                                  />
+                                </div>
+                              );
+                            })}
+                            {passenger.questions.map((question) => {
+                              if (
+                                question.dataType == "OPTIONS" ||
+                                question.selectFromOptions
+                              ) {
+                                return (
+                                  <div
+                                    key={question.questionId}
+                                    className="w-full flex flex-col gap-1 items-start"
+                                  >
+                                    <Label className="text-sm font-normal">
+                                      {question.label}
+                                      {question.required && (
+                                        <span className="text-xs text-destructive">
+                                          *
+                                        </span>
+                                      )}
+                                    </Label>
+                                    <Select
+                                      defaultValue={
+                                        question.defaultValue ?? undefined
+                                      }
+                                      value={
+                                        question.answers
+                                          ? question.answers[0]
+                                          : ""
+                                      }
+                                      onValueChange={(v) =>
+                                        setActivityBookings((prev) =>
+                                          prev.map((activity, i) =>
+                                            i == step
+                                              ? {
+                                                  ...activity,
+                                                  passengers:
+                                                    activity.passengers.map(
+                                                      (passenger, pI) =>
+                                                        pI == pIndx
+                                                          ? {
+                                                              ...passenger,
+                                                              questions:
+                                                                passenger.questions.map(
+                                                                  (pQuestion) =>
+                                                                    pQuestion.questionId ==
+                                                                    question.questionId
+                                                                      ? {
+                                                                          ...pQuestion,
+                                                                          answers:
+                                                                            [v],
+                                                                        }
+                                                                      : pQuestion
+                                                                ),
+                                                            }
+                                                          : passenger
+                                                    ),
+                                                }
+                                              : activity
+                                          )
+                                        )
+                                      }
+                                    >
+                                      <SelectTrigger
+                                        className={cn(
+                                          "w-full",
+                                          ((question.answers
+                                            ? question.answers[0]
+                                            : "") == "" &&
+                                            question.required) ||
+                                            !isValid(
+                                              question.answers?.[0] ?? "",
+                                              question.dataFormat
+                                            )
+                                            ? "border border-destructive"
+                                            : ""
+                                        )}
+                                      >
+                                        <SelectValue
+                                          placeholder={
+                                            question.placeholder ??
+                                            t("choose-one")
+                                          }
+                                        />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {question.answerOptions.map(
+                                          (option) => {
+                                            if (option.value && option.label)
+                                              return (
+                                                <SelectItem
+                                                  value={option.value}
+                                                  key={option.value}
+                                                >
+                                                  {option.label}
+                                                </SelectItem>
+                                              );
+                                          }
+                                        )}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                );
+                              }
+                              if (
+                                question.dataType == "CHECKBOX_TOGGLE" ||
+                                question.dataType == "BOOLEAN"
+                              ) {
+                                return (
+                                  <div
+                                    key={question.questionId}
+                                    className="w-full flex flex-row gap-1 items-center"
+                                  >
+                                    <Checkbox
+                                      checked={
+                                        (question.answers
+                                          ? question.answers[0]
+                                          : "no") != "no"
+                                      }
+                                      onCheckedChange={(c) => {
+                                        setActivityBookings((prev) =>
+                                          prev.map((activity, i) =>
+                                            i == step
+                                              ? {
+                                                  ...activity,
+                                                  passengers:
+                                                    activity.passengers.map(
+                                                      (passenger, pI) =>
+                                                        pI == pIndx
+                                                          ? {
+                                                              ...passenger,
+                                                              questions:
+                                                                passenger.questions.map(
+                                                                  (pQuestion) =>
+                                                                    pQuestion.questionId ==
+                                                                    question.questionId
+                                                                      ? {
+                                                                          ...pQuestion,
+                                                                          answers:
+                                                                            [
+                                                                              c
+                                                                                ? "yes"
+                                                                                : "no",
+                                                                            ],
+                                                                        }
+                                                                      : pQuestion
+                                                                ),
+                                                            }
+                                                          : passenger
+                                                    ),
+                                                }
+                                              : activity
+                                          )
+                                        );
+                                      }}
+                                    />
+                                    <Label className="text-sm font-normal">
+                                      {question.label}
+                                      {question.required && (
+                                        <span className="text-xs text-destructive">
+                                          *
+                                        </span>
+                                      )}
+                                    </Label>
+                                  </div>
+                                );
+                              }
+                              if (question.dataType == "DATE") {
+                                return (
+                                  <div
+                                    key={question.questionId}
+                                    className="w-full flex flex-col gap-1 items-start"
+                                  >
+                                    <Label className="text-sm font-normal">
+                                      {question.label}
+                                      {question.required && (
+                                        <span className="text-xs text-destructive">
+                                          *
+                                        </span>
+                                      )}
+                                    </Label>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          data-empty={
+                                            (question.answers
+                                              ? question.answers[0]
+                                              : "") == ""
+                                          }
+                                          className={
+                                            "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
+                                          }
+                                        >
+                                          <CalendarIcon />
+                                          {(question.answers
+                                            ? question.answers[0]
+                                            : "") != "" ? (
+                                            format(question.answers[0], "PPP")
+                                          ) : (
+                                            <span>{t("select-date")}</span>
+                                          )}
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                          captionLayout="dropdown"
+                                          showOutsideDays={false}
+                                          mode="single"
+                                          selected={
+                                            question.answers
+                                              ? parse(
+                                                  question.answers[0],
+                                                  "yyyy-MM-dd",
+                                                  new Date()
+                                                )
+                                              : undefined
+                                          }
+                                          onSelect={(date) => {
+                                            if (!date) {
+                                              setActivityBookings((prev) =>
+                                                prev.map((activity, i) =>
+                                                  i == step
+                                                    ? {
+                                                        ...activity,
+                                                        passengers:
+                                                          activity.passengers.map(
+                                                            (passenger, pI) =>
+                                                              pI == pIndx
+                                                                ? {
+                                                                    ...passenger,
+                                                                    questions:
+                                                                      passenger.questions.map(
+                                                                        (
+                                                                          pQuestion
+                                                                        ) =>
+                                                                          pQuestion.questionId ==
+                                                                          question.questionId
+                                                                            ? {
+                                                                                ...pQuestion,
+                                                                                answers:
+                                                                                  [
+                                                                                    "",
+                                                                                  ],
+                                                                              }
+                                                                            : pQuestion
+                                                                      ),
+                                                                  }
+                                                                : passenger
+                                                          ),
+                                                      }
+                                                    : activity
+                                                )
+                                              );
+                                            } else {
+                                              setActivityBookings((prev) =>
+                                                prev.map((activity, i) =>
+                                                  i == step
+                                                    ? {
+                                                        ...activity,
+                                                        passengers:
+                                                          activity.passengers.map(
+                                                            (passenger, pI) =>
+                                                              pI == pIndx
+                                                                ? {
+                                                                    ...passenger,
+                                                                    questions:
+                                                                      passenger.questions.map(
+                                                                        (
+                                                                          pQuestion
+                                                                        ) =>
+                                                                          pQuestion.questionId ==
+                                                                          question.questionId
+                                                                            ? {
+                                                                                ...pQuestion,
+                                                                                answers:
+                                                                                  [
+                                                                                    format(
+                                                                                      date,
+                                                                                      "yyyy-MM-dd"
+                                                                                    ),
+                                                                                  ],
+                                                                              }
+                                                                            : pQuestion
+                                                                      ),
+                                                                  }
+                                                                : passenger
+                                                          ),
+                                                      }
+                                                    : activity
+                                                )
+                                              );
+                                            }
+                                            document
+                                              .querySelector<HTMLButtonElement>(
+                                                `[data-popover-close="${question.questionId}"]`
+                                              )
+                                              ?.click();
+                                          }}
+                                        />
+                                        <PopoverClose asChild>
+                                          <button
+                                            type="button"
+                                            hidden
+                                            data-popover-close={
+                                              question.questionId
+                                            }
+                                          />
+                                        </PopoverClose>
+                                      </PopoverContent>
+                                    </Popover>
+                                  </div>
+                                );
+                              }
+                              return (
+                                <div
+                                  key={question.questionId}
+                                  className="w-full flex flex-col gap-1 items-start"
+                                >
+                                  <Label className="text-sm font-normal">
+                                    {question.label}
+                                    {question.required && (
+                                      <span className="text-xs text-destructive">
+                                        *
+                                      </span>
+                                    )}
+                                  </Label>
+                                  <Input
+                                    value={
+                                      question.answers
+                                        ? question.answers[0]
+                                        : ""
+                                    }
+                                    onChange={(e) => {
+                                      setActivityBookings((prev) =>
+                                        prev.map((activity, i) =>
+                                          i == step
+                                            ? {
+                                                ...activity,
+                                                passengers:
+                                                  activity.passengers.map(
+                                                    (passenger, pI) =>
+                                                      pI == pIndx
+                                                        ? {
+                                                            ...passenger,
+                                                            questions:
+                                                              passenger.questions.map(
+                                                                (pQuestion) =>
+                                                                  pQuestion.questionId ==
+                                                                  question.questionId
+                                                                    ? {
+                                                                        ...pQuestion,
+                                                                        answers:
+                                                                          [
+                                                                            e
+                                                                              .target
+                                                                              .value,
+                                                                          ],
+                                                                      }
+                                                                    : pQuestion
+                                                              ),
+                                                          }
+                                                        : passenger
+                                                  ),
+                                              }
+                                            : activity
+                                        )
+                                      );
+                                    }}
+                                    className={cn(
+                                      "w-full",
+                                      ((question.answers
+                                        ? question.answers[0]
+                                        : "") == "" &&
+                                        question.required) ||
+                                        !isValid(
+                                          question.answers?.[0] ?? "",
+                                          question.dataFormat
+                                        )
+                                        ? "border border-destructive"
+                                        : ""
+                                    )}
+                                  />
+                                </div>
+                              );
+                            })}
+                          </CarouselItem>
+                        );
+                      }
+                    )}
+                  </CarouselContent>
+                  {activityBookings[step].passengers.length > 1 && (
+                    <div className="absolute top-0 right-0">
+                      <CarouselPrevious className="border-none p-0 right-0 top-4 shadow-none w-fit h-fit" />
+                      <CarouselNext className="border-none p-0 right-2 top-4 shadow-none w-fit h-fit" />
+                    </div>
+                  )}
+                </Carousel>
+              )}
+              <Button
+                type="button"
+                onClick={() => {
+                  setMainContactDetails((prev) =>
+                    prev.map((question) =>
+                      [
+                        "firstName",
+                        "lastName",
+                        "email",
+                        "phoneNumber",
+                      ].includes(question.questionId)
+                        ? {
+                            ...question,
+                            answers:
+                              question.questionId == "firstName"
+                                ? [addressData?.firstName ?? ""]
+                                : question.questionId == "lastName"
+                                ? [addressData?.lastName ?? ""]
+                                : question.questionId == "email"
+                                ? [clientInfo.getValues("email") ?? ""]
+                                : [addressData?.phone ?? ""],
+                          }
+                        : question
+                    )
+                  );
+
+                  setStep((prev) =>
+                    typeof prev == "number"
+                      ? prev ==
+                        cart.filter((item) => item.type == "activity").length -
+                          1
+                        ? "paying"
+                        : prev + 1
+                      : prev
+                  );
+                }}
+                disabled={
+                  mainContactDetails
+                    .filter(
+                      (question) =>
+                        ![
+                          "firstName",
+                          "lastName",
+                          "email",
+                          "phoneNumber",
+                        ].includes(question.questionId)
+                    )
+                    .some(
+                      (question) =>
+                        question.required &&
+                        (question.answers ? question.answers[0] : "") == ""
+                    ) ||
+                  activityBookings[step].passengers.some((passenger) =>
+                    passenger.passengerDetails.some(
+                      (question) =>
+                        question.required &&
+                        (question.answers ? question.answers[0] : "") == ""
+                    )
+                  ) ||
+                  activityBookings[step].passengers.some((passenger) =>
+                    passenger.questions.some(
+                      (question) =>
+                        question.required &&
+                        (question.answers ? question.answers[0] : "") == ""
+                    )
+                  ) ||
+                  activityBookings[step]?.questions.some(
+                    (question) =>
+                      question.required &&
+                      (question.answers ? question.answers[0] : "") == ""
+                  ) ||
+                  activityBookings[step]?.pickupQuestions.some(
+                    (question) =>
+                      question.required &&
+                      (question.answers ? question.answers[0] : "") == ""
+                  )
+                }
+                className="w-full"
+              >
+                {step ==
+                cart.filter((item) => item.type == "activity").length - 1
+                  ? t("proceed-payment")
+                  : t("continue")}{" "}
+                <ArrowRight />
+              </Button>
+            </div>
           )}
 
           {step == "paying" && (
