@@ -65,7 +65,7 @@ export default async function Page({
 
   //const flatIds1 = response.items.map((i) => i.id);
 
-const flatIds = [15714];
+const flatIds = [1088165];
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full relative">

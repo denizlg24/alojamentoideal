@@ -1,11 +1,7 @@
 "use server"
-import { verifySession } from "@/utils/verifySession";
 import nodemailer from "nodemailer";
 
 export async function sendMail({ email, html, subject }: { email: string, html: string, subject: string }) {
-    if (!(await verifySession())) {
-        throw new Error("Unauthorized")
-    }
     const transporter = nodemailer.createTransport({
         host: "mail.alojamentoideal.pt",
         port: 465,

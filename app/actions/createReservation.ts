@@ -52,7 +52,7 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
 
 
         const { success, client_secret, id } = await fetchClientSecret(
-            amount,
+            {alojamentoIdeal:amount, detours:0},
             clientName,
             clientEmail,
             clientPhone,

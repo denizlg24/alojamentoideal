@@ -51,6 +51,7 @@ import {
   categoriesMap,
   ContactInformationDto,
   ExperienceBookingQuestionDto,
+  isValid,
   PickupPlaceDto,
   QuestionSpecificationDto,
 } from "@/utils/bokun-requests";
@@ -155,7 +156,7 @@ export const TourCheckoutForm = ({
   const [_amount, setAmount] = useState(0);
   const [priceLoading, setPriceLoading] = useState(true);
   //const [checking, setChecking] = useState(true);
-  const [loadingMessage /*setLoadingMessage*/] = useState("");
+  const [loadingMessage, setLoadingMessage] = useState("");
   const [addressData, setAddressData] = useState<{
     name: string;
     firstName?: string | undefined;
@@ -227,8 +228,10 @@ export const TourCheckoutForm = ({
     setLoading(true);
     if (!addressData) {
       setLoading(false);
+      setError("provide_information");
       return;
     }
+    setLoadingMessage("loading_create_res");
     const response = await createBookingRequest({
       mainContactDetails: mainContactDetails.map((question) => ({
         questionId: question.questionId,
@@ -288,6 +291,7 @@ export const TourCheckoutForm = ({
       setLoading(false);
       return;
     }
+    setLoadingMessage("loading_process_pay");
     if (selectedTab == "card") {
       const cardNumberElement = elements?.getElement(CardNumberElement);
       if (!stripe || !cardNumberElement) throw new Error("Stripe not ready");
@@ -700,10 +704,15 @@ export const TourCheckoutForm = ({
                           <SelectTrigger
                             className={cn(
                               "w-full",
-                              (question.answers ? question.answers[0] : "") ==
+                              ((question.answers ? question.answers[0] : "") ==
                                 "" &&
-                                question.required &&
-                                "border border-destructive"
+                                question.required) ||
+                                !isValid(
+                                  question.answers?.[0] ?? "",
+                                  question.dataFormat
+                                )
+                                ? "border border-destructive"
+                                : ""
                             )}
                           >
                             <SelectValue
@@ -913,9 +922,15 @@ export const TourCheckoutForm = ({
                         }}
                         className={cn(
                           "w-full",
-                          (question.answers ? question.answers[0] : "") == "" &&
-                            question.required &&
-                            "border border-destructive"
+                          ((question.answers ? question.answers[0] : "") ==
+                            "" &&
+                            question.required) ||
+                            !isValid(
+                              question.answers?.[0] ?? "",
+                              question.dataFormat
+                            )
+                            ? "border border-destructive"
+                            : ""
                         )}
                       />
                     </div>
@@ -923,50 +938,49 @@ export const TourCheckoutForm = ({
                 })}
               </div>
             )}
-            {activityBookings[0].pickupQuestions?.length > 0 && (
+            {meeting.type != "MEET_ON_LOCATION" && (
               <div className="w-full flex flex-col gap-2 items-start">
                 <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
                   {t("pickup-details")}
                 </p>
-                {meeting.type != "MEET_ON_LOCATION" && (
-                  <div className="w-full flex flex-col gap-1 items-start">
-                    <Label className="text-sm font-normal">
-                      {t("pickup-place")}
-                    </Label>
-                    <Select
-                      value={selectedPickupPlaceId}
-                      onValueChange={async (v) => {
-                        setPickupPlaceId(v);
-                        setPickupQuestionsLoading(true);
-                        await updateBookingPickUpQuestions(
-                          activityBookings[0].bookingId,
-                          experienceId,
-                          v == "custom" ? undefined : v
+                <div className="w-full flex flex-col gap-1 items-start">
+                  <Label className="text-sm font-normal">
+                    {t("pickup-place")}
+                  </Label>
+                  <Select
+                    disabled={pickupQuestionsLoading}
+                    value={selectedPickupPlaceId}
+                    onValueChange={async (v) => {
+                      setPickupPlaceId(v);
+                      setPickupQuestionsLoading(true);
+                      await updateBookingPickUpQuestions(
+                        activityBookings[0].bookingId,
+                        experienceId,
+                        v == "custom" ? undefined : v
+                      );
+                      setPickupQuestionsLoading(false);
+                    }}
+                  >
+                    <SelectTrigger className={cn("w-full")}>
+                      <SelectValue placeholder={t("choose-one")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={"custom"}>
+                        {t("i-want-to-select-my-own")}
+                      </SelectItem>
+                      {meeting.pickUpPlaces.map((option) => {
+                        return (
+                          <SelectItem
+                            value={option.id.toString()}
+                            key={option.id}
+                          >
+                            {option.title}
+                          </SelectItem>
                         );
-                        setPickupQuestionsLoading(false);
-                      }}
-                    >
-                      <SelectTrigger className={cn("w-full")}>
-                        <SelectValue placeholder={t("choose-one")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={"custom"}>
-                          {t("i-want-to-select-my-own")}
-                        </SelectItem>
-                        {meeting.pickUpPlaces.map((option) => {
-                          return (
-                            <SelectItem
-                              value={option.id.toString()}
-                              key={option.id}
-                            >
-                              {option.title}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
                 {pickupQuestionsLoading && (
                   <Skeleton className="w-full h-[80px]" />
                 )}
@@ -1012,10 +1026,16 @@ export const TourCheckoutForm = ({
                             <SelectTrigger
                               className={cn(
                                 "w-full",
-                                (question.answers ? question.answers[0] : "") ==
-                                  "" &&
-                                  question.required &&
-                                  "border border-destructive"
+                                ((question.answers
+                                  ? question.answers[0]
+                                  : "") == "" &&
+                                  question.required) ||
+                                  !isValid(
+                                    question.answers?.[0] ?? "",
+                                    question.dataFormat
+                                  )
+                                  ? "border border-destructive"
+                                  : ""
                               )}
                             >
                               <SelectValue
@@ -1238,10 +1258,15 @@ export const TourCheckoutForm = ({
                           }}
                           className={cn(
                             "w-full",
-                            (question.answers ? question.answers[0] : "") ==
+                            ((question.answers ? question.answers[0] : "") ==
                               "" &&
-                              question.required &&
-                              "border border-destructive"
+                              question.required) ||
+                              !isValid(
+                                question.answers?.[0] ?? "",
+                                question.dataFormat
+                              )
+                              ? "border border-destructive"
+                              : ""
                           )}
                         />
                       </div>
@@ -1303,10 +1328,16 @@ export const TourCheckoutForm = ({
                             <SelectTrigger
                               className={cn(
                                 "w-full",
-                                (question.answers ? question.answers[0] : "") ==
-                                  "" &&
-                                  question.required &&
-                                  "border border-destructive"
+                                ((question.answers
+                                  ? question.answers[0]
+                                  : "") == "" &&
+                                  question.required) ||
+                                  !isValid(
+                                    question.answers?.[0] ?? "",
+                                    question.dataFormat
+                                  )
+                                  ? "border border-destructive"
+                                  : ""
                               )}
                             >
                               <SelectValue
@@ -1484,10 +1515,15 @@ export const TourCheckoutForm = ({
                           }}
                           className={cn(
                             "w-full",
-                            (question.answers ? question.answers[0] : "") ==
+                            ((question.answers ? question.answers[0] : "") ==
                               "" &&
-                              question.required &&
-                              "border border-destructive"
+                              question.required) ||
+                              !isValid(
+                                question.answers?.[0] ?? "",
+                                question.dataFormat
+                              )
+                              ? "border border-destructive"
+                              : ""
                           )}
                         />
                       </div>
@@ -1574,11 +1610,16 @@ export const TourCheckoutForm = ({
                                   <SelectTrigger
                                     className={cn(
                                       "w-full",
-                                      (question.answers
+                                      ((question.answers
                                         ? question.answers[0]
                                         : "") == "" &&
-                                        question.required &&
-                                        "border border-destructive"
+                                        question.required) ||
+                                        !isValid(
+                                          question.answers?.[0] ?? "",
+                                          question.dataFormat
+                                        )
+                                        ? "border border-destructive"
+                                        : ""
                                     )}
                                   >
                                     <SelectValue
@@ -1863,11 +1904,16 @@ export const TourCheckoutForm = ({
                                 }}
                                 className={cn(
                                   "w-full",
-                                  (question.answers
+                                  ((question.answers
                                     ? question.answers[0]
                                     : "") == "" &&
-                                    question.required &&
-                                    "border border-destructive"
+                                    question.required) ||
+                                    !isValid(
+                                      question.answers?.[0] ?? "",
+                                      question.dataFormat
+                                    )
+                                    ? "border border-destructive"
+                                    : ""
                                 )}
                               />
                             </div>
@@ -1935,11 +1981,16 @@ export const TourCheckoutForm = ({
                                   <SelectTrigger
                                     className={cn(
                                       "w-full",
-                                      (question.answers
+                                      ((question.answers
                                         ? question.answers[0]
                                         : "") == "" &&
-                                        question.required &&
-                                        "border border-destructive"
+                                        question.required) ||
+                                        !isValid(
+                                          question.answers?.[0] ?? "",
+                                          question.dataFormat
+                                        )
+                                        ? "border border-destructive"
+                                        : ""
                                     )}
                                   >
                                     <SelectValue
@@ -2224,11 +2275,16 @@ export const TourCheckoutForm = ({
                                 }}
                                 className={cn(
                                   "w-full",
-                                  (question.answers
+                                  ((question.answers
                                     ? question.answers[0]
                                     : "") == "" &&
-                                    question.required &&
-                                    "border border-destructive"
+                                    question.required) ||
+                                    !isValid(
+                                      question.answers?.[0] ?? "",
+                                      question.dataFormat
+                                    )
+                                    ? "border border-destructive"
+                                    : ""
                                 )}
                               />
                             </div>
@@ -2302,6 +2358,19 @@ export const TourCheckoutForm = ({
                         question.required &&
                         (question.answers ? question.answers[0] : "") == ""
                     )
+                  )
+                ) ||
+                activityBookings.some((activity) =>
+                  activity.questions.some(
+                    (question) =>
+                      question.required &&
+                      (question.answers ? question.answers[0] : "") == ""
+                  )
+                ) || activityBookings.some((activity) =>
+                  activity.pickupQuestions.some(
+                    (question) =>
+                      question.required &&
+                      (question.answers ? question.answers[0] : "") == ""
                   )
                 )
               }

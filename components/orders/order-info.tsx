@@ -23,9 +23,10 @@ import {
 } from "lucide-react";
 import Stripe from "stripe";
 import { FaCcApplePay } from "react-icons/fa6";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import { Button } from "../ui/button";
+import { useCart } from "@/hooks/cart-context";
 
 const renderIcon = ({
   paymentMethod,
@@ -78,10 +79,17 @@ export const OrderInfo = ({
   const feeT = useTranslations("feeTranslations");
   const locale = useLocale();
   const cardRef = useRef<HTMLDivElement>(null);
+  const {clearCart} = useCart();
   const handlePrint = useReactToPrint({
     contentRef: cardRef,
     documentTitle: `Alojamento Ideal Order: ${order?.orderId}`,
   });
+
+  useEffect(() => {
+    localStorage.clear();
+    clearCart();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[])
 
   return (
     <div className="w-full max-w-7xl mx-auto flex flex-col gap-8 px-4 pt-12">

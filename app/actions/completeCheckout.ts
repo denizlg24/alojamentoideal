@@ -8,12 +8,13 @@ import { hostifyRequest } from "@/utils/hostify-request";
 import { format } from "date-fns";
 import { registerOrder } from "./createOrder";
 import { fetchClientSecret } from "./stripe";
-import { generateUniqueId } from "@/lib/utils";
+import { generateReservationID, generateUniqueId } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
 import { connectDB } from "@/lib/mongodb";
+import { bokunRequest, FullExperienceType } from "@/utils/bokun-requests";
 //import { createHouseInvoice } from "./createHouseInvoice";
 
-export async function buyCart({ cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName }: {
+export async function buyCart({ cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName, mainContactDetails, activityBookings }: {
     cart: CartItem[], clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
         line1: string;
         line2: string | null;
@@ -21,7 +22,8 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
         state: string;
         postal_code: string;
         country: string;
-    }, clientTax?: string, isCompany: boolean, companyName?: string
+    }, clientTax?: string, isCompany: boolean, companyName?: string, mainContactDetails?: { questionId: string, values: string[] }[],
+    activityBookings?: { activityId: number, answers: { questionId: string, values: string[] }[], pickupAnswers: { questionId: string, values: string[] }[], rateId: number, startTimeId: number | undefined, date: string, pickup: boolean, pickupPlaceId: string | undefined, passengers: { pricingCategoryId: number, groupSize: number, passengerDetails: { questionId: string, values: string[] }[], answers: { questionId: string, values: string[] }[] }[] }[],
 }) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
@@ -29,6 +31,7 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
     try {
         await connectDB();
         const amount = await calculateAmount(cart);
+        let tourAmount = 0;
         const amounts: number[] = []
         const reservationIds: number[] = [];
         const reservationReferences: string[] = [];
@@ -95,15 +98,103 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
             const newItem = { ...property, /*invoice: itemInvoice*/ };
             newCart.push(newItem);
         }
+        let bokunResponse: { success: false, message: string } | {
+            success: true,
+            booking: {
+                activityBookings: [{
+                    bookingId: number;
+                    parentBookingId: number;
+                    confirmationCode: string;
+                    productConfirmationCode: string;
+                    barcode: {
+                        value: string;
+                        barcodeType: "QR_CODE" | "CODE_128" | "PDF_417" | "DATA_MATRIX" | "AZTEC";
+                    };
+                    hasTicket: boolean;
+                    boxBooking: boolean;
+                    startDateTime: number;
+                    endDateTime: number;
+                    status: "CART" | "REQUESTED" | "RESERVED" | "CONFIRMED" | "TIMEOUT" | "ABORTED" | "CANCELLED" | "ERROR" | "ARRIVED" | "NO_SHOW" | "REJECTED";
+                    includedOnCustomerInvoice: boolean;
+                    title: string;
+                    totalPrice: number;
+                    priceWithDiscount: number;
+                    totalPriceAsText: string;
+                    priceWithDiscountAsText: string;
+                    discountPercentage: number;
+                    discountAmount: number;
+                    paidType: "PAID_IN_FULL" | "DEPOSIT" | "FREE" | "NOT_PAID" | "OVERPAID" | "REFUND" | "INVOICED" | "GIFT_CARD";
+                    activity: FullExperienceType;
+                }];
+                totalPrice: number;
+                status: "CART" | "REQUESTED" | "RESERVED" | "CONFIRMED" | "TIMEOUT" | "ABORTED" | "CANCELLED" | "ERROR" | "ARRIVED" | "NO_SHOW" | "REJECTED";
+                confirmationCode: string;
+                bookingId: number;
+            };
+        } = { success: false, message: "no-tour-items" };
+        if (cart.filter((item) => item.type == 'activity').length > 0) {
+            const randomOrderId = generateReservationID();
+            bokunResponse = await bokunRequest<{
+                booking: {
+                    activityBookings: [{
+                        bookingId: number,
+                        parentBookingId: number,
+                        confirmationCode: string,
+                        productConfirmationCode: string,
+                        barcode: { value: string, barcodeType: "QR_CODE" | "CODE_128" | "PDF_417" | "DATA_MATRIX" | "AZTEC" },
+                        hasTicket: boolean,
+                        boxBooking: boolean,
+                        startDateTime: number,
+                        endDateTime: number,
+                        status: "CART" | "REQUESTED" | "RESERVED" | "CONFIRMED" | "TIMEOUT" | "ABORTED" | "CANCELLED" | "ERROR" | "ARRIVED" | "NO_SHOW" | "REJECTED",
+                        includedOnCustomerInvoice: boolean,
+                        title: string,
+                        totalPrice: number,
+                        priceWithDiscount: number,
+                        totalPriceAsText: string,
+                        priceWithDiscountAsText: string,
+                        discountPercentage: number,
+                        discountAmount: number,
+                        paidType: "PAID_IN_FULL" | "DEPOSIT" | "FREE" | "NOT_PAID" | "OVERPAID" | "REFUND" | "INVOICED" | "GIFT_CARD",
+                        activity: FullExperienceType,
+
+                    }],
+                    totalPrice: number, status: "CART" | "REQUESTED" | "RESERVED" | "CONFIRMED" | "TIMEOUT" | "ABORTED" | "CANCELLED" | "ERROR" | "ARRIVED" | "NO_SHOW" | "REJECTED", confirmationCode: string, bookingId: number
+                },
+            }>({
+                method: "POST",
+                path: `/checkout.json/submit`,  //17816 //?trackingCode=774327a1896b423b8f6a13b24095ec80
+                body: { 
+                    checkoutOption: 'CUSTOMER_FULL_PAYMENT',
+                    directBooking: {
+                        mainContactDetails,
+                        activityBookings,
+                        externalBookingReference: randomOrderId,
+                        externalBookingEntityName: 'Alojamento Ideal',
+                    },
+                    sendNotificationToMainContact: false,
+                    paymentMethod: 'RESERVE_FOR_EXTERNAL_PAYMENT',
+                    checkoutOptionAnswers: [],
+                    source: 'DIRECT_REQUEST'
+                },
+            });
+            if (!bokunResponse.success) {
+                return { success: false }
+            }
+            tourAmount += bokunResponse.booking.totalPrice * 100;
+        }
+
+        console.log(bokunResponse);
 
         const { success, client_secret, id } = await fetchClientSecret(
-            amount,
+            {alojamentoIdeal:amount,detours:tourAmount},
             clientName,
             clientEmail,
             clientPhone,
             clientNotes,
             reservationIds,
             clientAddress,
+            bokunResponse.success ? [bokunResponse.booking.confirmationCode.toString()] : []
         );
 
         const { success: order_success, orderId } = await registerOrder({
@@ -113,13 +204,15 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
             notes: clientNotes,
             reservationIds: reservationIds.map((r) => r.toString()),
             reservationReferences: reservationReferences.map((r) => r.toString()),
-            items: newCart,
+            items: [...newCart,...cart.filter((item) => item.type == 'activity')],
             payment_id: id || "",
             transaction_id: transactionIds.map((t) => t.toString()),
             payment_method_id: "",
             tax_number: clientTax,
             isCompany,
-            companyName
+            companyName,
+            activityBookingIds: bokunResponse.success ? bokunResponse.booking.activityBookings.map((activity) => activity.productConfirmationCode) : [],
+            activityBookingReferences: bokunResponse.success ? [bokunResponse.booking.confirmationCode] : []
         });
 
         return { success: success && order_success, client_secret, payment_id: id, order_id: orderId };

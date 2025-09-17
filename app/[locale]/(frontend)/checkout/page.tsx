@@ -1,6 +1,7 @@
 import { use } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CheckoutHolder } from "@/components/payment-form/checkout-holder";
+import { randomUUID } from "crypto";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -42,10 +43,10 @@ export default function Page({
   const { locale } = use<{ locale: string }>(params);
 
   setRequestLocale(locale);
-
+  const cartId = randomUUID();
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
-      <CheckoutHolder />
+      <CheckoutHolder cartId={cartId}/>
     </main>
   );
 }

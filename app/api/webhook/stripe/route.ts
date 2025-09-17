@@ -1,5 +1,4 @@
 import { getHtml } from "@/app/actions/getHtml";
-import { getPaymentIntent } from "@/app/actions/getPaymentIntent";
 import { sendMail } from "@/app/actions/sendMail";
 import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
@@ -30,6 +29,69 @@ export async function POST(req: Request) {
         const t = await getTranslations("order-email");
         await connectDB();
         switch (event.type) {
+            case 'charge.succeeded':
+                const charge = event.data.object;
+                if (charge.paid && charge.status === "succeeded") {
+                    const chargePaymentId = charge.payment_intent as string; 
+                    const foundOrder = await OrderModel.findOne({ payment_id:chargePaymentId }).lean();
+                    console.log(foundOrder);
+                    if (foundOrder && foundOrder.activityBookingReferences && charge.transfer_data) {
+                        for (let index = 0; index < foundOrder.activityBookingReferences.length; index++) {
+                            const bookingCode = foundOrder.activityBookingReferences[index];
+                            const confirmationResponse = await bokunRequest<{ travelDocuments: { invoice: string, activityTickets: { bookingId: string, productTitle: string, productConfirmationCode: string, ticket: string }[] } }>({
+                                method: "POST", path: `/checkout.json/confirm-reserved/${bookingCode}`, body: {
+                                    externalBookingReference: foundOrder.orderId,
+                                    externalBookingEntityName: "Alojamento Ideal",
+                                    sendNotificationToMainContact: false,
+                                    transactionDetails: {
+                                        transactionDate: format(new Date, "yyyy-MM-dd"),
+                                        transactionId: charge.id,
+                                        cardBrand: charge.payment_method_details?.card?.brand ?? 'Bank',
+                                        last4: charge.payment_method_details?.card?.last4 ?? '',
+                                    },
+                                    amount: charge.transfer_data.amount! / 100,
+                                    currency: charge?.currency.toUpperCase()
+                                }
+                            })
+                            console.log(confirmationResponse);
+                            if (!confirmationResponse.success) {
+                                continue;
+                            }
+                            console.log(confirmationResponse.travelDocuments);
+                        }
+                    }
+                }
+                break;
+            case 'transfer.created':
+                const destinationAccountId = event.data.object.destination as string;
+                const destination_payment = event.data.object.destination_payment as string;
+                const original_payment_id = event.data.object.transfer_group?.split('group_')[1];
+                if (original_payment_id && destination_payment) {
+                    const transferOrder = await OrderModel.findOne({ payment_id: original_payment_id });
+                    if (transferOrder) {
+                        try {
+                            await stripe.charges.update(
+                                destination_payment,
+                                {
+                                    description: `${transferOrder?.name} - Activity Booking - ${transferOrder?.activityBookingReferences?.join(", ")}`,
+                                    metadata: {
+                                        "Alojamento Ideal - Payment Intent ID": original_payment_id,
+                                        "Alojamento Ideal - Order Id": transferOrder.orderId,
+                                        "Client Name": transferOrder.name,
+                                        "Client Email": transferOrder.email,
+                                        "Client Phone Number": transferOrder.phoneNumber,
+                                        "Notes": transferOrder.notes ?? "No notes."
+                                    },
+                                },
+                                { stripeAccount: destinationAccountId }
+                            );
+                        } catch (error) {
+                            console.log(error);
+                        }
+
+                    }
+                }
+                break;
             case 'payment_intent.succeeded':
                 const payment_id = event.data.object.id;
                 const foundOrder = await OrderModel.findOne({ payment_id });
@@ -67,35 +129,6 @@ export async function POST(req: Request) {
                         ])
                         console.log("reservation update: ", reservation_request, " transaction_update", transaction_request);
                     }
-                    if (foundOrder.activityBookingReferences) {
-                        for (let index = 0; index < foundOrder.activityBookingReferences.length; index++) {
-                            const bookingCode = foundOrder.activityBookingReferences[index];
-                            const chargeResponse = await getPaymentIntent(payment_id);
-                            if (!chargeResponse.charge) {
-                                continue;
-                            }
-                            const confirmationResponse = await bokunRequest<{ travelDocuments: { invoice: string, activityTickets: { bookingId: string, productTitle: string, productConfirmationCode: string, ticket: string }[] } }>({
-                                method: "POST", path: `/checkout.json/confirm-reserved/${bookingCode}`, body: {
-                                    externalBookingReference: foundOrder.orderId,
-                                    externalBookingEntityName: "Alojamento Ideal",
-                                    sendNotificationToMainContact: false,
-                                    transactionDetails: {
-                                        transactionDate: format(new Date, "yyyy-MM-dd"),
-                                        transactionId: chargeResponse.charge.id,
-                                        cardBrand: chargeResponse.charge.payment_method_details?.card?.brand ?? 'Bank',
-                                        last4: chargeResponse.charge.payment_method_details?.card?.last4 ?? '',
-                                    },
-                                    amount: chargeResponse.charge.amount / 100,
-                                    currency: chargeResponse.charge.currency.toUpperCase()
-                                }
-                            })
-                            if (!confirmationResponse.success) {
-                                continue;
-                            }
-                            console.log(confirmationResponse.travelDocuments);
-                        }
-                    }
-
                     const plainItems = foundOrder.items;
                     const total = plainItems.reduce((prev, i) => {
                         return i.type == "accommodation" ? prev + (i.front_end_price ?? 0) : i.type == 'activity' ? prev + (i.price ?? 0) : prev + ((i.price ?? 0) * (i.quantity ?? 0))
