@@ -892,7 +892,7 @@ export const PropertyInfoCard = ({
             <CarouselContent>
               {listing?.photos.map((photo, index) => (
                 <CarouselItem key={index}>
-                  <Image
+                  <Image unoptimized 
                     src={photo.original_file}
                     blurDataURL={
                       photo.has_thumb ? photo.thumbnail_file : undefined

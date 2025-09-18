@@ -158,7 +158,7 @@ export const CheckoutHolder = ({ cartId }: { cartId: string }) => {
                   key={cartItem.property_id}
                   className="w-full flex flex-row items-start justify-between gap-2 relative"
                 >
-                  <Image
+                  <Image unoptimized 
                     src={cartItem.photo}
                     alt="cart-logo"
                     width={1080}

@@ -147,7 +147,7 @@ export const CheckoutHolder = ({
   return (
     <div className="lg:grid flex flex-col-reverse grid-cols-5 w-full max-w-7xl px-4 pt-12 gap-8 relative lg:items-start items-center">
       <Card className="col-span-3 flex flex-col gap-4 p-4 w-full">
-        <Image
+        <Image unoptimized 
           src={experience.photos[0].originalUrl}
           alt={experience.photos[0].caption ?? "thumbnail photo"}
           width={1920}

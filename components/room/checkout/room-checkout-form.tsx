@@ -690,11 +690,11 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
               >
                 <TabsList className="w-full flex flex-row items-center">
                   <TabsTrigger value="card" className="px-4">
-                    <Image src={cardSvg} alt="Card-icon" />
+                    <Image unoptimized  src={cardSvg} alt="Card-icon" />
                     {t("card")}
                   </TabsTrigger>
                   <TabsTrigger value="sepa" className="px-4">
-                    <Image src={sepaSvg} alt="Sepa-icon" />
+                    <Image unoptimized  src={sepaSvg} alt="Sepa-icon" />
                     SEPA Direct Debit
                   </TabsTrigger>
                 </TabsList>

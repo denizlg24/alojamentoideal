@@ -1,4 +1,5 @@
 "use server"
+import env from "@/utils/env";
 import nodemailer from "nodemailer";
 
 export async function sendMail({ email, html, subject }: { email: string, html: string, subject: string }) {
@@ -8,7 +9,7 @@ export async function sendMail({ email, html, subject }: { email: string, html: 
         secure: true, // upgrade later with STARTTLS
         auth: {
             user: "site@alojamentoideal.pt",
-            pass: process.env.WEBMAIL_PASS,
+            pass: env.WEBMAIL_PASS,
         },
     });
     const mailOptions = {

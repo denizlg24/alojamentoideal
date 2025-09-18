@@ -471,7 +471,7 @@ export default async function Home({
                     </div>
                     <div className="border-muted border-dotted flex flex-row items-start gap-2 w-full mt-0.5">
                       <div className="w-[15%] md:block hidden shrink-0 h-auto aspect-video relative overflow-hidden rounded">
-                        <Image
+                        <Image unoptimized 
                           src={reservation.listing.thumbnail_file}
                           alt="photo"
                           fill

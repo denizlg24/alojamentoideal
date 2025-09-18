@@ -27,6 +27,7 @@ import { useEffect, useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import { Button } from "../ui/button";
 import { useCart } from "@/hooks/cart-context";
+import { ActivityOrderCard } from "./activity-order-card";
 
 const renderIcon = ({
   paymentMethod,
@@ -75,11 +76,12 @@ export const OrderInfo = ({
   charge: Stripe.Charge | undefined;
   paymentIntent: PaymentIntent | undefined;
 }) => {
-  const t = useTranslations("order");
   const feeT = useTranslations("feeTranslations");
+  const t = useTranslations("order");
+
   const locale = useLocale();
   const cardRef = useRef<HTMLDivElement>(null);
-  const {clearCart} = useCart();
+  const { clearCart } = useCart();
   const handlePrint = useReactToPrint({
     contentRef: cardRef,
     documentTitle: `Alojamento Ideal Order: ${order?.orderId}`,
@@ -88,8 +90,8 @@ export const OrderInfo = ({
   useEffect(() => {
     localStorage.clear();
     clearCart();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="w-full max-w-7xl mx-auto flex flex-col gap-8 px-4 pt-12">
@@ -219,6 +221,26 @@ export const OrderInfo = ({
                       </div>
                     );
                   }
+                  if(item.type == 'activity'){
+                    return (
+                      <div
+                        key={item.id}
+                        className="w-full flex flex-col gap-0"
+                      >
+                        <p className="font-medium text-sm">
+                          {indx + 1}. {item.name} - {t("confirmation-code")}
+                          {": "}
+                          {order.activityBookingIds ? order.activityBookingIds[indx] : ''}
+                        </p>
+                        <div className="w-full flex flex-col gap-0 pl-3">
+                          <div className="flex flex-row items-center justify-between text-sm">
+                            <p className="font-medium">{t("item_total")}:</p>
+                            <p className="">{item.price}€</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
                 })}
               </div>
               <div className="flex flex-row items-center justify-between text-sm">
@@ -308,34 +330,57 @@ export const OrderInfo = ({
             </Button>
           </div>
         </Card>
-        <div className="w-full flex flex-col gap-4">
-          <h2 className="md:text-lg sm:text-base text-sm font-semibold">
-            {t("reservations")} (
-            {order.items.reduce(
-              (total, item) =>
-                item.type == "accommodation" ? (total += 1) : total,
-              0
-            )}
-            )
-          </h2>
-        </div>
-        {order.items
-          .filter((_) => _.type == "accommodation")
-          .map((item, indx) => {
-            return (
-              <PropertyItemCard
-                item={item}
-                photo={item.photo}
-                key={item.property_id}
-                start_date={item.start_date}
-                end_date={item.end_date}
-                adults={item.adults}
-                children_={item.children}
-                infants={item.infants}
-                reservation_id={order.reservationIds[indx]}
-              />
-            );
-          })}
+        {order.items.filter((item) => item.type == "accommodation").length >
+          0 && (
+          <>
+            <div className="w-full flex flex-col gap-4">
+              <h2 className="md:text-lg sm:text-base text-sm font-semibold">
+                {t("reservations")} (
+                {order.items.reduce(
+                  (total, item) =>
+                    item.type == "accommodation" ? (total += 1) : total,
+                  0
+                )}
+                )
+              </h2>
+            </div>
+            {order.items
+              .filter((_) => _.type == "accommodation")
+              .map((item, indx) => {
+                return (
+                  <PropertyItemCard
+                    item={item}
+                    photo={item.photo}
+                    key={item.property_id}
+                    start_date={item.start_date}
+                    end_date={item.end_date}
+                    adults={item.adults}
+                    children_={item.children}
+                    infants={item.infants}
+                    reservation_id={order.reservationIds[indx]}
+                  />
+                );
+              })}
+          </>
+        )}
+        {order.items.filter((item) => item.type == "activity").length > 0 && (
+          <>
+            <div className="w-full flex flex-col gap-4">
+              <h2 className="md:text-lg sm:text-base text-sm font-semibold">
+                {t("activities")} (
+                {order.items.reduce(
+                  (total, item) =>
+                    item.type == "activity" ? (total += 1) : total,
+                  0
+                )}
+                )
+              </h2>
+            </div>
+            {order.items.filter((item) => item.type == 'activity').map((activity,indx) => {
+              return <ActivityOrderCard tourItem={activity} reservation_id={order.activityBookingIds![indx]} key={activity.id + "indx:" + indx}/>
+            })}
+          </>
+        )}
       </div>
     </div>
   );

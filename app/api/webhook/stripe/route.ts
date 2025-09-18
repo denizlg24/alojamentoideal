@@ -5,12 +5,13 @@ import { stripe } from "@/lib/stripe";
 import GuestDataModel from "@/models/GuestData";
 import OrderModel from "@/models/Order";
 import { bokunRequest } from "@/utils/bokun-requests";
+import env from "@/utils/env";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { format } from "date-fns";
 import { getTranslations } from "next-intl/server";
 import Stripe from "stripe";
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const webhookSecret = env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: Request) {
 
@@ -34,7 +35,6 @@ export async function POST(req: Request) {
                 if (charge.paid && charge.status === "succeeded") {
                     const chargePaymentId = charge.payment_intent as string; 
                     const foundOrder = await OrderModel.findOne({ payment_id:chargePaymentId }).lean();
-                    console.log(foundOrder);
                     if (foundOrder && foundOrder.activityBookingReferences && charge.transfer_data) {
                         for (let index = 0; index < foundOrder.activityBookingReferences.length; index++) {
                             const bookingCode = foundOrder.activityBookingReferences[index];
@@ -49,11 +49,10 @@ export async function POST(req: Request) {
                                         cardBrand: charge.payment_method_details?.card?.brand ?? 'Bank',
                                         last4: charge.payment_method_details?.card?.last4 ?? '',
                                     },
-                                    amount: charge.transfer_data.amount! / 100,
+                                    amount: (charge.transfer_data.amount ?? charge.amount) / 100,
                                     currency: charge?.currency.toUpperCase()
                                 }
                             })
-                            console.log(confirmationResponse);
                             if (!confirmationResponse.success) {
                                 continue;
                             }
@@ -165,7 +164,7 @@ export async function POST(req: Request) {
                         { "{{order-number}}": t('order-number', { order_id: foundOrder.orderId }) },
                         { "{{order-total}}": 'Total:' },
                         { "{{total_price}}": `${total}€` },
-                        { '{{order_url}}': `${process.env.SITE_URL}/orders/${foundOrder.orderId}` }
+                        { '{{order_url}}': `${env.SITE_URL}/orders/${foundOrder.orderId}` }
                         ])
 
                     await sendMail({

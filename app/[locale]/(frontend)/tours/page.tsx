@@ -69,7 +69,7 @@ const flatIds = [1088165];
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full relative">
-        <Image
+        <Image unoptimized 
           alt="tours-banner"
           src={toursBanner}
           className="w-full sm:h-[250px] h-[200px] object-cover"

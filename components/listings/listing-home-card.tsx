@@ -30,7 +30,7 @@ export const ListingHomeCard = ({
         {isLoadingThumbnail && (
           <Skeleton className="w-full h-auto aspect-[4/2]! rounded-t-xl absolute top-0" />
         )}
-        <Image
+        <Image unoptimized 
           src={listing.thumbnail_file}
           alt={(listing.name ?? listing.nickname) + " - Thumbnail"}
           width={600}

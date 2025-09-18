@@ -2,6 +2,7 @@
 
 import { verifySession } from '@/utils/verifySession';
 import { stripe } from '../../lib/stripe'
+import env from '@/utils/env';
 
 export async function fetchClientSecret(amount: { alojamentoIdeal: number, detours: number }, client_name: string, client_email: string, client_phone_number: string, notes: string | undefined, reservationIds: number[], clientAddress: {
     line1: string;
@@ -44,9 +45,9 @@ export async function fetchClientSecret(amount: { alojamentoIdeal: number, detou
             },
             ...(amount.detours > 0
                 ? amount.alojamentoIdeal > 0 ? {
-                    transfer_data: { destination: process.env.DETOURS_STRIPE_ID!, amount: amount.detours },
+                    transfer_data: { destination: env.DETOURS_STRIPE_ID!, amount: amount.detours },
                 } : {
-                    transfer_data: { destination: process.env.DETOURS_STRIPE_ID! },
+                    transfer_data: { destination: env.DETOURS_STRIPE_ID! },
                 }
                 : {}),
             setup_future_usage: "off_session"

@@ -65,7 +65,7 @@ export const Cart = () => {
                   >
                     <Separator />
                     <div className="w-full flex flex-row items-start justify-between gap-2 relative">
-                      <Image
+                      <Image unoptimized 
                         src={cartItem.photo}
                         alt="cart-logo"
                         width={1080}
@@ -109,7 +109,7 @@ export const Cart = () => {
                   <React.Fragment key={cartItem.id + "-index:" + index}>
                     <Separator />
                     <div className="w-full flex flex-row items-start justify-between gap-2 relative">
-                      <Image
+                      <Image unoptimized 
                         src={cartItem.photo}
                         alt="cart-logo"
                         width={1080}

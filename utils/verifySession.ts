@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
+import env from './env';
 
 export async function verifySession() {
     const cookieStore = await cookies();
@@ -8,7 +9,7 @@ export async function verifySession() {
 
     const [random, payload, signature] = token.value.split('.');
     const expectedSig = crypto
-        .createHmac('sha256', process.env.SESSION_SECRET!)
+        .createHmac('sha256', env.SESSION_SECRET!)
         .update(`${random}.${payload}`)
         .digest('hex');
 

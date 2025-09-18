@@ -61,7 +61,7 @@ export default function Home({
             </h2>
           </div>
           <div className="w-full flex-[1.5]  min-[420px]:h-full h-[200px] items-center flex justify-center min-[420px]:rounded-xl overflow-hidden shadow-lg">
-            <Image
+            <Image unoptimized 
               src={regras_espelho}
               alt={"Amar Outside View"}
               className="object-cover w-full h-full object-[25%_50%]"
@@ -70,7 +70,7 @@ export default function Home({
         </div>
         <div className="w-full min-[420px]:flex-row items-center flex flex-col-reverse gap-8">
           <div className="w-full flex-[1.5] col-span-2 min-[420px]:h-full h-[200px] items-center flex justify-center min-[420px]:rounded-xl overflow-hidden shadow-lg">
-            <Image
+            <Image unoptimized 
               src={regras_livros}
               alt={"Amar Outside View"}
               className="object-cover w-full h-full object-[50%_50%]"
@@ -95,17 +95,17 @@ export default function Home({
             </h2>
           </div>
           <div className="w-full flex-[1.5] col-span-2 min-[420px]:h-full h-[200px] min-[420px]:grid flex flex-row items-center grid-cols-2 gap-2 min-[420px]:rounded-xl min-[420px]:overflow-hidden overflow-x-clip min-[420px]:shadow-lg">
-            <Image
+            <Image unoptimized 
               src={leca_view}
               alt={"Amar Outside View"}
               className="object-cover min-[420px]:rounded-none min-[420px]:w-auto w-1/3 shrink-0 min-[420px]:h-auto h-full object-[50%_50%] col-span-full rounded-r-md min-[420px]:shadow-none shadow-lg"
             />
-            <Image
+            <Image unoptimized 
               src={porto_view}
               alt={"Amar Outside View"}
               className="object-cover min-[420px]:rounded-none min-[420px]:w-auto w-1/3 shrink-0 min-[420px]:h-auto min-[420px]:aspect-[1.33] h-full object-[25%_50%] rounded-md min-[420px]:shadow-none shadow-lg"
             />
-            <Image
+            <Image unoptimized 
               src={povoa_view}
               alt={"Amar Outside View"}
               className="object-cover min-[420px]:rounded-none min-[420px]:w-auto w-1/3 shrink-0 min-[420px]:h-auto min-[420px]:aspect-[1.33] h-full object-[20%_50%] rounded-l-md min-[420px]:shadow-none shadow-lg"
@@ -114,7 +114,7 @@ export default function Home({
         </div>
         <div className="w-full min-[420px]:flex-row items-center flex flex-col-reverse gap-8">
           <div className="w-full flex-[1.5] col-span-2 min-[420px]:h-full h-[200px] items-center flex justify-center min-[420px]:rounded-xl overflow-hidden shadow-lg">
-            <Image
+            <Image unoptimized 
               src={regras_amenidade}
               alt={"Amar Outside View"}
               className="object-cover w-full h-full object-[50%_50%]"
@@ -153,7 +153,7 @@ export default function Home({
               <Link href={"/rooms"}>{t("find-your-stay")}</Link>
             </Button>
           </div>
-          <Image
+          <Image unoptimized 
             src={regras_refeicao}
             alt="Regras Refeição"
             className="w-full aspect-video h-auto min-[420px]:rounded-xl shadow-lg"

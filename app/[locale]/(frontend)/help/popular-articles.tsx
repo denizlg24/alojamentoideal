@@ -20,7 +20,7 @@ export const PopularArticles = () => {
             key={article.id}
             className="col-span-1 flex flex-col gap-1 text-left items-start h-full"
           >
-            <Image
+            <Image unoptimized 
               src={article.photo}
               alt={article.title}
               className="w-full aspect-video h-auto object-cover"

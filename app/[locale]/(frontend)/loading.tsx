@@ -6,7 +6,7 @@ export default function Loading() {
   return (
     <main className="w-screen h-screen flex flex-col items-center pt-24">
       <div className="w-full max-w-3xl px-4 flex flex-col">
-        <Image
+        <Image unoptimized 
           src={planeFlyingGif}
           alt="Plane flying gif"
           className="w-full max-w-3xs mx-auto object-contain h-auto rounded-xl"

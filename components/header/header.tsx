@@ -54,7 +54,7 @@ export const Header = () => {
     >
       <div className="max-w-7xl mx-auto flex flex-row justify-between w-full">
         <Link href="/" className="h-full">
-          <Image
+          <Image unoptimized 
             src="/alojamento-ideal-logo.png"
             width={256}
             height={256}
@@ -71,7 +71,7 @@ export const Header = () => {
                   href="/rooms"
                   className="font-medium flex flex-row items-center gap-2"
                 >
-                  <Image
+                  <Image unoptimized 
                     width={128}
                     height={128}
                     src={"/house_icon.png"}
@@ -89,7 +89,7 @@ export const Header = () => {
                   href="/tours"
                   className="font-medium flex flex-row items-center gap-2"
                 >
-                  <Image
+                  <Image unoptimized 
                     width={128}
                     height={128}
                     src={"/tour_icon.png"}
@@ -106,7 +106,7 @@ export const Header = () => {
                     className="font-medium flex flex-row items-center gap-2 w-full hover:bg-transparent"
                     href="/tours"
                   >
-                    <Image
+                    <Image unoptimized 
                       width={128}
                       height={128}
                       src={"/tour_icon.png"}
@@ -219,7 +219,7 @@ export const Header = () => {
                         className="font-medium flex flex-row items-center gap-2"
                         href="/rooms"
                       >
-                        <Image
+                        <Image unoptimized 
                           width={128}
                           height={128}
                           src={"/house_icon.png"}
@@ -240,7 +240,7 @@ export const Header = () => {
                         className="font-medium flex flex-row items-center gap-2"
                         href="/rooms"
                       >
-                        <Image
+                        <Image unoptimized 
                           width={128}
                           height={128}
                           src={"/tour_icon.png"}
@@ -262,7 +262,7 @@ export const Header = () => {
                             size="icon"
                             className="w-full px-2"
                           >
-                            <Image
+                            <Image unoptimized 
                               width={128}
                               height={128}
                               src={"/tour_icon.png"}

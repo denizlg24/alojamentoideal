@@ -128,7 +128,7 @@ export const TourDisplay = ({
       <div className="md:grid hidden grid-cols-4 w-full rounded-2xl overflow-hidden gap-2">
         <div className="col-span-2 w-full h-auto aspect-[2/1.5] relative">
           {experience.photos[0] && (
-            <Image
+            <Image unoptimized 
               src={experience.photos[0].originalUrl}
               alt={experience.photos[0].caption || "Photo 0"}
               width={1920}
@@ -143,7 +143,7 @@ export const TourDisplay = ({
         </div>
         <div className="col-span-1 w-full h-full flex flex-col relative gap-2">
           {experience.photos[1] && (
-            <Image
+            <Image unoptimized 
               src={experience.photos[1].originalUrl}
               alt={experience.photos[1].caption || "Photo 0"}
               width={1920}
@@ -156,7 +156,7 @@ export const TourDisplay = ({
             />
           )}
           {experience.photos[2] && (
-            <Image
+            <Image unoptimized 
               src={experience.photos[2].originalUrl}
               alt={experience.photos[2].caption || "Photo 2"}
               width={1920}
@@ -171,7 +171,7 @@ export const TourDisplay = ({
         </div>
         <div className="col-span-1 w-full h-full flex flex-col relative gap-2">
           {experience.photos[3] && (
-            <Image
+            <Image unoptimized 
               src={experience.photos[3].originalUrl}
               alt={experience.photos[3].caption || "Photo 3"}
               width={1920}
@@ -218,7 +218,7 @@ export const TourDisplay = ({
                     <CarouselContent className="rounded-2xl mx-auto">
                       {experience.photos.map((photo, index) => (
                         <CarouselItem key={index}>
-                          <Image
+                          <Image unoptimized 
                             src={photo.originalUrl}
                             alt={photo.caption ?? "photo-" + index}
                             width={1920}
@@ -234,7 +234,7 @@ export const TourDisplay = ({
                 )}
               </DialogContent>
             </Dialog>
-            <Image
+            <Image unoptimized 
               src={experience.photos[4].originalUrl}
               alt="photo 4"
               className="w-full h-auto aspect-[2/1.5] object-cover absolute -z-10 top-0"
@@ -249,7 +249,7 @@ export const TourDisplay = ({
           <CarouselContent>
             {experience.photos.map((photo, index) => (
               <CarouselItem key={index}>
-                <Image
+                <Image unoptimized 
                   src={photo.originalUrl}
                   alt={photo.caption ?? "photo-" + index}
                   width={1920}
@@ -587,7 +587,7 @@ export const TourDisplay = ({
                             return (
                               <div
                                 key={pickUpPlace.id}
-                                className="col-span-1 text-sm text-muted-foreground"
+                                className="col-span-1 text-sm text-muted-foreground even:text-right"
                               >
                                 <p className="truncate">{pickUpPlace.title}</p>
                               </div>
