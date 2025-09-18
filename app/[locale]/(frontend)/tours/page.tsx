@@ -1,12 +1,12 @@
 import {
   ActivityPreviewResponse,
   BokunProductResponse,
-  bokunRequest,
 } from "@/utils/bokun-requests";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ActivityPreviewCard } from "./tour-preview-card";
 import Image from "next/image";
 import toursBanner from "@/public/porto-banner.jpeg";
+import { bokunRequest } from "@/utils/bokun-server";
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
   return {

@@ -4,7 +4,7 @@ import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
 import GuestDataModel from "@/models/GuestData";
 import OrderModel from "@/models/Order";
-import { bokunRequest } from "@/utils/bokun-requests";
+import { bokunRequest } from "@/utils/bokun-server";
 import env from "@/utils/env";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { format } from "date-fns";

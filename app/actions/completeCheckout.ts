@@ -11,7 +11,8 @@ import { fetchClientSecret } from "./stripe";
 import { generateReservationID, generateUniqueId } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
 import { connectDB } from "@/lib/mongodb";
-import { bokunRequest, FullExperienceType } from "@/utils/bokun-requests";
+import { FullExperienceType } from "@/utils/bokun-requests";
+import { bokunRequest } from "@/utils/bokun-server";
 //import { createHouseInvoice } from "./createHouseInvoice";
 
 export async function buyCart({ cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName, mainContactDetails, activityBookings }: {

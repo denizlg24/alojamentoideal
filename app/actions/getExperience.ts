@@ -2,13 +2,14 @@
 'use server'
 
 import { TourItem } from "@/hooks/cart-context";
-import { ActivityBookingQuestionsDto, ActivityPlacesDto, bokunRequest, FullExperienceType, PickupPlaceDto, QuestionSpecificationDto } from "@/utils/bokun-requests";
+import { ActivityBookingQuestionsDto, ActivityPlacesDto, FullExperienceType, PickupPlaceDto, QuestionSpecificationDto } from "@/utils/bokun-requests";
 import { verifySession } from "@/utils/verifySession";
 import { addDays, format, isSameDay } from "date-fns";
 import { GetActivityAvailability } from "./getExperienceAvailability";
 import { generateReservationID } from "@/lib/utils";
 import { fetchClientSecret } from "./stripe";
 import { registerOrder } from "./createOrder";
+import { bokunRequest } from "@/utils/bokun-server";
 
 export async function getExperience(id: number) {
   if (!(await verifySession())) {
