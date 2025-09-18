@@ -2,7 +2,6 @@ import {
   ActivityPlacesDto,
   FullExperienceType,
   PickupPlaceDto,
-  bokunRequest,
 } from "@/utils/bokun-requests";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -11,6 +10,7 @@ import { CheckoutHolder } from "./checkout-holder";
 import { redirect } from "@/i18n/navigation";
 import { addDays, isSameDay } from "date-fns";
 import { randomUUID } from "crypto";
+import { bokunRequest } from "@/utils/bokun-server";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");

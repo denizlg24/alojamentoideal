@@ -2,12 +2,12 @@ import {
   ActivityPlacesDto,
   FullExperienceType,
   PickupPlaceDto,
-  bokunRequest,
 } from "@/utils/bokun-requests";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { TourDisplay } from "./tour-display";
 import { GetActivityAvailability } from "@/app/actions/getExperienceAvailability";
+import { bokunRequest } from "@/utils/bokun-server";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");

@@ -1,6 +1,7 @@
 "use server"
 
-import { ExperienceAvailabilityDto, bokunRequest } from "@/utils/bokun-requests";
+import { ExperienceAvailabilityDto } from "@/utils/bokun-requests";
+import { bokunRequest } from "@/utils/bokun-server";
 import { verifySession } from "@/utils/verifySession";
 import { addMonths, format } from "date-fns";
 

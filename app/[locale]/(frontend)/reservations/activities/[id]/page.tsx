@@ -1,6 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
-  bokunRequest,
   categoriesMap,
   FullExperienceType,
   PickupPlaceDto,
@@ -22,6 +21,7 @@ import {
 import { TicketButton } from "./ticket-button";
 import { Link } from "@/i18n/navigation";
 import { BusFront } from "lucide-react";
+import { bokunRequest } from "@/utils/bokun-server";
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
   return {
