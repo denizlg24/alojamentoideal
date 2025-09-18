@@ -621,7 +621,18 @@ export const CheckoutForm = ({
         setLoading(false);
       }
     });
-  }, [stripe, _amount, addressData, clientInfo, router, needCompanySwitch, cart, mainContactDetails, activityBookings, selectedPickupPlaceId]);
+  }, [
+    stripe,
+    _amount,
+    addressData,
+    clientInfo,
+    router,
+    needCompanySwitch,
+    cart,
+    mainContactDetails,
+    activityBookings,
+    selectedPickupPlaceId,
+  ]);
 
   if (checking) return <Skeleton className="w-full h-full min-h-[250px]" />;
 
@@ -1005,6 +1016,16 @@ export const CheckoutForm = ({
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
                               <Calendar
+                                defaultMonth={
+                                  question.answers
+                                    ? parse(
+                                        question.answers[0],
+                                        "yyyy-MM-dd",
+                                        new Date()
+                                      )
+                                    : undefined
+                                }
+                                disabled={(d) => d > new Date()}
                                 captionLayout="dropdown"
                                 showOutsideDays={false}
                                 mode="single"
@@ -1348,6 +1369,16 @@ export const CheckoutForm = ({
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0">
                                 <Calendar
+                                  defaultMonth={
+                                    question.answers
+                                      ? parse(
+                                          question.answers[0],
+                                          "yyyy-MM-dd",
+                                          new Date()
+                                        )
+                                      : undefined
+                                  }
+                                  disabled={(d) => d > new Date()}
                                   captionLayout="dropdown"
                                   showOutsideDays={false}
                                   mode="single"
@@ -1650,6 +1681,16 @@ export const CheckoutForm = ({
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
                                   <Calendar
+                                    defaultMonth={
+                                      question.answers
+                                        ? parse(
+                                            question.answers[0],
+                                            "yyyy-MM-dd",
+                                            new Date()
+                                          )
+                                        : undefined
+                                    }
+                                    disabled={(d) => d > new Date()}
                                     captionLayout="dropdown"
                                     showOutsideDays={false}
                                     mode="single"
@@ -1971,6 +2012,16 @@ export const CheckoutForm = ({
                                       </PopoverTrigger>
                                       <PopoverContent className="w-auto p-0">
                                         <Calendar
+                                          defaultMonth={
+                                            question.answers
+                                              ? parse(
+                                                  question.answers[0],
+                                                  "yyyy-MM-dd",
+                                                  new Date()
+                                                )
+                                              : undefined
+                                          }
+                                          disabled={(d) => d > new Date()}
                                           captionLayout="dropdown"
                                           showOutsideDays={false}
                                           mode="single"
@@ -2354,6 +2405,16 @@ export const CheckoutForm = ({
                                       </PopoverTrigger>
                                       <PopoverContent className="w-auto p-0">
                                         <Calendar
+                                          defaultMonth={
+                                            question.answers
+                                              ? parse(
+                                                  question.answers[0],
+                                                  "yyyy-MM-dd",
+                                                  new Date()
+                                                )
+                                              : undefined
+                                          }
+                                          disabled={(d) => d > new Date()}
                                           captionLayout="dropdown"
                                           showOutsideDays={false}
                                           mode="single"
@@ -2691,11 +2752,11 @@ export const CheckoutForm = ({
               >
                 <TabsList className="w-full flex flex-row items-center">
                   <TabsTrigger value="card" className="px-4">
-                    <Image src={cardSvg} alt="Card-icon" />
+                    <Image unoptimized src={cardSvg} alt="Card-icon" />
                     {t("card")}
                   </TabsTrigger>
                   <TabsTrigger value="sepa" className="px-4">
-                    <Image src={sepaSvg} alt="Sepa-icon" />
+                    <Image unoptimized src={sepaSvg} alt="Sepa-icon" />
                     SEPA Direct Debit
                   </TabsTrigger>
                 </TabsList>

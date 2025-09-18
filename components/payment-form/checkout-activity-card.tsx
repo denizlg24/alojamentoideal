@@ -181,7 +181,7 @@ export const CheckoutActivityCard = ({
           <Ban className="w-6 h-6 mx-auto my-auto text-white" />
         </div>
       )}
-      <Image
+      <Image unoptimized 
         src={activityItem.photo}
         alt="cart-logo"
         width={1080}
@@ -191,7 +191,7 @@ export const CheckoutActivityCard = ({
       <div className="w-full grow flex flex-col truncate gap-1">
         <div className="flex flex-col w-full gap-0">
           <h1 className="w-full font-semibold truncate">
-            {activityInfo.rate.title}
+            {activityInfo.activity?.title}
           </h1>
           <div className="flex flex-row items-center justify-start gap-1">
             <div className="flex flex-row items-center justify-start text-left gap-1">

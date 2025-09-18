@@ -86,7 +86,7 @@ export const ActivityPreviewCard = ({
         </Skeleton>
       )}
       <div className="relative">
-        <Image
+        <Image unoptimized 
           src={activity.photos[selectedImg].originalUrl}
           alt={activity.photos[selectedImg].caption || "Activity Picture"}
           width={600}

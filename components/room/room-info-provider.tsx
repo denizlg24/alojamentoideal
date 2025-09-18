@@ -262,7 +262,7 @@ export const RoomInfoProvider = ({
       <div className="md:grid hidden grid-cols-4 w-full rounded-2xl overflow-hidden gap-2">
         <div className="col-span-2 w-full h-auto aspect-[2/1.5] relative">
           {listingInfo.photos[0] && (
-            <Image
+            <Image unoptimized 
               src={listingInfo.photos[0].original_file}
               blurDataURL={
                 listingInfo.photos[0].has_thumb
@@ -282,7 +282,7 @@ export const RoomInfoProvider = ({
         </div>
         <div className="col-span-1 w-full h-full flex flex-col relative gap-2">
           {listingInfo.photos[1] && (
-            <Image
+            <Image unoptimized 
               src={listingInfo.photos[1].original_file}
               blurDataURL={
                 listingInfo.photos[1].has_thumb
@@ -300,7 +300,7 @@ export const RoomInfoProvider = ({
             />
           )}
           {listingInfo.photos[2] && (
-            <Image
+            <Image unoptimized 
               src={listingInfo.photos[2].original_file}
               blurDataURL={
                 listingInfo.photos[2].has_thumb
@@ -320,7 +320,7 @@ export const RoomInfoProvider = ({
         </div>
         <div className="col-span-1 w-full h-full flex flex-col relative gap-2">
           {listingInfo.photos[3] && (
-            <Image
+            <Image unoptimized 
               src={listingInfo.photos[3].original_file}
               blurDataURL={
                 listingInfo.photos[3].has_thumb
@@ -372,7 +372,7 @@ export const RoomInfoProvider = ({
                     <CarouselContent className="rounded-2xl mx-auto">
                       {listingInfo.photos.map((photo, index) => (
                         <CarouselItem key={index}>
-                          <Image
+                          <Image unoptimized 
                             src={photo.original_file}
                             blurDataURL={
                               photo.has_thumb ? photo.thumbnail_file : undefined
@@ -391,7 +391,7 @@ export const RoomInfoProvider = ({
                 )}
               </DialogContent>
             </Dialog>
-            <Image
+            <Image unoptimized 
               src={listingInfo.photos[4].original_file}
               blurDataURL={
                 listingInfo.photos[4].has_thumb
@@ -411,7 +411,7 @@ export const RoomInfoProvider = ({
           <CarouselContent>
             {listingInfo.photos.map((photo, index) => (
               <CarouselItem key={index}>
-                <Image
+                <Image unoptimized 
                   src={photo.original_file}
                   blurDataURL={
                     photo.has_thumb ? photo.thumbnail_file : undefined

@@ -387,7 +387,8 @@
     "refunded": "Reembolsado",
     "succeeded": "Concluído",
     "failed": "Falhou",
-    "unknown-status": "Charge missing"
+    "unknown-status": "Charge missing",
+    "activities": "Atividades"
   },
   "propertyCard": {
     "trip_details": "Detalhes da viagem",
@@ -457,7 +458,24 @@
     "documents": "Documentos",
     "print-reservation": "Imprimir Reserva",
     "get-invoice": "Obter Fatura",
-    "all-fields-required": "Todos os campos são obrigatórios."
+    "all-fields-required": "Todos os campos são obrigatórios.",
+    "aborted": "Abortado",
+    "activity_details": "Detalhes da atividade",
+    "arrived": "Chegado",
+    "canceled": "Cancelado",
+    "confirmed": "Confirmado",
+    "error": "Erro",
+    "in-cart": "No carrinho",
+    "invoice": "Fatura",
+    "no-show": "Sem show",
+    "pickup": "Escolher",
+    "rejected": "Rejeitado",
+    "requested": "Solicitado",
+    "reserved": "Reservado",
+    "stating-at": "{hora} em {time}",
+    "ticket": "Bilhete",
+    "timed-out": "Cronometrado",
+    "travel-doc": "Documentos de viagem"
   },
   "orderSearch": {
     "placeholder": "Procurar pelo número de reserva ou ID da encomenda...",

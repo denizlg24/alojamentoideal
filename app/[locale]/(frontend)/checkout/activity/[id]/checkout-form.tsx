@@ -313,10 +313,12 @@ export const TourCheckoutForm = ({
         setLoading(false);
         return;
       }
+      console.log(success, order_id);
       if (success && order_id) {
         localStorage.clear();
         router.push(`/orders/${order_id}`);
       } else {
+        setError("error_reservation");
         setLoading(false);
       }
     } else {
@@ -819,6 +821,16 @@ export const TourCheckoutForm = ({
                               captionLayout="dropdown"
                               showOutsideDays={false}
                               mode="single"
+                              defaultMonth={
+                                question.answers
+                                  ? parse(
+                                      question.answers[0],
+                                      "yyyy-MM-dd",
+                                      new Date()
+                                    )
+                                  : undefined
+                              }
+                              disabled={(d) => d > new Date()}
                               selected={
                                 question.answers
                                   ? parse(
@@ -1146,6 +1158,16 @@ export const TourCheckoutForm = ({
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
                               <Calendar
+                                defaultMonth={
+                                  question.answers
+                                    ? parse(
+                                        question.answers[0],
+                                        "yyyy-MM-dd",
+                                        new Date()
+                                      )
+                                    : undefined
+                                }
+                                disabled={(d) => d > new Date()}
                                 captionLayout="dropdown"
                                 showOutsideDays={false}
                                 mode="single"
@@ -1437,6 +1459,16 @@ export const TourCheckoutForm = ({
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
                               <Calendar
+                                defaultMonth={
+                                  question.answers
+                                    ? parse(
+                                        question.answers[0],
+                                        "yyyy-MM-dd",
+                                        new Date()
+                                      )
+                                    : undefined
+                                }
+                                disabled={(d) => d > new Date()}
                                 captionLayout="dropdown"
                                 showOutsideDays={false}
                                 mode="single"
@@ -1746,6 +1778,16 @@ export const TourCheckoutForm = ({
                                   </PopoverTrigger>
                                   <PopoverContent className="w-auto p-0">
                                     <Calendar
+                                      defaultMonth={
+                                        question.answers
+                                          ? parse(
+                                              question.answers[0],
+                                              "yyyy-MM-dd",
+                                              new Date()
+                                            )
+                                          : undefined
+                                      }
+                                      disabled={(d) => d > new Date()}
                                       captionLayout="dropdown"
                                       showOutsideDays={false}
                                       mode="single"
@@ -2117,6 +2159,16 @@ export const TourCheckoutForm = ({
                                   </PopoverTrigger>
                                   <PopoverContent className="w-auto p-0">
                                     <Calendar
+                                      defaultMonth={
+                                        question.answers
+                                          ? parse(
+                                              question.answers[0],
+                                              "yyyy-MM-dd",
+                                              new Date()
+                                            )
+                                          : undefined
+                                      }
+                                      disabled={(d) => d > new Date()}
                                       captionLayout="dropdown"
                                       showOutsideDays={false}
                                       mode="single"
@@ -2366,7 +2418,8 @@ export const TourCheckoutForm = ({
                       question.required &&
                       (question.answers ? question.answers[0] : "") == ""
                   )
-                ) || activityBookings.some((activity) =>
+                ) ||
+                activityBookings.some((activity) =>
                   activity.pickupQuestions.some(
                     (question) =>
                       question.required &&
@@ -2437,11 +2490,11 @@ export const TourCheckoutForm = ({
             >
               <TabsList className="w-full flex flex-row items-center">
                 <TabsTrigger value="card" className="px-4">
-                  <Image src={cardSvg} alt="Card-icon" />
+                  <Image unoptimized src={cardSvg} alt="Card-icon" />
                   {t("card")}
                 </TabsTrigger>
                 <TabsTrigger value="sepa" className="px-4">
-                  <Image src={sepaSvg} alt="Sepa-icon" />
+                  <Image unoptimized src={sepaSvg} alt="Sepa-icon" />
                   SEPA Direct Debit
                 </TabsTrigger>
               </TabsList>

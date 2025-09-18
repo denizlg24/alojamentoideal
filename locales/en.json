@@ -387,7 +387,8 @@
     "refunded": "Refunded",
     "succeeded": "Succeeded",
     "failed": "Failed",
-    "unknown-status": "Charge missing"
+    "unknown-status": "Charge missing",
+    "activities": "Activities"
   },
   "propertyCard": {
     "trip_details": "Trip details",
@@ -457,7 +458,24 @@
     "documents": "Documents",
     "print-reservation": "Print Reservation",
     "get-invoice": "Get Invoice",
-    "all-fields-required": "All fields are required."
+    "all-fields-required": "All fields are required.",
+    "activity_details": "Activity Details",
+    "stating-at": "{hour} at {time}",
+    "in-cart": "In Cart",
+    "requested": "Requested",
+    "reserved": "Reserved",
+    "confirmed": "Confirmed",
+    "timed-out": "Timed out",
+    "aborted": "Aborted",
+    "canceled": "Canceled",
+    "error": "Error",
+    "arrived": "Arrived",
+    "no-show": "No Show",
+    "rejected": "Rejected",
+    "travel-doc": "Travel documents",
+    "ticket": "Ticket",
+    "invoice": "Invoice",
+    "pickup": "Pickup"
   },
   "orderSearch": {
     "placeholder": "Search for reservation number or order id...",

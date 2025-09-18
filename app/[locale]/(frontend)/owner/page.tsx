@@ -50,7 +50,7 @@ export default function Home({
         </h2>
       </div>
       <div className="absolute xl:block hidden left-0 top-1/4 xl:w-[70%] w-full overflow-hidden xl:rounded-br-4xl -z-10 shadow-2xl">
-        <Image
+        <Image unoptimized 
           src={amar}
           alt="amar"
           className="w-full h-auto object-cover aspect-[2.5]"
@@ -61,7 +61,7 @@ export default function Home({
       </div>
 
       <div className="absolute xl:block hidden right-0 xl:top-1/8 bottom-1/8 xl:w-[25%] w-full overflow-hidden xl:rounded-tl-4xl -z-10 shadow-2xl">
-        <Image
+        <Image unoptimized 
           src={vertical}
           alt="amar"
           className="w-full h-auto object-cover xl:aspect-[0.5] aspect-[2.5] object-[25%_100%]"

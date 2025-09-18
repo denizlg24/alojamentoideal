@@ -27,7 +27,7 @@ export default function NotFound() {
           </div>
         </div>
         <div className="col-span-1 w-full relative min-h-[250px]">
-          <Image src={illust} alt="404 illustration" fill />
+          <Image unoptimized  src={illust} alt="404 illustration" fill />
         </div>
       </div>
     </main>

@@ -1,7 +1,9 @@
 "use server"
 
+import env from "@/utils/env";
+
 export async function getHtml(url: string, replace: Record<string, string>[]) {
-    const res = await fetch(`${process.env.SITE_URL || ""}/${url}`);
+    const res = await fetch(`${env.SITE_URL || ""}/${url}`);
     if (!res.ok) {
         throw new Error(`Failed to load HTML template: ${url}`);
     }

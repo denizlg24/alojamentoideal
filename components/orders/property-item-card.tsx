@@ -33,7 +33,7 @@ export const PropertyItemCard = ({
   return (
     <Card className="w-full flex flex-col gap-3 relative p-4">
       <div className="w-full flex sm:flex-row flex-col items-start justify-between gap-3 relative ">
-        <Image
+        <Image unoptimized 
           src={photo}
           alt="cart-logo"
           width={1080}

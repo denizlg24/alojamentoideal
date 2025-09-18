@@ -30,7 +30,7 @@ export default async function middleware(req: NextRequest) {
     if (!session) {
         const random = crypto.randomUUID();
         const payload = `${Date.now()}.${random}`;
-        const secret = process.env.SESSION_SECRET!;
+        const secret = env.SESSION_SECRET!;
         const signature = await createHmac(payload, secret);
         const token = `${payload}.${signature}`;
         cookieStore.set({
@@ -44,7 +44,7 @@ export default async function middleware(req: NextRequest) {
         })
     }
 
-    const user = await getToken({ req, secret: env.AUTH_SECRET, secureCookie: process.env.AUTH_URL?.startsWith("https") });
+    const user = await getToken({ req, secret: env.AUTH_SECRET, secureCookie: env.AUTH_URL?.startsWith("https") });
     const isLoggedIn = !!user;
     const locale = req.cookies.get('NEXT_LOCALE')?.value || 'en';
     const isAdmin = req.nextUrl.pathname.startsWith(`/${locale}/admin/dashboard`);

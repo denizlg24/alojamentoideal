@@ -50,7 +50,7 @@ export const HostKitApiCard = ({
 
   return (
     <Card className="p-2! rounded! flex flex-col gap-1" key={listing.id}>
-      <Image
+      <Image unoptimized 
         src={listing.thumbnail_file}
         alt="photo"
         width={1920}

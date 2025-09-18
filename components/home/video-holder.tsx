@@ -29,7 +29,7 @@ export const VideoHolder = () => {
   return (
     <>
       {!videoLoaded && (
-        <Image
+        <Image unoptimized 
           src={videoFallback}
           alt="video-fallback"
           priority

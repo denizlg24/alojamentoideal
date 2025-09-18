@@ -77,7 +77,7 @@ export const ContactSearchBar = ({
                 className="w-full pb-2 border-b-2 border-b-muted border-dashed flex flex-row items-stretch gap-2"
                 key={res.id}
               >
-                <Image
+                <Image unoptimized 
                   src={res.photo}
                   alt={res.title}
                   className="w-[20%] min-[420px]:block hidden aspect-video h-auto object-cover"

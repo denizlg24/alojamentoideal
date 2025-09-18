@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import env from "./env";
 
 const BOKUN_BASE_URL = "https://api.bokun.io";
 //const BOKUN_BASE_URL = "https://api.bokuntest.com";
@@ -17,8 +18,8 @@ export async function bokunRequest<T = unknown>({
     path,
     body,
 }: BokunRequestOptions): Promise<{ success: true } & T | { success: false; status: number; message: string; }> {
-    const accessKey = process.env.BOKUN_ACCESS_KEY;
-    const secretKey = process.env.BOKUN_SECRET_KEY;
+    const accessKey = env.BOKUN_ACCESS_KEY;
+    const secretKey = env.BOKUN_SECRET_KEY;
 
     if (!accessKey || !secretKey) {
         throw new Error("Missing BOKUN_ACCESS_KEY or BOKUN_SECRET_KEY in env");
@@ -59,6 +60,15 @@ export async function bokunRequest<T = unknown>({
 
     if (!res.ok) {
         return { success: false, status: res.status, message: await res.text() };
+    }
+
+    const contentType = res.headers.get("content-type");
+
+    if (contentType?.includes("application/pdf")) {
+        const arrayBuffer = await res.arrayBuffer();
+        const base64 = Buffer.from(arrayBuffer).toString("base64");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return { success: true, data: base64 } as any;
     }
 
     return { success: true, ...((await res.json()) as T) };
@@ -801,47 +811,47 @@ export interface ExperienceAvailabilityDto {
 }
 
 export interface QuestionSpecificationDto {
-    questionId:string,
-    questionCode:string,
-    label:string,
-    help:string,
-    placeholder:string,
-    required:boolean,
-    defaultValue:string,
-    dataType:ExperienceBookingQuestionDataTypeDto,
-    dataFormat:"EMAIL_ADDRESS"|"URL"|"PHONE_NUMBER"|"COUNTRY"|"LANGUAGE"|"TIME"|"DAY_OF_MONTH"|"MONTH"|"YEAR"|"PATTERN";
-    flags:string[],
-    selectFromOptions:boolean;
-    selectMultiple:boolean;
-    answerOptions:{value:string,label:string}[],
-    answers:string[];
-    originalQuestion:string;
+    questionId: string,
+    questionCode: string,
+    label: string,
+    help: string,
+    placeholder: string,
+    required: boolean,
+    defaultValue: string,
+    dataType: ExperienceBookingQuestionDataTypeDto,
+    dataFormat: "EMAIL_ADDRESS" | "URL" | "PHONE_NUMBER" | "COUNTRY" | "LANGUAGE" | "TIME" | "DAY_OF_MONTH" | "MONTH" | "YEAR" | "PATTERN";
+    flags: string[],
+    selectFromOptions: boolean;
+    selectMultiple: boolean;
+    answerOptions: { value: string, label: string }[],
+    answers: string[];
+    originalQuestion: string;
 }
 
 export interface PassengerQuestionsDto {
-    bookingId:number;
-    pricingCategoryId:number;
-    pricingCategoryTitle:number;
-    passengerDetails:QuestionSpecificationDto[];
-    questions:QuestionSpecificationDto[];
+    bookingId: number;
+    pricingCategoryId: number;
+    pricingCategoryTitle: number;
+    passengerDetails: QuestionSpecificationDto[];
+    questions: QuestionSpecificationDto[];
 }
 
-export interface ActivityBookingQuestionsDto{
-    bookingId:number;
-    activityId:number;
-    activityTitle:string;
-    questions:QuestionSpecificationDto[];
-    passengers:PassengerQuestionsDto[];
-    pickupQuestions:QuestionSpecificationDto[];
-    dropoffQuestions:QuestionSpecificationDto[];
+export interface ActivityBookingQuestionsDto {
+    bookingId: number;
+    activityId: number;
+    activityTitle: string;
+    questions: QuestionSpecificationDto[];
+    passengers: PassengerQuestionsDto[];
+    pickupQuestions: QuestionSpecificationDto[];
+    dropoffQuestions: QuestionSpecificationDto[];
 }
 
 export interface CheckoutOption {
-    type:"AGENT_AFFILIATE"|"AGENT_CUSTOMER"|"AGENT_RESELLER"|"CUSTOMER_FULL_PAYMENT"|"CUSTOMER_PARTIAL_PAYMENT"|"CUSTOMER_NO_PAYMENT"
-    label:string;
-    questions:QuestionSpecificationDto[];
-    amount:number;
-    currency:string;
+    type: "AGENT_AFFILIATE" | "AGENT_CUSTOMER" | "AGENT_RESELLER" | "CUSTOMER_FULL_PAYMENT" | "CUSTOMER_PARTIAL_PAYMENT" | "CUSTOMER_NO_PAYMENT"
+    label: string;
+    questions: QuestionSpecificationDto[];
+    amount: number;
+    currency: string;
 }
 
 
@@ -880,32 +890,32 @@ export const categoriesMap: { [key: number]: { title: string, min?: number, max?
 }
 
 type DataFormat =
-  | "EMAIL_ADDRESS"
-  | "URL"
-  | "PHONE_NUMBER"
-  | "COUNTRY"
-  | "LANGUAGE"
-  | "TIME"
-  | "DAY_OF_MONTH"
-  | "MONTH"
-  | "YEAR"
-  | "PATTERN";
+    | "EMAIL_ADDRESS"
+    | "URL"
+    | "PHONE_NUMBER"
+    | "COUNTRY"
+    | "LANGUAGE"
+    | "TIME"
+    | "DAY_OF_MONTH"
+    | "MONTH"
+    | "YEAR"
+    | "PATTERN";
 
 export const validators: Record<DataFormat, (value: string) => boolean> = {
-  EMAIL_ADDRESS: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-  URL: (v) => /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(v),
-  PHONE_NUMBER: (v) => /^\+?[0-9\s()-]{7,}$/.test(v),
-  COUNTRY: (v) => v.trim().length > 0, // can expand with ISO codes
-  LANGUAGE: (v) => v.trim().length > 0,
-  TIME: (v) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(v),
-  DAY_OF_MONTH: (v) => /^(0?[1-9]|[12]\d|3[01])$/.test(v),
-  MONTH: (v) => /^(0?[1-9]|1[0-2])$/.test(v),
-  YEAR: (v) => /^\d{4}$/.test(v),
-  PATTERN: () => true, // maybe dynamic pattern from your API
+    EMAIL_ADDRESS: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+    URL: (v) => /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(v),
+    PHONE_NUMBER: (v) => /^\+?[0-9\s()-]{7,}$/.test(v),
+    COUNTRY: (v) => v.trim().length > 0, // can expand with ISO codes
+    LANGUAGE: (v) => v.trim().length > 0,
+    TIME: (v) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(v),
+    DAY_OF_MONTH: (v) => /^(0?[1-9]|[12]\d|3[01])$/.test(v),
+    MONTH: (v) => /^(0?[1-9]|1[0-2])$/.test(v),
+    YEAR: (v) => /^\d{4}$/.test(v),
+    PATTERN: () => true, // maybe dynamic pattern from your API
 };
 
 export function isValid(value: string, format?: DataFormat): boolean {
     if (!format) return true;
     const validator = validators[format];
     return validator ? validator(value) : true;
-  }
+}

@@ -1,11 +1,12 @@
 import { connectDB } from '@/lib/mongodb';
 import { ChatModel, MessageModel } from '@/models/Chat';
 import { ReservationType } from '@/schemas/reservation.schema';
+import env from '@/utils/env';
 import { hostifyRequest } from '@/utils/hostify-request';
 import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
-    if (req.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (req.headers.get('Authorization') !== `Bearer ${env.CRON_SECRET}`) {
         return NextResponse.json("Unauthorized", { status: 401 });
     }
     await connectDB();
