@@ -19,6 +19,7 @@ export type ECommerceItem = {
   photo: string;
   description?: string;
   invoice?: string;
+  invoice_id?: string;
   disabled?: boolean;
 };
 
@@ -33,6 +34,7 @@ export type TourItem = {
   guests: { [categoryId: number]: number };
   photo: string;
   invoice?: string;
+  invoice_id?: string;
   disabled?: boolean;
 };
 
@@ -50,6 +52,7 @@ export type AccommodationItem = {
   photo: string;
   fees: Partial<FeeType>[];
   invoice?: string;
+  invoice_id?: string;
   disabled?: boolean;
 };
 

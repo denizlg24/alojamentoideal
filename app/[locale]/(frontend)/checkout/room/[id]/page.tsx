@@ -111,30 +111,40 @@ export default async function Page({
       (new Date(tripDetails.end_date).getTime() -
         new Date(tripDetails.start_date).getTime()) /
       (1000 * 60 * 60 * 24);
-    let overchargeToDeduct = 0;
+    let finalPrice = 0;
 
     price.price.fees = price.price.fees.map((fee) => {
       if (fee.fee_type == "tax") {
         const maxQuantity = tripDetails.adults * nights;
         if (fee.quantity > maxQuantity) {
-          const excess = fee.quantity - maxQuantity;
-          const unitAmount = fee.total / fee.quantity;
-          const excessAmount = unitAmount * excess;
-          overchargeToDeduct += excessAmount;
-
+          const unitAmount = fee.total_net / fee.quantity;
+          finalPrice += Number(
+            (unitAmount * maxQuantity * (1 + fee.inclusive_percent)).toFixed(2)
+          );
           return {
             ...fee,
             quantity: maxQuantity,
-            total: unitAmount * maxQuantity,
-            total_net: (fee.total_net / fee.quantity) * maxQuantity,
-            total_tax: (fee.total_tax / fee.quantity) * maxQuantity,
+            total: Number(
+              (unitAmount * maxQuantity * (1 + fee.inclusive_percent)).toFixed(
+                2
+              )
+            ),
+            total_net: unitAmount * maxQuantity,
+            total_tax: unitAmount * maxQuantity * fee.inclusive_percent,
           };
         }
       }
-      return fee;
+      finalPrice += Number(
+        (fee.total_net * (1 + fee.inclusive_percent)).toFixed(2)
+      );
+      return {
+        ...fee,
+        total: Number((fee.total_net * (1 + fee.inclusive_percent)).toFixed(2)),
+        total_tax: fee.total_net * fee.inclusive_percent,
+      };
     });
 
-    price.price.total -= overchargeToDeduct;
+    price.price.total = finalPrice;
     return { listingInfo, price, isRangeBooked };
   };
 

@@ -1029,7 +1029,15 @@
     "nights": "{count} noches - {adults} adultos{children}{infants}",
     "children_text": ", {count} niños",
     "infants_text": ", {count} bebés",
-    "reservation": "Código de confirmación: {number}"
+    "reservation": "Código de confirmación: {number}",
+    "invoice-for-order": "Factura para la reserva {order_id}",
+    "invoice-for-reservation": "Factura de reserva {order_id}",
+    "note-for-order": "Nota de crédito de la reserva {order_id}",
+    "reservation-number": "Número de reserva: {order_id}",
+    "view-your-invoice": "Descargar factura",
+    "view-your-note": "Descargar nota de crédito",
+    "your-invoice-is-ready": "¡Tu factura está lista!",
+    "your-note-is-ready": "¡Su nota de crédito está lista!"
   },
   "toast": {
     "email-sent": "¡Correo enviado con éxito!",

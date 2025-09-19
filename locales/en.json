@@ -1029,7 +1029,16 @@
     "nights": "{count} nights - {adults} adults{children}{infants}",
     "children_text": ", {count} children",
     "infants_text": ", {count} infants",
-    "reservation": "Confirmation code: {number}"
+    "reservation": "Confirmation code: {number}",
+    "your-invoice-is-ready": "Your invoice is ready!",
+    "view-your-invoice": "Download Invoice",
+    "invoice-for-order": "Invoice for order {order_id}",
+    "reservation-number": "Reservation number: {order_id}",
+    "your-note-is-ready": "Your Credit Note is ready!",
+    "view-your-note": "Download Credit Note",
+    "note-for-order": "Credit note for reservation {order_id}",
+    "invoice-for-reservation": "Invoice for Reservation {order_id}",
+    "tour-date": "Activity on {startDate}"
   },
   "toast": {
     "email-sent": "Email sent successfully!",

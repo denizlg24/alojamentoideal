@@ -269,10 +269,10 @@
     "unavailable_msg": "As datas selecionadas não estão disponíveis.",
     "update_stay": "Atualizar estadia",
     "fee_type_label": "- {label}",
-    "order_summary": "Resumen del Pedido",
-    "trip_details": "Detalles del viaje",
-    "nights": "{count} noches - {adults} adultos{children}{infants}",
-    "child_suffix": ", {count} niños",
+    "order_summary": "Resumo da Reserva",
+    "trip_details": "Detalhes da viagem",
+    "nights": "{count} noites - {adults} adultos{children}{infants}",
+    "child_suffix": ", {count} crianças",
     "infant_suffix": ", {count} bebés"
   },
   "checkout_form": {
@@ -461,18 +461,18 @@
     "all-fields-required": "Todos os campos são obrigatórios.",
     "aborted": "Abortado",
     "activity_details": "Detalhes da atividade",
-    "arrived": "Chegado",
+    "arrived": "Chegou",
     "canceled": "Cancelado",
     "confirmed": "Confirmado",
     "error": "Erro",
     "in-cart": "No carrinho",
     "invoice": "Fatura",
-    "no-show": "Sem show",
-    "pickup": "Escolher",
+    "no-show": "Não apareceu",
+    "pickup": "Recolha",
     "rejected": "Rejeitado",
     "requested": "Solicitado",
     "reserved": "Reservado",
-    "stating-at": "{hora} em {time}",
+    "stating-at": "{hora} às {time}",
     "ticket": "Bilhete",
     "timed-out": "Cronometrado",
     "travel-doc": "Documentos de viagem"
@@ -1029,7 +1029,15 @@
     "nights": "{count} noites - {adults} adultos{children}{infants}",
     "children_text": ", {count} crianças",
     "infants_text": ", {count} bebés",
-    "reservation": "Código de confirmacão: {number}"
+    "reservation": "Código de confirmacão: {number}",
+    "invoice-for-order": "Fatura do pedido {order_id}",
+    "invoice-for-reservation": "Fatura da reserva {order_id}",
+    "note-for-order": "Nota de crédito da reserva {order_id}",
+    "reservation-number": "Número da reserva: {order_id}",
+    "view-your-invoice": "Transfira a fatura",
+    "view-your-note": "Transfira a nota de crédito",
+    "your-invoice-is-ready": "A sua fatura está pronta!",
+    "your-note-is-ready": "A sua nota de crédito está pronta!"
   },
   "toast": {
     "email-sent": "Email enviado com sucesso!",
@@ -1248,7 +1256,7 @@
     "we-pick-you-up": "Onde podemos ir buscar-te?",
     "we-pick-up": "Vamos buscar-te",
     "meet-on-location": "Encontramo-nos no local",
-    "meet-or-pickup": "Podemos encontrar-nos no local ou ir buscar-te",
+    "meet-or-pickup": "Podemos encontrar-nos no local ou ir buscá-lo",
     "our-meeting-point": "Ponto de Encontro Alojamento Ideal (Restaurante Grama)",
     "show-all-places": "Mostrar todos os locais ({count})",
     "or": "OU",
@@ -1313,7 +1321,7 @@
     "total": "Total"
   },
   "checkout-activity-card": {
-    "min-booking": "Precisamos de pessoas pelo menos {count} para reservar essa atividade agora.",
+    "min-booking": "Precisamos depelo menos {count} pessoas para reservar essa atividade agora.",
     "no-more-room": "Esta atividade não tem espaço suficiente.",
     "total": "Total"
   }

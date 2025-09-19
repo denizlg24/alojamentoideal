@@ -200,29 +200,33 @@ export const RoomInfoProvider = ({
         undefined
       );
       const nights = (to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24);
-      let overchargeToDeduct = 0;
+      let finalPrice = 0;
 
       price.price.fees = price.price.fees.map((fee) => {
+        console.log(fee);
         if (fee.fee_type == "tax") {
           const maxQuantity = guests.adults * nights;
           if (fee.quantity > maxQuantity) {
-            const excess = fee.quantity - maxQuantity;
-            const unitAmount = fee.total / fee.quantity;
-            const excessAmount = unitAmount * excess;
-            overchargeToDeduct += excessAmount;
-
+            const unitAmount = fee.total_net / fee.quantity;
+            finalPrice+=Number((unitAmount * maxQuantity * (1+fee.inclusive_percent)).toFixed(2));
             return {
               ...fee,
               quantity: maxQuantity,
-              total: unitAmount * maxQuantity,
-              total_net: (fee.total_net / fee.quantity) * maxQuantity,
-              total_tax: (fee.total_tax / fee.quantity) * maxQuantity,
+              total: Number((unitAmount * maxQuantity * (1+fee.inclusive_percent)).toFixed(2)),
+              total_net: unitAmount * maxQuantity,
+              total_tax: unitAmount * maxQuantity * fee.inclusive_percent,
             };
           }
         }
-        return fee;
+        finalPrice+= Number((fee.total_net * (1+fee.inclusive_percent)).toFixed(2));
+        return {
+          ...fee,
+          total: Number((fee.total_net * (1+fee.inclusive_percent)).toFixed(2)),
+          total_tax: fee.total_net * fee.inclusive_percent,
+        };
+
       });
-      price.price.total -= overchargeToDeduct;
+      price.price.total= finalPrice;
       updateStayPrice(price.price);
     } catch {
       updateStayPrice(undefined);
@@ -1394,13 +1398,13 @@ export const RoomInfoProvider = ({
                                 </p>
                                 {fee.charge_type_label && (
                                   <p className="md:text-sm text-xs truncate">
-                                    {fee.amount}€ /{" "}
+                                    {((fee.total_net * (1+fee.inclusive_percent))/fee.quantity).toFixed(2)}€ /{" "}
                                     {feeT(fee.fee_charge_type.toLowerCase())}
                                   </p>
                                 )}
                               </div>
                               <p className="w-full max-w-fit truncate">
-                                {fee.total} {stayPrice.symbol}
+                              {(fee.total_net * (1+fee.inclusive_percent)).toFixed(2)} {stayPrice.symbol}
                               </p>
                             </div>
                           );

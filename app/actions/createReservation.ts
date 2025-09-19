@@ -10,7 +10,6 @@ import { registerOrder } from "./createOrder";
 import { verifySession } from "@/utils/verifySession";
 import { generateUniqueId } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
-//import { createHouseInvoice } from "./createHouseInvoice";
 
 export async function purchaseAccommodation({ property, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName }: {
     property: AccommodationItem, clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
@@ -38,7 +37,7 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
                 name: clientName,
                 email: clientEmail,
                 phone: clientPhone,
-                total_price: amount / 100,
+                total_price: amount/100,
                 source: "alojamentoideal.pt",
                 status: "pending",
                 note: clientNotes,
@@ -67,7 +66,7 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
             undefined,
             {
                 reservation_id: reservation.reservation.id,
-                amount: amount / 100,
+                amount: amount/100,
                 currency: "EUR",
                 charge_date: format(new Date(), "yyyy-MM-dd"),
                 is_completed: 0,
@@ -75,8 +74,7 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
             }
         );
 
-        //const itemInvoice = await createHouseInvoice({ item: property, clientName: isCompany ? (companyName || clientName) : clientName, clientTax, booking_code: reservation.reservation.confirmation_code, clientAddress })
-        const newProperty = { ...property, /*invoice: itemInvoice*/ };
+        const newProperty = { ...property };
         const { success: order_success, orderId } = await registerOrder({
             name: clientName,
             email: clientEmail,

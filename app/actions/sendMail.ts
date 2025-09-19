@@ -20,8 +20,10 @@ export async function sendMail({ email, html, subject }: { email: string, html: 
     };
     transporter.sendMail(mailOptions, function (err) {
         if (err) {
+            console.log("Mail failed: ",err);
             return { success: false, message: "mail-error" };
         }
     });
+    console.log("Mail sent!")
     return { success: true }
 }

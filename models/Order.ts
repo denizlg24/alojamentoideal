@@ -86,6 +86,7 @@ const ItemSchema = new mongoose.Schema<CartItem>(
         description: { type: String },
         property_id: { type: Number },
         invoice: { type: String, default: "" },
+        invoice_id:{ type: String, default: "" },
         start_date: { type: String },
         end_date: { type: String },
         adults: { type: Number },

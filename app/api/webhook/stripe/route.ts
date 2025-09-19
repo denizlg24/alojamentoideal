@@ -1,5 +1,7 @@
+import { createHouseInvoice } from "@/app/actions/createHouseInvoice";
 import { getHtml } from "@/app/actions/getHtml";
 import { sendMail } from "@/app/actions/sendMail";
+import { CartItem } from "@/hooks/cart-context";
 import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
 import GuestDataModel from "@/models/GuestData";
@@ -33,8 +35,12 @@ export async function POST(req: Request) {
             case 'charge.succeeded':
                 const charge = event.data.object;
                 if (charge.paid && charge.status === "succeeded") {
-                    const chargePaymentId = charge.payment_intent as string; 
-                    const foundOrder = await OrderModel.findOne({ payment_id:chargePaymentId }).lean();
+                    const chargePaymentId = charge.payment_intent as string;
+                    const foundOrder = await OrderModel.findOne({ payment_id: chargePaymentId }).lean();
+                    if (!foundOrder) {
+                        break;
+                    }
+                    const newCart: CartItem[] = [...foundOrder.items.filter((item) => item.type != "accommodation")];
                     if (foundOrder && foundOrder.activityBookingReferences && charge.transfer_data) {
                         for (let index = 0; index < foundOrder.activityBookingReferences.length; index++) {
                             const bookingCode = foundOrder.activityBookingReferences[index];
@@ -59,6 +65,46 @@ export async function POST(req: Request) {
                             console.log(confirmationResponse.travelDocuments);
                         }
                     }
+                    if (foundOrder && foundOrder.reservationIds.length > 0) {
+                        for (let index = 0; index < foundOrder.reservationIds.length; index++) {
+                            const reservationCode = foundOrder.reservationReferences[index];
+                            const orderItem = foundOrder.items.filter((item) => item.type == 'accommodation')[index];
+                            const itemInvoice = await createHouseInvoice({ item: orderItem, clientName: foundOrder.isCompany ? (foundOrder.companyName || foundOrder.name) : foundOrder.name, clientTax: foundOrder.tax_number, booking_code: reservationCode, clientAddress: event.data.object.billing_details.address ?? undefined })
+                            if (itemInvoice.url && itemInvoice.id) {
+                                const nights =
+                                    (new Date(orderItem.end_date!).getTime() -
+                                        new Date(orderItem.start_date!).getTime()) /
+                                    (1000 * 60 * 60 * 24);
+                                const productHtml = await getHtml('emails/order-product.html', [{ '{{product_name}}': orderItem.name }, {
+                                    '{{product_description}}': t("nights", {
+                                        count:
+                                            nights,
+                                        adults: orderItem.adults!,
+                                        children:
+                                            orderItem.children! > 0 ? t("children_text", { count: orderItem.children! }) : "",
+                                        infants:
+                                            orderItem.infants! > 0 ? t("infants_text", { count: orderItem.infants! }) : "",
+                                    })
+                                }, { '{{product_quantity}}': t("reservation", { number: reservationCode }) }, { "{{product_price}}": `${orderItem.front_end_price ?? 0}€` }, { "{{product_photo}}": orderItem.photo }])
+                                const orderHtml = await getHtml('emails/invoice-sent-email.html',
+                                    [{ "{{products_html}}": productHtml },
+                                    { "{{your-invoice-is-ready}}": t('your-invoice-is-ready') },
+                                    { "{{view-your-invoice}}": t('view-your-invoice') },
+                                    { "{{order-number}}": t('reservation-number', { order_id: reservationCode }) },
+                                    { '{{invoice_url}}': itemInvoice.url }
+                                    ])
+
+                                await sendMail({
+                                    email: foundOrder.email,
+                                    html: orderHtml,
+                                    subject: t('invoice-for-reservation', { order_id: reservationCode }),
+                                });
+                            }
+                            newCart.push({ ...orderItem, invoice: itemInvoice.url, invoice_id: itemInvoice.id });
+                        }
+                    }
+                    const updatedOrder = await OrderModel.findOneAndUpdate({ payment_id: chargePaymentId }, { items: newCart });
+                    console.log(updatedOrder);
                 }
                 break;
             case 'transfer.created':
@@ -133,7 +179,7 @@ export async function POST(req: Request) {
                         return i.type == "accommodation" ? prev + (i.front_end_price ?? 0) : i.type == 'activity' ? prev + (i.price ?? 0) : prev + ((i.price ?? 0) * (i.quantity ?? 0))
                     }, 0)
                     let products_html = ""
-                    let a = 0;
+                    let a = 0, b = 0;
                     for (const i of plainItems) {
                         if (i.type == "accommodation") {
                             const nights =
@@ -153,6 +199,15 @@ export async function POST(req: Request) {
                             }, { '{{product_quantity}}': t("reservation", { number: foundOrder.reservationReferences[a] }) }, { "{{product_price}}": `${i.front_end_price ?? 0}€` }, { "{{product_photo}}": i.photo }])
                             products_html += productHtml;
                             a++;
+                        }
+                        if (i.type == 'activity') {
+                            const productHtml = await getHtml('emails/order-product.html', [{ '{{product_name}}': i.name }, {
+                                '{{product_description}}': t("tour-date", {
+                                    startDate: format(i.selectedDate, "MMMM dd, yyyy")
+                                })
+                            }, { '{{product_quantity}}': t("reservation", { number: foundOrder.activityBookingIds![b] }) }, { "{{product_price}}": `${i.price ?? 0}€` }, { "{{product_photo}}": i.photo }])
+                            products_html += productHtml;
+                            b++;
                         }
 
                     }

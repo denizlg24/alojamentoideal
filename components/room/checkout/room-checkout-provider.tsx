@@ -105,7 +105,8 @@ export const RoomCheckoutProvider = ({
   return (
     <div className="md:grid flex flex-col-reverse grid-cols-4 w-full max-w-7xl px-4 pt-12 gap-8 relative md:items-stretch items-center">
       <Card className="w-full col-span-2 sm:p-6 p-4 flex flex-col gap-2">
-        <Image unoptimized 
+        <Image
+          unoptimized
           src={listingInfo.photos[0].original_file}
           alt={"thumbnail photo"}
           width={1920}
@@ -160,13 +161,13 @@ export const RoomCheckoutProvider = ({
                     </p>
                     {fee.fee_charge_type && (
                       <p className="md:text-sm text-xs truncate">
-                        - {fee.amount}€ /{" "}
+                        - {((fee.total_net * (1+fee.inclusive_percent))/fee.quantity).toFixed(2)}€ /{" "}
                         {feeT(fee.fee_charge_type.toLowerCase())}
                       </p>
                     )}
                   </div>
                   <p className="w-full max-w-fit truncate">
-                    {fee.total} {stayPrice.symbol}
+                    {(fee.total_net * (1+fee.inclusive_percent)).toFixed(2)} {stayPrice.symbol}
                   </p>
                 </div>
               );
@@ -188,7 +189,8 @@ export const RoomCheckoutProvider = ({
         <div className="flex flex-row justify-between items-center w-full">
           <p className="font-semibold">{t("total")}</p>
           <p className="font-semibold">
-            {stayPrice && `${stayPrice.total} ${stayPrice.symbol}`}
+            {stayPrice &&
+              `${stayPrice.total} ${stayPrice.symbol}`}
           </p>
         </div>
       </Card>

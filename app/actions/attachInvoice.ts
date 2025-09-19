@@ -11,7 +11,7 @@ export async function attachInvoice({
 }: {
     orderId: string,
     index: number,
-    invoice_url: string,
+    invoice_url: { url: string, id: string },
 }) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
@@ -20,7 +20,7 @@ export async function attachInvoice({
         await connectDB();
         const updated = await OrderModel.findOneAndUpdate(
             { orderId },
-            { $set: { [`items.${index}.invoice`]: invoice_url } },
+            { $set: { [`items.${index}.invoice`]: invoice_url.url, [`items.${index}.invoice_id`]: invoice_url.id } },
             { new: true }
         );
 

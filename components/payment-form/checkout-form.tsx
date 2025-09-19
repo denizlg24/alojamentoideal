@@ -259,7 +259,7 @@ export const CheckoutForm = ({
         questionId: question.questionId,
         values: question.answers,
       })),
-      activityBookings: activityBookings.map((activity, indx) => ({
+      activityBookings: activityBookings?.map((activity, indx) => ({
         activityId: activity.activityId,
         answers: activity.questions.map((question) => ({
           questionId: question.questionId,
@@ -541,7 +541,7 @@ export const CheckoutForm = ({
             questionId: question.questionId,
             values: question.answers,
           })),
-          activityBookings: activityBookings.map((activity, indx) => ({
+          activityBookings: activityBookings?.map((activity, indx) => ({
             activityId: activity.activityId,
             answers: activity.questions.map((question) => ({
               questionId: question.questionId,

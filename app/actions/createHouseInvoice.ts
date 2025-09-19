@@ -4,6 +4,9 @@ import { AccommodationItem } from "@/hooks/cart-context";
 import { callHostkitAPI } from "./callHostkitApi";
 import { Address } from "@stripe/stripe-js";
 import { alpha2ToAlpha3 } from "i18n-iso-countries";
+import { getHtml } from "./getHtml";
+import { getTranslations } from "next-intl/server";
+import { sendMail } from "./sendMail";
 
 export async function createHouseInvoice({ item, clientName, clientAddress, clientTax, booking_code }: { item: AccommodationItem, clientName: string, clientAddress?: Address, clientTax: string | undefined, booking_code: string }) {
     const fees = item.fees;
@@ -102,7 +105,7 @@ export async function createHouseInvoice({ item, clientName, clientAddress, clie
                         }
                         break;
                 }
-                const price = fee.total || 0;
+                const price = fee.total_net || 0;
                 const vat = fee.inclusive_percent ? fee.inclusive_percent * 100 : 0;
                 const qty = 1;
                 const query: Record<string, string | number> = {
@@ -116,24 +119,80 @@ export async function createHouseInvoice({ item, clientName, clientAddress, clie
                     type,
                     reason_code: vat == 0 ? 'M99' : ''
                 };
-                await callHostkitAPI<{ status: 'success' | unknown, line?: string }>({
+                console.log(query);
+                const response = await callHostkitAPI<{ status: 'success' | unknown, line?: string }>({
                     listingId: item.property_id.toString(), endpoint: "addInvoiceLine", query
                 })
+                console.log(response);
             }
-            //CLOSE
-            /*
             const closed = await callHostkitAPI<{ status: 'success' | unknown, invoice_url?: string }>({
                 listingId: item.property_id.toString(), endpoint: "closeInvoice", query: { id: newInvoice.id }
-            })*/
+            })
+            /*
             const invoice = await callHostkitAPI<{ invoice_url: string }[]>({
                 listingId: item.property_id.toString(), endpoint: "getReservationInvoices", query: { rcode: booking_code, invoicing_nif }
-            })
-            console.log(invoice);
-            if (invoice && invoice.length > 0) {
-                return invoice[0].invoice_url;
+            })*/
+            console.log(closed);
+            if (closed && closed.invoice_url) {
+                return { url: closed.invoice_url, id: newInvoice.id };
             }
         }
 
     }
-    return ""
+    return { url: '', id: '' }
+}
+
+export async function issueCreditNote({ clientEmail, invoice_id, item, reservationCode }: { clientEmail: string, invoice_id: string, item: AccommodationItem, reservationCode: string }) {
+    const invoice = await callHostkitAPI<{ invoice_url: string, series: string, }[]>({
+        listingId: item.property_id.toString(), endpoint: "getReservationInvoices", query: { rcode:reservationCode }
+    })
+    console.log(invoice);
+    const creditNote = await callHostkitAPI<{ status: 'success' | unknown, id?: string }>({
+        listingId: item.property_id.toString(), endpoint: "addCreditNote", query: { refid: invoice_id, refseries: invoice[0].series }
+    })
+    console.log(creditNote);
+    if (creditNote.status == 'success' && creditNote.id) {
+        const finalCreditNote = await callHostkitAPI<{ credit_note_url?: string }[]>({
+            listingId: item.property_id.toString(), endpoint: "getCreditNotes", query: { id: invoice_id }
+        })
+        console.log(finalCreditNote);
+        if ((finalCreditNote?.length ?? 0) > 0) {
+            const t = await getTranslations("order-email");
+            const note = finalCreditNote[0].credit_note_url;
+            if (note) {
+                const nights =
+                    (new Date(item.end_date!).getTime() -
+                        new Date(item.start_date!).getTime()) /
+                    (1000 * 60 * 60 * 24);
+                const productHtml = await getHtml('emails/order-product.html', [{ '{{product_name}}': item.name }, {
+                    '{{product_description}}': t("nights", {
+                        count:
+                            nights,
+                        adults: item.adults!,
+                        children:
+                            item.children! > 0 ? t("children_text", { count: item.children! }) : "",
+                        infants:
+                            item.infants! > 0 ? t("infants_text", { count: item.infants! }) : "",
+                    })
+                }, { '{{product_quantity}}': t("reservation", { number: reservationCode }) }, { "{{product_price}}": `${item.front_end_price ?? 0}€` }, { "{{product_photo}}": item.photo }])
+                const orderHtml = await getHtml('emails/invoice-sent-email.html',
+                    [{ "{{products_html}}": productHtml },
+                    { "{{your-invoice-is-ready}}": t('your-note-is-ready') },
+                    { "{{view-your-invoice}}": t('view-your-note') },
+                    { "{{order-number}}": t('reservation-number', { order_id: reservationCode }) },
+                    { '{{invoice_url}}': note }
+                    ])
+
+                await sendMail({
+                    email: clientEmail,
+                    html: orderHtml,
+                    subject: t('note-for-order', { order_id: reservationCode }),
+                });
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+    return false;
 }

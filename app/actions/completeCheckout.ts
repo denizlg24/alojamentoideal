@@ -13,7 +13,6 @@ import { ChatModel } from "@/models/Chat";
 import { connectDB } from "@/lib/mongodb";
 import { FullExperienceType } from "@/utils/bokun-requests";
 import { bokunRequest } from "@/utils/bokun-server";
-//import { createHouseInvoice } from "./createHouseInvoice";
 
 export async function buyCart({ cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName, mainContactDetails, activityBookings }: {
     cart: CartItem[], clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
@@ -31,7 +30,6 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
     }
     try {
         await connectDB();
-        const amount = await calculateAmount(cart);
         let tourAmount = 0;
         const amounts: number[] = []
         const reservationIds: number[] = [];
@@ -94,9 +92,7 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
             });
 
             await newChat.save();
-
-            //const itemInvoice = await createHouseInvoice({ item: property, clientName: isCompany ? (companyName || clientName) : clientName, clientTax, booking_code: reservation.reservation.confirmation_code, clientAddress })
-            const newItem = { ...property, /*invoice: itemInvoice*/ };
+            const newItem = { ...property};
             newCart.push(newItem);
         }
         let bokunResponse: { success: false, message: string } | {
@@ -185,10 +181,8 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
             tourAmount += bokunResponse.booking.totalPrice * 100;
         }
 
-        console.log(bokunResponse);
-
         const { success, client_secret, id } = await fetchClientSecret(
-            {alojamentoIdeal:amount,detours:tourAmount},
+            {alojamentoIdeal:amounts.reduce((acc,curr) => acc+curr,0),detours:tourAmount},
             clientName,
             clientEmail,
             clientPhone,

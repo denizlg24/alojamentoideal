@@ -30,6 +30,7 @@ import {
 } from "react-svg-credit-card-payment-icons";
 import { GetGuestSection } from "./guestSection";
 import { AttachInvoiceButton } from "./attachInvoiceButon";
+import { IssueNoteButton } from "./issueNoteButton";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -349,6 +350,26 @@ export default async function Home({
                         </div>
                       );
                     }
+                    if(item.type == 'activity'){
+                      return (
+                        <div
+                          key={item.id}
+                          className="w-full flex flex-col gap-0"
+                        >
+                          <p className="font-medium text-sm">
+                            {indx + 1}. {item.name} - {t("confirmation-code")}
+                            {": "}
+                            {order.activityBookingIds ? order.activityBookingIds[indx] : ''}
+                          </p>
+                          <div className="w-full flex flex-col gap-0 pl-3">
+                            <div className="flex flex-row items-center justify-between text-sm">
+                              <p className="font-medium">{t("item_total")}:</p>
+                              <p className="">{item.price}€</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
                   })}
                 </div>
                 <div className="flex flex-row items-center justify-between text-sm">
@@ -360,9 +381,9 @@ export default async function Home({
                     {order.items.reduce((total, item) => {
                       if (item.type === "accommodation") {
                         return total + item.front_end_price;
-                      } else if(item.type == "activity"){
+                      } else if (item.type == "activity") {
                         return total + item.price;
-                      }else {
+                      } else {
                         return total + item.quantity * item.price;
                       }
                     }, 0)}
@@ -471,7 +492,8 @@ export default async function Home({
                     </div>
                     <div className="border-muted border-dotted flex flex-row items-start gap-2 w-full mt-0.5">
                       <div className="w-[15%] md:block hidden shrink-0 h-auto aspect-video relative overflow-hidden rounded">
-                        <Image unoptimized 
+                        <Image
+                          unoptimized
                           src={reservation.listing.thumbnail_file}
                           alt="photo"
                           fill
@@ -556,7 +578,7 @@ export default async function Home({
                                           "not-found"
                                       )}
                                 </p>
-                                <p className="">{fee.total}€</p>
+                                <p className="">{(fee.total_net ?? 0 * (1+(fee.inclusive_percent ?? 0))).toFixed(2)}€</p>
                               </div>
                             );
                           })}
@@ -570,7 +592,8 @@ export default async function Home({
                       </div>
                     </div>
                     {reservation.orderItem &&
-                      charge?.billing_details.address && (
+                      charge?.billing_details.address &&
+                      !reservation.orderItem.invoice && (
                         <AttachInvoiceButton
                           orderId={order.orderId}
                           item={reservation.orderItem!}
@@ -584,6 +607,18 @@ export default async function Home({
                           orderIndx={order.items.findIndex(
                             (item) => item == reservation.orderItem
                           )}
+                        />
+                      )}
+                    {reservation.orderItem &&
+                      charge?.billing_details.address &&
+                      reservation.orderItem.invoice_id && (
+                        <IssueNoteButton
+                          item={reservation.orderItem!}
+                          clientEmail={order.email}
+                          invoice_id={reservation.orderItem.invoice_id}
+                          booking_code={
+                            reservation.reservation.confirmation_code
+                          }
                         />
                       )}
 

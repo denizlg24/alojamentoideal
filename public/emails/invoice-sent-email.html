@@ -114,7 +114,7 @@
                 <p
                   style="margin: 12px 0 0 0; font-weight: 600; font-size: 18px"
                 >
-                  {{your-order-is-in}}
+                  {{your-invoice-is-ready}}
                 </p>
 
                 <!-- Button -->
@@ -131,7 +131,7 @@
                       style="border-radius: 4px; text-align: center"
                     >
                       <a
-                        href="{{order_url}}"
+                        href="{{invoice_url}}"
                         target="_blank"
                         style="
                           display: inline-block;
@@ -143,7 +143,7 @@
                           font-family: Arial, Helvetica, sans-serif;
                         "
                       >
-                        {{view-your-order}}
+                        {{view-your-invoice}}
                       </a>
                     </td>
                   </tr>
@@ -164,8 +164,6 @@
                 >
                   <tr>
                     <td align="center" style="padding: 12px">
-                      <!-- Title -->
-                      <p style="margin: 0; font-weight: 600">{{order-title}}</p>
                       <!-- Products -->
                       <table
                         border="0"
@@ -173,7 +171,7 @@
                         cellspacing="0"
                         role="presentation"
                         width="100%"
-                        style="margin-top: 12px; margin-bottom: 12px; border-top: 1px solid #777777"
+                        style="margin-top: 12px; margin-bottom: 12px;"
                       >
                         <tr>
                           <td
@@ -186,38 +184,6 @@
                           >
                             {{products_html}}
                             <!-- Total row -->
-                            <table
-                              border="0"
-                              cellpadding="0"
-                              cellspacing="0"
-                              role="presentation"
-                              width="100%"
-                              style="margin-top: 24px"
-                            >
-                              <tr>
-                                <td
-                                  align="left"
-                                  style="
-                                    font-weight: 600;
-                                    font-size: 14px;
-                                    color: #333333;
-                                    padding-right: 12px;
-                                  "
-                                >
-                                  {{order-total}}
-                                </td>
-                                <td
-                                  align="right"
-                                  style="
-                                    font-weight: 600;
-                                    font-size: 14px;
-                                    color: #333333;
-                                  "
-                                >
-                                  {{total_price}}
-                                </td>
-                              </tr>
-                            </table>
                           </td>
                         </tr>
                       </table>
