@@ -1037,7 +1037,8 @@
     "view-your-invoice": "Transfira a fatura",
     "view-your-note": "Transfira a nota de crédito",
     "your-invoice-is-ready": "A sua fatura está pronta!",
-    "your-note-is-ready": "A sua nota de crédito está pronta!"
+    "your-note-is-ready": "A sua nota de crédito está pronta!",
+    "tour-date": "Atividade em {startDate}"
   },
   "toast": {
     "email-sent": "Email enviado com sucesso!",
@@ -1324,5 +1325,12 @@
     "min-booking": "Precisamos depelo menos {count} pessoas para reservar essa atividade agora.",
     "no-more-room": "Esta atividade não tem espaço suficiente.",
     "total": "Total"
+  },
+  "chat-email": {
+    "new-admin-message": "Nova mensagem de convidado da reserva {order_id}",
+    "new-message": "Nova mensagem do host para reservar {order_id}",
+    "reservation-number": "Código de confirmação {order_id}",
+    "view-your-note": "Ver reserva.",
+    "you-got-a-new-message": "Você tem uma nova mensagem."
   }
 }
