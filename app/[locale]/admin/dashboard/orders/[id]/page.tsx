@@ -31,6 +31,9 @@ import {
 import { GetGuestSection } from "./guestSection";
 import { AttachInvoiceButton } from "./attachInvoiceButon";
 import { IssueNoteButton } from "./issueNoteButton";
+import { getGuestData } from "@/app/actions/getGuestData";
+import { callHostkitAPI } from "@/app/actions/callHostkitApi";
+import { IGuestDataDocument } from "@/models/GuestData";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -464,16 +467,48 @@ export default async function Home({
               <CardTitle>Associated Reservations</CardTitle>
             </CardHeader>
             <CardContent className="gap-4">
-              {reservations.map((reservation) => {
+              {reservations.map(async (reservation) => {
                 const arrayIndx = order.reservationIds.findIndex(
                   (indx) => indx == reservation.reservation.id.toString()
                 );
+                const data = await callHostkitAPI<{
+                  short_link: string;
+                  status?: "done";
+                }>({
+                  listingId: reservation.reservation.listing_id.toString(),
+                  endpoint: "getOnlineCheckin",
+                  query: { rcode: reservation.reservation.confirmation_code },
+                });
+                const data2 = await getGuestData(
+                  reservation.reservation.confirmation_code,
+                  reservation.reservation.listing_id.toString()
+                );
+                if(!data || !data2){
+                  return;
+                }
+                let guestInfoDone:"done" | "pending" | "failed" | false= false
+                if (data2.synced) {
+                  if (data2.succeeded) {
+                    if (data && data.status) {
+                      guestInfoDone ="done";
+                    }
+                  } else {
+                    guestInfoDone ="failed";
+                  }
+                } else {
+                  if (data2.guest_data.length === reservation.reservation.guests) {
+                    guestInfoDone = "pending";
+                  } else {
+                    guestInfoDone =false;
+                  }
+                }
                 return (
                   <div
                     key={reservation.reservation.id}
                     className="flex flex-col gap-0 w-full items-start"
                   >
                     <GetReservationStatus
+                    guestInfoCustomDoneField={guestInfoDone}
                       reservation={reservation.reservation}
                       transaction_id={order.transaction_id[arrayIndx]}
                     />
@@ -623,7 +658,7 @@ export default async function Home({
                       )}
 
                     <div className="pb-2 border-b-2 w-full">
-                      <GetGuestSection reservation={reservation.reservation} />
+                      <GetGuestSection guest_data={data2 as IGuestDataDocument} guestInfoCustomDoneField={guestInfoDone} />
                     </div>
                   </div>
                 );

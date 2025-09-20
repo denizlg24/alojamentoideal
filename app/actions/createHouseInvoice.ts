@@ -152,13 +152,13 @@ export async function issueCreditNote({ clientEmail, invoice_id, item, reservati
     })
     console.log(creditNote);
     if (creditNote.status == 'success' && creditNote.id) {
-        const finalCreditNote = await callHostkitAPI<{ credit_note_url?: string }[]>({
-            listingId: item.property_id.toString(), endpoint: "getCreditNotes", query: { id: invoice_id }
+        const finalCreditNote = await callHostkitAPI<{ credit_note_url?: string,refid:string }[]>({
+            listingId: item.property_id.toString(), endpoint: "getCreditNotes", query: { series: invoice[0].series}
         })
         console.log(finalCreditNote);
         if ((finalCreditNote?.length ?? 0) > 0) {
             const t = await getTranslations("order-email");
-            const note = finalCreditNote[0].credit_note_url;
+            const note = finalCreditNote.find((no) => no.refid == invoice_id)?.credit_note_url;
             if (note) {
                 const nights =
                     (new Date(item.end_date!).getTime() -
@@ -190,9 +190,9 @@ export async function issueCreditNote({ clientEmail, invoice_id, item, reservati
                 });
                 return true;
             }
-            return false;
+            return true;
         }
-        return false;
+        return true;
     }
     return false;
 }

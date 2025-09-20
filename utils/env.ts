@@ -17,6 +17,7 @@ const envSchema = z.object({
     BOKUN_ACCESS_KEY: z.string().nonempty(),
     BOKUN_SECRET_KEY: z.string().nonempty(),
     DETOURS_STRIPE_ID: z.string().nonempty(),
+    ADMIN_EMAIL:z.string().nonempty()
 });
 
 export default envSchema.parse(process.env);

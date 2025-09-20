@@ -800,8 +800,14 @@ export const TourCheckoutForm = ({
                             <Button
                               variant="outline"
                               data-empty={
-                                (question.answers ? question.answers[0] : "") ==
-                                ""
+                                ((question.answers
+                                  ? question.answers[0]
+                                  : "") == "" &&
+                                  question.required) ||
+                                !isValid(
+                                  question.answers ? question.answers[0] : "",
+                                  question.dataFormat
+                                )
                               }
                               className={
                                 "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
@@ -1138,9 +1144,14 @@ export const TourCheckoutForm = ({
                               <Button
                                 variant="outline"
                                 data-empty={
-                                  (question.answers
+                                  ((question.answers
                                     ? question.answers[0]
-                                    : "") == ""
+                                    : "") == "" &&
+                                    question.required) ||
+                                  !isValid(
+                                    question.answers ? question.answers[0] : "",
+                                    question.dataFormat
+                                  )
                                 }
                                 className={
                                   "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
@@ -1439,9 +1450,14 @@ export const TourCheckoutForm = ({
                               <Button
                                 variant="outline"
                                 data-empty={
-                                  (question.answers
+                                  ((question.answers
                                     ? question.answers[0]
-                                    : "") == ""
+                                    : "") == "" &&
+                                    question.required) ||
+                                  !isValid(
+                                    question.answers ? question.answers[0] : "",
+                                    question.dataFormat
+                                  )
                                 }
                                 className={
                                   "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
@@ -1758,9 +1774,16 @@ export const TourCheckoutForm = ({
                                     <Button
                                       variant="outline"
                                       data-empty={
-                                        (question.answers
+                                        ((question.answers
                                           ? question.answers[0]
-                                          : "") == ""
+                                          : "") == "" &&
+                                          question.required) ||
+                                        !isValid(
+                                          question.answers
+                                            ? question.answers[0]
+                                            : "",
+                                          question.dataFormat
+                                        )
                                       }
                                       className={
                                         "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"
@@ -2139,9 +2162,16 @@ export const TourCheckoutForm = ({
                                     <Button
                                       variant="outline"
                                       data-empty={
-                                        (question.answers
+                                        ((question.answers
                                           ? question.answers[0]
-                                          : "") == ""
+                                          : "") == "" &&
+                                          question.required) ||
+                                        !isValid(
+                                          question.answers
+                                            ? question.answers[0]
+                                            : "",
+                                          question.dataFormat
+                                        )
                                       }
                                       className={
                                         "data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal data-[empty=true]:border data-[empty=true]:border-destructive"

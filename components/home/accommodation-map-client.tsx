@@ -32,12 +32,7 @@ export function AccommodationMapClient({
     const loadRemaining = async () => {
       setLoading(true);
       const data = await getListings(80, 1);
-      setListings((prev) => {
-        const filteredDuplicates = data.filter(
-          (data) => !prev.some((listing) => listing.id == data.id)
-        );
-        return filteredDuplicates;
-      });
+      setListings(data);
       setLoading(false);
     };
     loadRemaining();

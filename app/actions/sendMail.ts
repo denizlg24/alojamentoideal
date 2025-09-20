@@ -1,8 +1,10 @@
 "use server"
 import env from "@/utils/env";
 import nodemailer from "nodemailer";
+import Mail from "nodemailer/lib/mailer";
+import SMTPTransport from "nodemailer/lib/smtp-transport";
 
-export async function sendMail({ email, html, subject }: { email: string, html: string, subject: string }) {
+export async function sendMail({ email, html, subject, attachments }: { email: string, html: string, subject: string, attachments?: Mail.Attachment[] }) {
     try {
         const transporter = nodemailer.createTransport({
             host: "mail.alojamentoideal.pt",
@@ -13,11 +15,12 @@ export async function sendMail({ email, html, subject }: { email: string, html: 
                 pass: env.WEBMAIL_PASS,
             },
         });
-        const mailOptions = {
+        const mailOptions: SMTPTransport.MailOptions = {
             from: "Alojamento Ideal <site@alojamentoideal.pt>",
             to: email,
             subject,
             html,
+            attachments: attachments
         };
         const info = await transporter.sendMail(mailOptions);
         console.log("Mail sent: ", info.messageId);

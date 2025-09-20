@@ -4,13 +4,13 @@ import { sendMail } from "@/app/actions/sendMail";
 import { CartItem } from "@/hooks/cart-context";
 import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
-import GuestDataModel from "@/models/GuestData";
 import OrderModel from "@/models/Order";
 import { bokunRequest } from "@/utils/bokun-server";
 import env from "@/utils/env";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { format } from "date-fns";
 import { getTranslations } from "next-intl/server";
+import Mail from "nodemailer/lib/mailer";
 import Stripe from "stripe";
 
 const webhookSecret = env.STRIPE_WEBHOOK_SECRET!;
@@ -221,11 +221,33 @@ export async function POST(req: Request) {
                         { "{{total_price}}": `${total}€` },
                         { '{{order_url}}': `${env.SITE_URL}/orders/${foundOrder.orderId}` }
                         ])
+                    const attachments: Mail.Attachment[] = [];
+                    if (foundOrder && foundOrder.activityBookingIds && foundOrder.activityBookingIds.length > 0) {
+                        const parentBooking = foundOrder.activityBookingReferences![0];
+                        for (let index = 0; index < foundOrder.activityBookingIds.length; index++) {
+                            const element = foundOrder.activityBookingIds[index];
+                            const ticketResponse = await bokunRequest<{ data: string }>({
+                                method: "GET",
+                                path: `/booking.json/activity-booking/${element}/ticket`,
+                            });
+                            if (ticketResponse.success) {
+                                attachments.push({ filename: `${element} Ticket.pdf`, content: ticketResponse.data, encoding: 'base64' })
+                            }
 
+                        }
+                        const invoiceResponse = await bokunRequest<{ data: string }>({
+                            method: "GET",
+                            path: `/booking.json/${parentBooking.split('-')[1]}/summary`,
+                        });
+                        if (invoiceResponse.success) {
+                            attachments.push({ filename: `${parentBooking} Invoice.pdf`, content: invoiceResponse.data, encoding: 'base64' })
+                        }
+                    }
                     await sendMail({
                         email: foundOrder.email,
                         html: orderHtml,
                         subject: t('order-number', { order_id: foundOrder.orderId }),
+                        attachments
                     });
                 }
                 break;
@@ -247,44 +269,6 @@ export async function POST(req: Request) {
                     }
                 }
                 break;
-            case 'refund.created':
-                const refund = event.data.object;
-                const refund_payment_id = refund.payment_intent;
-                if (refund_payment_id) {
-                    const refund_foundOrder = await OrderModel.findOne({ payment_id: refund_payment_id });
-                    if (refund_foundOrder) {
-                        for (const reservationId of refund_foundOrder.reservationIds) {
-                            await hostifyRequest<{ success: boolean }>(
-                                `reservations/${reservationId}`,
-                                "PUT",
-                                undefined,
-                                {
-                                    status: "cancelled_by_guest",
-                                },
-                                undefined,
-                                undefined
-                            );
-
-                        }
-                        for (const booking_code of refund_foundOrder.reservationReferences) {
-                            await GuestDataModel.findOneAndDelete({ booking_code });
-                        }
-                        for (const transactionId of refund_foundOrder.transaction_id) {
-                            await hostifyRequest<{ success: boolean }>(
-                                `transactions/${transactionId}`,
-                                "PUT",
-                                undefined,
-                                {
-                                    arrival_date: "",
-                                    is_completed: 0,
-                                    details: `Stripe refunded refund_id: ${refund.id}`
-                                },
-                                undefined,
-                                undefined
-                            );
-                        }
-                    }
-                }
             default:
                 break;
         }

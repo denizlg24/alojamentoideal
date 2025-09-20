@@ -1325,5 +1325,12 @@
     "total": "Total",
     "no-more-room": "This activity doesn't have enough room.",
     "min-booking": "We need atleast {count} people to book this activity now."
+  },
+  "chat-email": {
+    "you-got-a-new-message": "You got a new message.",
+    "view-your-note": "View reservation.",
+    "reservation-number": "Confirmation code {order_id}",
+    "new-message": "New message from host for booking {order_id}",
+    "new-admin-message": "New guest message from booking {order_id}"
   }
 }

@@ -1,15 +1,10 @@
 "use client";
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { localeMap } from "@/lib/utils";
 import { IGuestDataDocument } from "@/models/GuestData";
-import { ReservationType } from "@/schemas/reservation.schema";
 import { CheckCircle, Clock, CircleAlert } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { getGuestData } from "@/app/actions/getGuestData";
-import { callHostkitAPI } from "@/app/actions/callHostkitApi";
 import { Country } from "react-phone-number-input";
 import { alpha3ToAlpha2 } from "i18n-iso-countries";
 import flags from "react-phone-number-input/flags";
@@ -31,68 +26,16 @@ const FlagComponent = ({
 };
 
 export const GetGuestSection = ({
-  reservation,
+  guestInfoCustomDoneField,
+  guest_data
 }: {
-  reservation: ReservationType;
+  guest_data:IGuestDataDocument | undefined;
+  guestInfoCustomDoneField:    "done" | "pending" | "failed" | false
 }) => {
-  const [guestInfoCustomDoneField, setGuestInfoDone] = useState<
-    "done" | "pending" | "failed" | false
-  >(false);
-
-  const [guest_data, setGuestData] = useState<IGuestDataDocument | undefined>(
-    undefined
-  );
-
-  const [loadingHostkit, loadHostkit] = useState(true);
-
-  useEffect(() => {
-    const getCheckInDone = async () => {
-      loadHostkit(true);
-      const data = await callHostkitAPI<{
-        short_link: string;
-        status?: "done";
-      }>({
-        listingId: reservation.listing_id.toString(),
-        endpoint: "getOnlineCheckin",
-        query: { rcode: reservation.confirmation_code },
-      });
-      const data2 = await getGuestData(
-        reservation.confirmation_code,
-        reservation.listing_id.toString()
-      );
-      if (data2) {
-        setGuestData(data2 as IGuestDataDocument);
-        if (data2.synced) {
-          if (data2.succeeded) {
-            if (data && data.status) {
-              setGuestInfoDone("done");
-            }
-          } else {
-            setGuestInfoDone("failed");
-          }
-        } else {
-          if (data2.guest_data.length === reservation.guests) {
-            setGuestInfoDone("pending");
-          } else {
-            setGuestInfoDone(false);
-          }
-        }
-      }
-      loadHostkit(false);
-    };
-    if (reservation.confirmation_code) getCheckInDone();
-  }, [reservation]);
 
   const t = useTranslations("propertyCard");
   const locale = useLocale();
 
-  if (loadingHostkit || !guest_data || !reservation) {
-    return (
-      <div className="w-full flex flex-col gap-1 mt-4 col-span-1">
-        <Skeleton className="w-[80%] max-w-[250px] h-4" />
-      </div>
-    );
-  }
   if (!guest_data || !guestInfoCustomDoneField) {
     return (
       <div className="w-full flex flex-col gap-1 mt-4 col-span-1">

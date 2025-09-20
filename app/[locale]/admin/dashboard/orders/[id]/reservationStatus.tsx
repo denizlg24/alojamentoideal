@@ -1,71 +1,27 @@
 "use client";
-
-import { callHostkitAPI } from "@/app/actions/callHostkitApi";
 import { cancelReservation } from "@/app/actions/cancelReservation";
-import { getGuestData } from "@/app/actions/getGuestData";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "@/i18n/navigation";
-import { IGuestDataDocument } from "@/models/GuestData";
 import { ReservationType } from "@/schemas/reservation.schema";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export const GetReservationStatus = ({
   reservation,
   transaction_id,
+  guestInfoCustomDoneField
 }: {
   reservation: ReservationType;
   transaction_id: string;
+  guestInfoCustomDoneField:"done" | "pending" | "failed" | false
 }) => {
   const [loading, setLoading] = useState(false);
 
-  const [guestInfoCustomDoneField, setGuestInfoDone] = useState<
-    "done" | "pending" | "failed" | false
-  >(false);
-  const [, setGuestData] = useState<IGuestDataDocument | undefined>(undefined);
-  const [loadingHostkit, loadHostkit] = useState(true);
   const t = useTranslations("propertyCard");
   const router = useRouter();
 
-  useEffect(() => {
-    const getCheckInDone = async () => {
-      loadHostkit(true);
-      const data = await callHostkitAPI<{
-        short_link: string;
-        status?: "done";
-      }>({
-        listingId: reservation.listing_id.toString(),
-        endpoint: "getOnlineCheckin",
-        query: { rcode: reservation.confirmation_code },
-      });
-      const data2 = await getGuestData(
-        reservation.confirmation_code,
-        reservation.listing_id.toString()
-      );
-      if (data2) {
-        setGuestData(data2 as IGuestDataDocument);
-        if (data2.synced) {
-          if (data2.succeeded) {
-            if (data && data.status) {
-              setGuestInfoDone("done");
-            }
-          } else {
-            setGuestInfoDone("failed");
-          }
-        } else {
-          if (data2.guest_data.length === reservation.guests) {
-            setGuestInfoDone("pending");
-          } else {
-            setGuestInfoDone(false);
-          }
-        }
-      }
-      loadHostkit(false);
-    };
-    if (reservation.confirmation_code) getCheckInDone();
-  }, [reservation]);
 
   if (!reservation) {
     return (
@@ -76,14 +32,6 @@ export const GetReservationStatus = ({
     );
   }
   if (reservation.status == "accepted") {
-    if (loadingHostkit) {
-      return (
-        <div className="w-full flex flex-row items-center gap-2">
-          <Skeleton className="h-2.5 w-2.5 rounded-full" />
-          <Skeleton className="w-[80%] max-w-[200px] h-5" />
-        </div>
-      );
-    }
     if (!guestInfoCustomDoneField) {
       return (
         <div className="w-full flex flex-row items-center gap-2">
@@ -97,6 +45,7 @@ export const GetReservationStatus = ({
                 reservation.id.toString(),
                 transaction_id
               );
+              setLoading(false);
               router.refresh();
             }}
             className="h-fit! p-1! rounded!"
