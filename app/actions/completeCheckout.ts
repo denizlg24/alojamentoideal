@@ -23,7 +23,7 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
         postal_code: string;
         country: string;
     }, clientTax?: string, isCompany: boolean, companyName?: string, mainContactDetails?: { questionId: string, values: string[] }[],
-    activityBookings?: { activityId: number, answers: { questionId: string, values: string[] }[], pickupAnswers: { questionId: string, values: string[] }[], rateId: number, startTimeId: number | undefined, date: string, pickup: boolean, pickupPlaceId: string | undefined, passengers: { pricingCategoryId: number, groupSize: number, passengerDetails: { questionId: string, values: string[] }[], answers: { questionId: string, values: string[] }[] }[] }[],
+    activityBookings?: { activityId: number, answers?: { questionId: string, values: string[] }[], pickupAnswers?: { questionId: string, values: string[] }[], rateId: number, startTimeId: number | undefined, date: string, pickup: boolean, pickupPlaceId: string | undefined, passengers: { pricingCategoryId: number, groupSize: number, passengerDetails: { questionId: string, values: string[] }[], answers: { questionId: string, values: string[] }[] }[] }[],
 }) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
@@ -165,7 +165,11 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
                     checkoutOption: 'CUSTOMER_FULL_PAYMENT',
                     directBooking: {
                         mainContactDetails,
-                        activityBookings,
+                        activityBookings: activityBookings!.map((booking) => ({
+                            ...booking,
+                            ...(booking.pickupAnswers?.length ? { pickupAnswers: booking.pickupAnswers } : {}),
+                            ...(booking.answers?.length ? { answers: booking.answers } : {})
+                          })),
                         externalBookingReference: randomOrderId,
                         externalBookingEntityName: 'Alojamento Ideal',
                     },
@@ -175,6 +179,7 @@ export async function buyCart({ cart, clientName, clientEmail, clientPhone, clie
                     source: 'DIRECT_REQUEST'
                 },
             });
+            console.log(bokunResponse);
             if (!bokunResponse.success) {
                 return { success: false }
             }

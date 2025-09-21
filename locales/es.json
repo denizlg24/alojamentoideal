@@ -1038,7 +1038,11 @@
     "view-your-note": "Descargar nota de crédito",
     "your-invoice-is-ready": "¡Tu factura está lista!",
     "your-note-is-ready": "¡Su nota de crédito está lista!",
-    "tour-date": "Actividad en {startDate}"
+    "tour-date": "Actividad en {startDate}",
+    "admin-new-order": "Nuevo orden creado.",
+    "order-admin-number": "Nueva solicitud de pedido Alojamento Ideal - {order_id}",
+    "order-items": "Artículos de pedido.",
+    "view-order": "Ver pedido"
   },
   "toast": {
     "email-sent": "¡Correo enviado con éxito!",

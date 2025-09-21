@@ -196,7 +196,7 @@ export async function getShoppingCartQuestion(cartId: string) {
 
 export async function createBookingRequest({ mainContactDetails, activityBookings, checkoutOptionAnswers, clientAddress, clientEmail, clientName, clientPhone, clientNotes, clientTax, companyName, guests, selectedStartTimeId, isCompany, selectedRateId, }: {
   mainContactDetails: { questionId: string, values: string[] }[],
-  activityBookings: { activityId: number, answers: { questionId: string, values: string[] }[], pickupAnswers: { questionId: string, values: string[] }[], rateId: number, startTimeId: number | undefined, date: string, pickup: boolean, pickupPlaceId: string | undefined, passengers: { pricingCategoryId: number, groupSize: number, passengerDetails: { questionId: string, values: string[] }[], answers: { questionId: string, values: string[] }[] }[] }[],
+  activityBookings: { activityId: number, answers?: { questionId: string, values: string[] }[], pickupAnswers?: { questionId: string, values: string[] }[], rateId: number, startTimeId: number | undefined, date: string, pickup: boolean, pickupPlaceId: string | undefined, passengers: { pricingCategoryId: number, groupSize: number, passengerDetails: { questionId: string, values: string[] }[], answers: { questionId: string, values: string[] }[] }[] }[],
   checkoutOptionAnswers: { questionId: string, values: string[] }[], clientName: string, clientEmail: string, clientPhone: string,
   clientAddress: {
     line1: string;
@@ -221,12 +221,12 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
         parentBookingId: number,
         confirmationCode: string,
         productConfirmationCode: string,
-        barcode: { value: string, barcodeType: "QR_CODE"|"CODE_128"|"PDF_417"|"DATA_MATRIX"|"AZTEC" },
+        barcode: { value: string, barcodeType: "QR_CODE" | "CODE_128" | "PDF_417" | "DATA_MATRIX" | "AZTEC" },
         hasTicket: boolean,
         boxBooking: boolean,
         startDateTime: number,
         endDateTime: number,
-        status: "CART"|"REQUESTED"|"RESERVED"|"CONFIRMED"|"TIMEOUT"|"ABORTED"|"CANCELLED"|"ERROR"|"ARRIVED"|"NO_SHOW"|"REJECTED",
+        status: "CART" | "REQUESTED" | "RESERVED" | "CONFIRMED" | "TIMEOUT" | "ABORTED" | "CANCELLED" | "ERROR" | "ARRIVED" | "NO_SHOW" | "REJECTED",
         includedOnCustomerInvoice: boolean,
         title: string,
         totalPrice: number,
@@ -235,8 +235,8 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
         priceWithDiscountAsText: string,
         discountPercentage: number,
         discountAmount: number,
-        paidType: "PAID_IN_FULL"|"DEPOSIT"|"FREE"|"NOT_PAID"|"OVERPAID"|"REFUND"|"INVOICED"|"GIFT_CARD",
-        activity:FullExperienceType,
+        paidType: "PAID_IN_FULL" | "DEPOSIT" | "FREE" | "NOT_PAID" | "OVERPAID" | "REFUND" | "INVOICED" | "GIFT_CARD",
+        activity: FullExperienceType,
 
       }],
       totalPrice: number, status: "CART" | "REQUESTED" | "RESERVED" | "CONFIRMED" | "TIMEOUT" | "ABORTED" | "CANCELLED" | "ERROR" | "ARRIVED" | "NO_SHOW" | "REJECTED", confirmationCode: string, bookingId: number
@@ -248,7 +248,11 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
       checkoutOption: 'CUSTOMER_FULL_PAYMENT',
       directBooking: {
         mainContactDetails,
-        activityBookings,
+        activityBookings: activityBookings.map((booking) => ({
+          ...booking,
+          ...(booking.pickupAnswers?.length ? { pickupAnswers: booking.pickupAnswers } : {}),
+          ...(booking.answers?.length ? { answers: booking.answers } : {})
+        })),
         externalBookingReference: randomOrderId,
         externalBookingEntityName: 'Alojamento Ideal',
       },
@@ -258,6 +262,24 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
       source: 'DIRECT_REQUEST'
     },
   });
+  console.log(JSON.stringify({
+    checkoutOption: 'CUSTOMER_FULL_PAYMENT',
+    directBooking: {
+      mainContactDetails,
+      activityBookings: activityBookings.map((booking) => ({
+        ...booking,
+        ...(booking.pickupAnswers?.length ? { pickupAnswers: booking.pickupAnswers } : {}),
+        ...(booking.answers?.length ? { answers: booking.answers } : {})
+      })),
+      externalBookingReference: randomOrderId,
+      externalBookingEntityName: 'Alojamento Ideal',
+    },
+    sendNotificationToMainContact: false,
+    paymentMethod: 'RESERVE_FOR_EXTERNAL_PAYMENT',
+    checkoutOptionAnswers,
+    source: 'DIRECT_REQUEST'
+  }))
+  console.log(response);
   if (!response.success || response.booking.status == 'ERROR' || !response.booking.totalPrice) {
     return false;
   }
@@ -276,7 +298,7 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
   }))
 
   const { success, client_secret, id } = await fetchClientSecret(
-    {alojamentoIdeal:0,detours:amount},
+    { alojamentoIdeal: 0, detours: amount },
     clientName,
     clientEmail,
     clientPhone,
@@ -300,8 +322,8 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
     tax_number: clientTax,
     isCompany,
     companyName,
-    activityBookingIds:response.booking.activityBookings.map((activity) => activity.productConfirmationCode),
-    activityBookingReferences:[response.booking.confirmationCode]
+    activityBookingIds: response.booking.activityBookings.map((activity) => activity.productConfirmationCode),
+    activityBookingReferences: [response.booking.confirmationCode]
   });
 
   return { success: success && order_success, client_secret, payment_id: id, order_id: orderId };
@@ -309,6 +331,6 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
 
 export async function ConfirmBookingRequest({
 
-}){
+}) {
 
 }

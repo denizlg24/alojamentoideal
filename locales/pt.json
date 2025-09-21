@@ -1038,7 +1038,11 @@
     "view-your-note": "Transfira a nota de crédito",
     "your-invoice-is-ready": "A sua fatura está pronta!",
     "your-note-is-ready": "A sua nota de crédito está pronta!",
-    "tour-date": "Atividade em {startDate}"
+    "tour-date": "Atividade em {startDate}",
+    "admin-new-order": "Novo pedido criado.",
+    "order-admin-number": "Novo pedido criado alojamento ideal - {order_id}",
+    "order-items": "Itens de pedido.",
+    "view-order": "Ver pedido"
   },
   "toast": {
     "email-sent": "Email enviado com sucesso!",

@@ -235,17 +235,17 @@ export const TourCheckoutForm = ({
     const response = await createBookingRequest({
       mainContactDetails: mainContactDetails.map((question) => ({
         questionId: question.questionId,
-        values: question.answers,
+        values: question.answers ?? [],
       })),
       activityBookings: activityBookings.map((activity) => ({
         activityId: activity.activityId,
-        answers: activity.questions.map((question) => ({
+        answers: activity.questions?.map((question) => ({
           questionId: question.questionId,
-          values: question.answers,
+          values: question.answers ?? [],
         })),
-        pickupAnswers: activity.pickupQuestions.map((question) => ({
+        pickupAnswers: activity.pickupQuestions?.map((question) => ({
           questionId: question.questionId,
-          values: question.answers,
+          values: question.answers ?? [],
         })),
         pickup: selectedPickupPlaceId == "custom" ? false : true,
         pickupPlaceId:
@@ -662,12 +662,12 @@ export const TourCheckoutForm = ({
 
         {step == "booking_questions" && (
           <div className="w-full flex flex-col gap-4">
-            {activityBookings[0]?.questions.length > 0 && (
+            {(activityBookings[0]?.questions?.length ?? 0) > 0 && (
               <div className="w-full flex flex-col gap-2 items-start">
                 <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
                   {t("booking-details")}
                 </p>
-                {activityBookings[0].questions.map((question) => {
+                {activityBookings[0].questions?.map((question) => {
                   if (
                     question.dataType == "OPTIONS" ||
                     question.selectFromOptions
@@ -692,7 +692,7 @@ export const TourCheckoutForm = ({
                                 indx == 0
                                   ? {
                                       ...activity,
-                                      questions: activity.questions.map((q) =>
+                                      questions: activity.questions?.map((q) =>
                                         q.questionId == question.questionId
                                           ? { ...q, answers: [v] }
                                           : q
@@ -760,7 +760,7 @@ export const TourCheckoutForm = ({
                                 indx == 0
                                   ? {
                                       ...activity,
-                                      questions: activity.questions.map((q) =>
+                                      questions: activity.questions?.map((q) =>
                                         q.questionId == question.questionId
                                           ? {
                                               ...q,
@@ -853,7 +853,7 @@ export const TourCheckoutForm = ({
                                       indx == 0
                                         ? {
                                             ...activity,
-                                            questions: activity.questions.map(
+                                            questions: activity.questions?.map(
                                               (q) =>
                                                 q.questionId ==
                                                 question.questionId
@@ -870,7 +870,7 @@ export const TourCheckoutForm = ({
                                       indx == 0
                                         ? {
                                             ...activity,
-                                            questions: activity.questions.map(
+                                            questions: activity.questions?.map(
                                               (q) =>
                                                 q.questionId ==
                                                 question.questionId
@@ -928,7 +928,7 @@ export const TourCheckoutForm = ({
                               indx == 0
                                 ? {
                                     ...activity,
-                                    questions: activity.questions.map((q) =>
+                                    questions: activity.questions?.map((q) =>
                                       q.questionId == question.questionId
                                         ? { ...q, answers: [e.target.value] }
                                         : q
@@ -1003,7 +1003,7 @@ export const TourCheckoutForm = ({
                   <Skeleton className="w-full h-[80px]" />
                 )}
                 {!pickupQuestionsLoading &&
-                  activityBookings[0].pickupQuestions.map((question) => {
+                  activityBookings[0].pickupQuestions?.map((question) => {
                     if (
                       question.dataType == "OPTIONS" ||
                       question.selectFromOptions
@@ -1030,7 +1030,7 @@ export const TourCheckoutForm = ({
                                   indx == 0
                                     ? {
                                         ...activity,
-                                        questions: activity.questions.map((q) =>
+                                        questions: activity.questions?.map((q) =>
                                           q.questionId == question.questionId
                                             ? { ...q, answers: [v] }
                                             : q
@@ -1100,7 +1100,7 @@ export const TourCheckoutForm = ({
                                     ? {
                                         ...activity,
                                         pickupQuestions:
-                                          activity.pickupQuestions.map((q) =>
+                                          activity.pickupQuestions?.map((q) =>
                                             q.questionId == question.questionId
                                               ? {
                                                   ...q,
@@ -1199,7 +1199,7 @@ export const TourCheckoutForm = ({
                                           ? {
                                               ...activity,
                                               pickupQuestions:
-                                                activity.pickupQuestions.map(
+                                                activity.pickupQuestions?.map(
                                                   (q) =>
                                                     q.questionId ==
                                                     question.questionId
@@ -1217,7 +1217,7 @@ export const TourCheckoutForm = ({
                                           ? {
                                               ...activity,
                                               pickupQuestions:
-                                                activity.pickupQuestions.map(
+                                                activity.pickupQuestions?.map(
                                                   (q) =>
                                                     q.questionId ==
                                                     question.questionId
@@ -1276,7 +1276,7 @@ export const TourCheckoutForm = ({
                                   ? {
                                       ...activity,
                                       pickupQuestions:
-                                        activity.pickupQuestions.map((q) =>
+                                        activity.pickupQuestions?.map((q) =>
                                           q.questionId == question.questionId
                                             ? {
                                                 ...q,
@@ -1579,7 +1579,7 @@ export const TourCheckoutForm = ({
                   })}
               </div>
             )}
-            {activityBookings[0].passengers.length > 0 && (
+            {activityBookings[0].passengers.length > 0 && (activityBookings[0].passengers.some((passenger) => passenger.passengerDetails?.length > 0 || passenger.questions?.length > 0)) && (
               <Carousel className="w-full mx-auto border shadow p-2 rounded-lg">
                 <CarouselContent className="p-0">
                   {activityBookings[0].passengers.map((passenger, pIndx) => {
@@ -2443,14 +2443,14 @@ export const TourCheckoutForm = ({
                   )
                 ) ||
                 activityBookings.some((activity) =>
-                  activity.questions.some(
+                  activity.questions?.some(
                     (question) =>
                       question.required &&
                       (question.answers ? question.answers[0] : "") == ""
                   )
                 ) ||
                 activityBookings.some((activity) =>
-                  activity.pickupQuestions.some(
+                  activity.pickupQuestions?.some(
                     (question) =>
                       question.required &&
                       (question.answers ? question.answers[0] : "") == ""

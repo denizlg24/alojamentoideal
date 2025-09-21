@@ -4,6 +4,11 @@ import { connectDB } from "@/lib/mongodb";
 import { generateReservationID } from "@/lib/utils";
 import OrderModel from "@/models/Order";
 import { verifySession } from "@/utils/verifySession";
+import { getHtml } from "./getHtml";
+import { getTranslations } from "next-intl/server";
+import { format } from "date-fns";
+import env from "@/utils/env";
+import { sendMail } from "./sendMail";
 
 
 
@@ -87,8 +92,8 @@ export async function registerOrder(data: RegisterOrderInput) {
             notes: data.notes,
             reservationIds: data.reservationIds,
             reservationReferences: data.reservationReferences,
-            activityBookingIds:data.activityBookingIds ?? [],
-            activityBookingReferences:data.activityBookingReferences ?? [],
+            activityBookingIds: data.activityBookingIds ?? [],
+            activityBookingReferences: data.activityBookingReferences ?? [],
             items: plainItems,
             payment_id: data.payment_id,
             transaction_id: data.transaction_id,
@@ -99,6 +104,65 @@ export async function registerOrder(data: RegisterOrderInput) {
         });
 
         await order.save();
+        const t = await getTranslations("order-email");
+        let products_html = ""
+        let a = 0, b = 0;
+        for (const i of plainItems) {
+            if (i.type == "accommodation") {
+                const nights =
+                    (new Date(i.end_date!).getTime() -
+                        new Date(i.start_date!).getTime()) /
+                    (1000 * 60 * 60 * 24);
+                const productHtml = await getHtml('emails/order-product.html', [{ '{{product_name}}': i.name }, {
+                    '{{product_description}}': t("nights", {
+                        count:
+                            nights,
+                        adults: i.adults!,
+                        children:
+                            i.children! > 0 ? t("children_text", { count: i.children! }) : "",
+                        infants:
+                            i.infants! > 0 ? t("infants_text", { count: i.infants! }) : "",
+                    })
+                }, { '{{product_quantity}}': t("reservation", { number: data.reservationReferences[a] }) }, { "{{product_price}}": `${i.front_end_price ?? 0}€` }, { "{{product_photo}}": i.photo }])
+                products_html += productHtml;
+                a++;
+            }
+            if (i.type == 'activity') {
+                const productHtml = await getHtml('emails/order-product.html', [{ '{{product_name}}': i.name }, {
+                    '{{product_description}}': t("tour-date", {
+                        startDate: format(i.selectedDate!, "MMMM dd, yyyy")
+                    })
+                }, { '{{product_quantity}}': t("reservation", { number: data.activityBookingIds![b] }) }, { "{{product_price}}": `${i.price ?? 0}€` }, { "{{product_photo}}": i.photo }])
+                products_html += productHtml;
+                b++;
+            }
+
+        }
+        const adminOrderHtml = await getHtml('emails/order-confirmed-email.html',
+            [{ "{{products_html}}": products_html },
+            { "{{your-order-is-in}}": t('admin-new-order') },
+            { "{{view-your-order}}": t('view-order') },
+            { "{{order-title}}": t('order-items') },
+            { "{{order-number}}": t('order-number', { order_id: order.orderId }) },
+            { "{{order-total}}": 'Total:' },
+            {
+                "{{total_price}}": `${plainItems.reduce((prev, curr) => {
+                    if (curr.price && curr.quantity) {
+                        return prev + curr.price * curr.quantity;
+                    }
+                    if (curr.price) {
+                        return prev + curr.price;
+                    }
+                    return prev + curr.front_end_price!;
+                }, 0)}€`
+            },
+            { '{{order_url}}': `${env.SITE_URL}/admin/dashboard/orders/${order.orderId}` }
+            ])
+            await sendMail({
+                email: env.ADMIN_EMAIL,
+                html: adminOrderHtml,
+                subject: t('order-admin-number', { order_id: order.orderId }),
+            });
         return { success: true, orderId: order.orderId };
     } catch (error) {
         console.error('Failed to register order:', error);

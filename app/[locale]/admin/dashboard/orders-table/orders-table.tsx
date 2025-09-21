@@ -335,6 +335,7 @@ export function DataTable<TData, TValue>({
                   await deleteOrder(orderId);
                 }
                 router.refresh();
+                setDeleting(false);
               }}
             >
               {deleting ? (

@@ -173,6 +173,10 @@ export async function POST(req: Request) {
                             )
                         ])
                         console.log("reservation update: ", reservation_request, " transaction_update", transaction_request);
+                        if(!reservation_request.success){
+                            console.log("reservation update failed");
+                            //Implement This
+                        }
                     }
                     const plainItems = foundOrder.items;
                     const total = plainItems.reduce((prev, i) => {

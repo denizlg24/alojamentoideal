@@ -155,8 +155,8 @@ export const CheckoutHolder = ({
           className="w-full aspect-[2] h-auto max-h-[250px] object-cover rounded-2xl"
         />
         <div className="flex flex-col gap-0">
-          <h1 className="font-semibold">{selectedRate.title}</h1>
-          <h2 className="text-sm line-clamp-3">{selectedRate.description}</h2>
+          <h1 className="font-semibold">{experience.title}</h1>
+          <h2 className="text-sm line-clamp-3">{experience.shortDescription}</h2>
         </div>
         <Separator />
         <div className="w-full flex flex-col gap-0">

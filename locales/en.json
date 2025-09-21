@@ -1038,7 +1038,11 @@
     "view-your-note": "Download Credit Note",
     "note-for-order": "Credit note for reservation {order_id}",
     "invoice-for-reservation": "Invoice for Reservation {order_id}",
-    "tour-date": "Activity on {startDate}"
+    "tour-date": "Activity on {startDate}",
+    "admin-new-order": "New order created.",
+    "view-order": "View Order",
+    "order-items": "Order Items.",
+    "order-admin-number": "New order request Alojamento Ideal - {order_id}"
   },
   "toast": {
     "email-sent": "Email sent successfully!",

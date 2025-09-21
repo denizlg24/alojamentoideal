@@ -765,10 +765,10 @@ export interface ActivityBookingQuestionsDto {
     bookingId: number;
     activityId: number;
     activityTitle: string;
-    questions: QuestionSpecificationDto[];
+    questions?: QuestionSpecificationDto[];
     passengers: PassengerQuestionsDto[];
-    pickupQuestions: QuestionSpecificationDto[];
-    dropoffQuestions: QuestionSpecificationDto[];
+    pickupQuestions?: QuestionSpecificationDto[];
+    dropoffQuestions?: QuestionSpecificationDto[];
 }
 
 export interface CheckoutOption {
