@@ -341,7 +341,17 @@ export default async function Home({
                                             "not-found"
                                         )}
                                   </p>
-                                  <p className="">{fee.total}€</p>
+                                  <p className="">
+                                    {fee.total_net}€{" "}
+                                    {fee.inclusive_percent &&
+                                    fee.inclusive_percent > 0
+                                      ? "+ " +
+                                        (fee.inclusive_percent * 100).toFixed(
+                                          0
+                                        ) +
+                                        "% IVA"
+                                      : ""}
+                                  </p>
                                 </div>
                               );
                             })}
@@ -353,7 +363,7 @@ export default async function Home({
                         </div>
                       );
                     }
-                    if(item.type == 'activity'){
+                    if (item.type == "activity") {
                       return (
                         <div
                           key={item.id}
@@ -362,7 +372,9 @@ export default async function Home({
                           <p className="font-medium text-sm">
                             {indx + 1}. {item.name} - {t("confirmation-code")}
                             {": "}
-                            {order.activityBookingIds ? order.activityBookingIds[indx] : ''}
+                            {order.activityBookingIds
+                              ? order.activityBookingIds[indx]
+                              : ""}
                           </p>
                           <div className="w-full flex flex-col gap-0 pl-3">
                             <div className="flex flex-row items-center justify-between text-sm">
@@ -483,23 +495,26 @@ export default async function Home({
                   reservation.reservation.confirmation_code,
                   reservation.reservation.listing_id.toString()
                 );
-                if(!data || !data2){
+                if (!data || !data2) {
                   return;
                 }
-                let guestInfoDone:"done" | "pending" | "failed" | false= false
+                let guestInfoDone: "done" | "pending" | "failed" | false =
+                  false;
                 if (data2.synced) {
                   if (data2.succeeded) {
                     if (data && data.status) {
-                      guestInfoDone ="done";
+                      guestInfoDone = "done";
                     }
                   } else {
-                    guestInfoDone ="failed";
+                    guestInfoDone = "failed";
                   }
                 } else {
-                  if (data2.guest_data.length === reservation.reservation.guests) {
+                  if (
+                    data2.guest_data.length === reservation.reservation.guests
+                  ) {
                     guestInfoDone = "pending";
                   } else {
-                    guestInfoDone =false;
+                    guestInfoDone = false;
                   }
                 }
                 return (
@@ -508,7 +523,7 @@ export default async function Home({
                     className="flex flex-col gap-0 w-full items-start"
                   >
                     <GetReservationStatus
-                    guestInfoCustomDoneField={guestInfoDone}
+                      guestInfoCustomDoneField={guestInfoDone}
                       reservation={reservation.reservation}
                       transaction_id={order.transaction_id[arrayIndx]}
                     />
@@ -613,7 +628,17 @@ export default async function Home({
                                           "not-found"
                                       )}
                                 </p>
-                                <p className="">{(fee.total_net ?? 0 * (1+(fee.inclusive_percent ?? 0))).toFixed(2)}€</p>
+                                <p className="">
+                                {fee.total_net}€{" "}
+                                    {fee.inclusive_percent &&
+                                    fee.inclusive_percent > 0
+                                      ? "+ " +
+                                        (fee.inclusive_percent * 100).toFixed(
+                                          0
+                                        ) +
+                                        "% IVA"
+                                      : ""}
+                                </p>
                               </div>
                             );
                           })}
@@ -658,7 +683,10 @@ export default async function Home({
                       )}
 
                     <div className="pb-2 border-b-2 w-full">
-                      <GetGuestSection guest_data={data2 as IGuestDataDocument} guestInfoCustomDoneField={guestInfoDone} />
+                      <GetGuestSection
+                        guest_data={data2 as IGuestDataDocument}
+                        guestInfoCustomDoneField={guestInfoDone}
+                      />
                     </div>
                   </div>
                 );

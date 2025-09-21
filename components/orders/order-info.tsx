@@ -209,7 +209,15 @@ export const OrderInfo = ({
                                           "not-found"
                                       )}
                                 </p>
-                                <p className="">{fee.total}€</p>
+                                <p className="">
+                                  {fee.total_net}€{" "}
+                                  {fee.inclusive_percent &&
+                                  fee.inclusive_percent > 0
+                                    ? "+ " +
+                                      (fee.inclusive_percent * 100).toFixed(0) +
+                                      "% IVA"
+                                    : ""}
+                                </p>
                               </div>
                             );
                           })}
@@ -221,16 +229,15 @@ export const OrderInfo = ({
                       </div>
                     );
                   }
-                  if(item.type == 'activity'){
+                  if (item.type == "activity") {
                     return (
-                      <div
-                        key={item.id}
-                        className="w-full flex flex-col gap-0"
-                      >
+                      <div key={item.id} className="w-full flex flex-col gap-0">
                         <p className="font-medium text-sm">
                           {indx + 1}. {item.name} - {t("confirmation-code")}
                           {": "}
-                          {order.activityBookingIds ? order.activityBookingIds[indx] : ''}
+                          {order.activityBookingIds
+                            ? order.activityBookingIds[indx]
+                            : ""}
                         </p>
                         <div className="w-full flex flex-col gap-0 pl-3">
                           <div className="flex flex-row items-center justify-between text-sm">
@@ -376,9 +383,17 @@ export const OrderInfo = ({
                 )
               </h2>
             </div>
-            {order.items.filter((item) => item.type == 'activity').map((activity,indx) => {
-              return <ActivityOrderCard tourItem={activity} reservation_id={order.activityBookingIds![indx]} key={activity.id + "indx:" + indx}/>
-            })}
+            {order.items
+              .filter((item) => item.type == "activity")
+              .map((activity, indx) => {
+                return (
+                  <ActivityOrderCard
+                    tourItem={activity}
+                    reservation_id={order.activityBookingIds![indx]}
+                    key={activity.id + "indx:" + indx}
+                  />
+                );
+              })}
           </>
         )}
       </div>

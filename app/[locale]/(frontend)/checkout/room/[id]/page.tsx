@@ -112,15 +112,16 @@ export default async function Page({
         new Date(tripDetails.start_date).getTime()) /
       (1000 * 60 * 60 * 24);
     let finalPrice = 0;
+    const taxPercentages: Record<number, number> = {};
 
     price.price.fees = price.price.fees.map((fee) => {
       if (fee.fee_type == "tax") {
         const maxQuantity = tripDetails.adults * nights;
         if (fee.quantity > maxQuantity) {
           const unitAmount = fee.total_net / fee.quantity;
-          finalPrice += Number(
-            (unitAmount * maxQuantity * (1 + fee.inclusive_percent)).toFixed(2)
-          );
+          taxPercentages[fee.inclusive_percent] =
+            (taxPercentages[fee.inclusive_percent] ?? 0) +
+            unitAmount * maxQuantity;
           return {
             ...fee,
             quantity: maxQuantity,
@@ -134,17 +135,19 @@ export default async function Page({
           };
         }
       }
-      finalPrice += Number(
-        (fee.total_net * (1 + fee.inclusive_percent)).toFixed(2)
-      );
+      taxPercentages[fee.inclusive_percent] =
+        (taxPercentages[fee.inclusive_percent] ?? 0) + fee.total_net;
       return {
         ...fee,
         total: Number((fee.total_net * (1 + fee.inclusive_percent)).toFixed(2)),
         total_tax: fee.total_net * fee.inclusive_percent,
       };
     });
-
-    price.price.total = finalPrice;
+    for (const percentage of Object.keys(taxPercentages)) {
+      finalPrice +=
+        taxPercentages[Number(percentage)] * (1 + Number(percentage));
+    }
+    price.price.total = Number(finalPrice.toFixed(2));
     return { listingInfo, price, isRangeBooked };
   };
 

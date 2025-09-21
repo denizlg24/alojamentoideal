@@ -201,32 +201,46 @@ export const RoomInfoProvider = ({
       );
       const nights = (to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24);
       let finalPrice = 0;
+      const taxPercentages: Record<number, number> = {};
 
       price.price.fees = price.price.fees.map((fee) => {
-        console.log(fee);
         if (fee.fee_type == "tax") {
           const maxQuantity = guests.adults * nights;
           if (fee.quantity > maxQuantity) {
             const unitAmount = fee.total_net / fee.quantity;
-            finalPrice+=Number((unitAmount * maxQuantity * (1+fee.inclusive_percent)).toFixed(2));
+            taxPercentages[fee.inclusive_percent] =
+              (taxPercentages[fee.inclusive_percent] ?? 0) +
+              unitAmount * maxQuantity;
             return {
               ...fee,
               quantity: maxQuantity,
-              total: Number((unitAmount * maxQuantity * (1+fee.inclusive_percent)).toFixed(2)),
+              total: Number(
+                (
+                  unitAmount *
+                  maxQuantity *
+                  (1 + fee.inclusive_percent)
+                ).toFixed(2)
+              ),
               total_net: unitAmount * maxQuantity,
               total_tax: unitAmount * maxQuantity * fee.inclusive_percent,
             };
           }
         }
-        finalPrice+= Number((fee.total_net * (1+fee.inclusive_percent)).toFixed(2));
+        taxPercentages[fee.inclusive_percent] =
+          (taxPercentages[fee.inclusive_percent] ?? 0) + fee.total_net;
         return {
           ...fee,
-          total: Number((fee.total_net * (1+fee.inclusive_percent)).toFixed(2)),
+          total: Number(
+            (fee.total_net * (1 + fee.inclusive_percent)).toFixed(2)
+          ),
           total_tax: fee.total_net * fee.inclusive_percent,
         };
-
       });
-      price.price.total= finalPrice;
+      for (const percentage of Object.keys(taxPercentages)) {
+        finalPrice +=
+          taxPercentages[Number(percentage)] * (1 + Number(percentage));
+      }
+      price.price.total = Number(finalPrice.toFixed(2));
       updateStayPrice(price.price);
     } catch {
       updateStayPrice(undefined);
@@ -266,7 +280,8 @@ export const RoomInfoProvider = ({
       <div className="md:grid hidden grid-cols-4 w-full rounded-2xl overflow-hidden gap-2">
         <div className="col-span-2 w-full h-auto aspect-[2/1.5] relative">
           {listingInfo.photos[0] && (
-            <Image unoptimized 
+            <Image
+              unoptimized
               src={listingInfo.photos[0].original_file}
               blurDataURL={
                 listingInfo.photos[0].has_thumb
@@ -286,7 +301,8 @@ export const RoomInfoProvider = ({
         </div>
         <div className="col-span-1 w-full h-full flex flex-col relative gap-2">
           {listingInfo.photos[1] && (
-            <Image unoptimized 
+            <Image
+              unoptimized
               src={listingInfo.photos[1].original_file}
               blurDataURL={
                 listingInfo.photos[1].has_thumb
@@ -304,7 +320,8 @@ export const RoomInfoProvider = ({
             />
           )}
           {listingInfo.photos[2] && (
-            <Image unoptimized 
+            <Image
+              unoptimized
               src={listingInfo.photos[2].original_file}
               blurDataURL={
                 listingInfo.photos[2].has_thumb
@@ -324,7 +341,8 @@ export const RoomInfoProvider = ({
         </div>
         <div className="col-span-1 w-full h-full flex flex-col relative gap-2">
           {listingInfo.photos[3] && (
-            <Image unoptimized 
+            <Image
+              unoptimized
               src={listingInfo.photos[3].original_file}
               blurDataURL={
                 listingInfo.photos[3].has_thumb
@@ -376,7 +394,8 @@ export const RoomInfoProvider = ({
                     <CarouselContent className="rounded-2xl mx-auto">
                       {listingInfo.photos.map((photo, index) => (
                         <CarouselItem key={index}>
-                          <Image unoptimized 
+                          <Image
+                            unoptimized
                             src={photo.original_file}
                             blurDataURL={
                               photo.has_thumb ? photo.thumbnail_file : undefined
@@ -395,7 +414,8 @@ export const RoomInfoProvider = ({
                 )}
               </DialogContent>
             </Dialog>
-            <Image unoptimized 
+            <Image
+              unoptimized
               src={listingInfo.photos[4].original_file}
               blurDataURL={
                 listingInfo.photos[4].has_thumb
@@ -415,7 +435,8 @@ export const RoomInfoProvider = ({
           <CarouselContent>
             {listingInfo.photos.map((photo, index) => (
               <CarouselItem key={index}>
-                <Image unoptimized 
+                <Image
+                  unoptimized
                   src={photo.original_file}
                   blurDataURL={
                     photo.has_thumb ? photo.thumbnail_file : undefined
@@ -1381,6 +1402,9 @@ export const RoomInfoProvider = ({
                     <div className="w-full flex flex-col gap-4">
                       <div className="w-full flex flex-col gap-2">
                         {stayPrice.fees.map((fee) => {
+                          {
+                            console.log(fee);
+                          }
                           return (
                             <div
                               key={fee.fee_id}
@@ -1398,13 +1422,28 @@ export const RoomInfoProvider = ({
                                 </p>
                                 {fee.charge_type_label && (
                                   <p className="md:text-sm text-xs truncate">
-                                    {((fee.total_net * (1+fee.inclusive_percent))/fee.quantity).toFixed(2)}€ /{" "}
-                                    {feeT(fee.fee_charge_type.toLowerCase())}
+                                    {(fee.total_net / fee.quantity).toFixed(2)}€
+                                    {fee.inclusive_percent &&
+                                    fee.inclusive_percent > 0
+                                      ? " + " +
+                                        (fee.inclusive_percent * 100).toFixed(
+                                          0
+                                        ) +
+                                        "% IVA"
+                                      : ""}{" "}
+                                    / {feeT(fee.fee_charge_type.toLowerCase())}
                                   </p>
                                 )}
+                                {!fee.charge_type_label &&
+                                fee.inclusive_percent &&
+                                fee.inclusive_percent > 0
+                                  ? " + " +
+                                    (fee.inclusive_percent * 100).toFixed(0) +
+                                    "% IVA"
+                                  : ""}
                               </div>
                               <p className="w-full max-w-fit truncate">
-                              {(fee.total_net * (1+fee.inclusive_percent)).toFixed(2)} {stayPrice.symbol}
+                                {fee.total_net.toFixed(2)} {stayPrice.symbol}
                               </p>
                             </div>
                           );

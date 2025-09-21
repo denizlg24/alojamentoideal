@@ -161,13 +161,18 @@ export const RoomCheckoutProvider = ({
                     </p>
                     {fee.fee_charge_type && (
                       <p className="md:text-sm text-xs truncate">
-                        - {((fee.total_net * (1+fee.inclusive_percent))/fee.quantity).toFixed(2)}€ /{" "}
-                        {feeT(fee.fee_charge_type.toLowerCase())}
+                        - {(fee.total_net / fee.quantity).toFixed(2)}€
+                        {fee.inclusive_percent && fee.inclusive_percent > 0
+                          ? " + " +
+                            (fee.inclusive_percent * 100).toFixed(0) +
+                            "% IVA"
+                          : ""}{" "}
+                        / {feeT(fee.fee_charge_type.toLowerCase())}
                       </p>
                     )}
                   </div>
                   <p className="w-full max-w-fit truncate">
-                    {(fee.total_net * (1+fee.inclusive_percent)).toFixed(2)} {stayPrice.symbol}
+                    {fee.total_net.toFixed(2)} {stayPrice.symbol}
                   </p>
                 </div>
               );
@@ -189,8 +194,7 @@ export const RoomCheckoutProvider = ({
         <div className="flex flex-row justify-between items-center w-full">
           <p className="font-semibold">{t("total")}</p>
           <p className="font-semibold">
-            {stayPrice &&
-              `${stayPrice.total} ${stayPrice.symbol}`}
+            {stayPrice && `${stayPrice.total} ${stayPrice.symbol}`}
           </p>
         </div>
       </Card>
