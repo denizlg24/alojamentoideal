@@ -57,9 +57,7 @@ export const RoomInfoMap = ({
                 <SquareArrowOutUpRightIcon className="w-4 h-4" />
                 <Link
                   target="_blank"
-                  href={`https://www.google.com/maps/place/${encodeURI(
-                    street
-                  )}`}
+                  href={`https://www.google.com/maps/place/${lat},${long}`}
                 >
                   Directions
                 </Link>

@@ -328,9 +328,3 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
 
   return { success: success && order_success, client_secret, payment_id: id, order_id: orderId };
 }
-
-export async function ConfirmBookingRequest({
-
-}) {
-
-}

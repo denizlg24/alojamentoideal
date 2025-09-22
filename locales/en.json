@@ -475,7 +475,12 @@
     "travel-doc": "Travel documents",
     "ticket": "Ticket",
     "invoice": "Invoice",
-    "pickup": "Pickup"
+    "pickup": "Pickup",
+    "meet-up-point": "Meet up at:",
+    "add-pickup": "Add pickup",
+    "complete-questions": "Complete your information.",
+    "information-missing": "Booking information missing.",
+    "complete-for-better-exp": "Complete this information for an overall better experience."
   },
   "orderSearch": {
     "placeholder": "Search for reservation number or order id...",

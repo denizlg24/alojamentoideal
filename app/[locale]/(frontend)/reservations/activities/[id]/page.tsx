@@ -2,7 +2,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
   categoriesMap,
   FullExperienceType,
+  PassengerQuestionsDto,
   PickupPlaceDto,
+  QuestionSpecificationDto,
 } from "@/utils/bokun-requests";
 import { notFound } from "next/navigation";
 import { Card, CardHeader } from "@/components/ui/card";
@@ -13,15 +15,15 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 
 import { TicketButton } from "./ticket-button";
-import { Link } from "@/i18n/navigation";
-import { BusFront } from "lucide-react";
 import { bokunRequest } from "@/utils/bokun-server";
+import { ExternalLink, PlusCircle } from "lucide-react";
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
   return {
@@ -55,7 +57,19 @@ export default async function Page({
   const displayT = await getTranslations("tourDisplay");
   const t = await getTranslations("propertyCard");
   const bokunResponse = await bokunRequest<{
-    activity: FullExperienceType;
+    activity: Omit<FullExperienceType, "meetingType"> & {
+      meetingType:
+        | "MEET_ON_LOCATION"
+        | "PICK_UP"
+        | "MEET_ON_LOCATION_OR_PICK_UP";
+      startPoints: {
+        labels?: string[];
+        address:{geoPoint:{latitude:number,longitude:number}};
+        title: string;
+        id: number;
+      }[];
+    };
+    bookingId: number;
     parentBookingId: number;
     answers: {
       answer: string;
@@ -149,6 +163,7 @@ export default async function Page({
           ],
     []
   );
+
   const ticketResponse = await bokunRequest<{ data: string }>({
     method: "GET",
     path: `/booking.json/activity-booking/${id}/ticket`,
@@ -164,6 +179,14 @@ export default async function Page({
   if (!invoiceResponse.success) {
     notFound();
   }
+  const bookingQuestions = await bokunRequest<{
+    questions: QuestionSpecificationDto[];
+    passengers: PassengerQuestionsDto[];
+    pickupQuestions?: QuestionSpecificationDto[];
+  }>({
+    method: "GET",
+    path: `/question.json/activity-booking/${bokunResponse.bookingId}`,
+  });
 
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
@@ -171,7 +194,51 @@ export default async function Page({
         <h1 className="md:text-xl sm:text-lg text-base font-semibold">
           {t("confirmation-code")}: {id}
         </h1>
-
+        {bookingQuestions.success &&
+          (bookingQuestions.questions.some(
+            (question) => (question.answers ?? []).length == 0
+          ) ||
+            bookingQuestions.passengers.some((passenger) =>
+              passenger.questions.some(
+                (question) => (question.answers ?? []).length == 0
+              )
+            ) ||
+            bookingQuestions.passengers.some((passenger) =>
+              passenger.passengerDetails.some(
+                (question) => (question.answers ?? []).length == 0
+              )
+            ) ||
+            bookingQuestions.pickupQuestions?.some(
+              (question) => (question.answers ?? []).length == 0
+            )) && (
+            <div className="w-full p-2 shadow border rounded-sm bg-muted flex flex-col gap-2">
+              <div className="flex min-[420px]:flex-row flex-col items-center justify-between">
+                <h1 className="sm:text-sm text-xs font-semibold">
+                  {t("information-missing")}
+                </h1>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      className="h-fit p-0! sm:text-sm text-xs"
+                      variant={"link"}
+                    >
+                      {t("complete-questions")}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-[800px]! w-full!">
+                    <DialogHeader className="gap-0">
+                      <DialogTitle className="sm:text-base text-sm">
+                        {t("complete-questions")}
+                      </DialogTitle>
+                      <DialogDescription className="sm:text-sm text-xs">
+                        {t("complete-for-better-exp")}
+                      </DialogDescription>
+                    </DialogHeader>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          )}
         <Card className="w-full flex flex-col gap-4 p-4!">
           <CardHeader className="w-full p-0">
             <div className="flex sm:flex-row flex-col items-start justify-start gap-4">
@@ -286,25 +353,6 @@ export default async function Page({
                           base64={invoiceResponse.data}
                         />
                       </Card>
-                      {bokunResponse.pickup && bokunResponse.pickupPlace && (
-                        <Card className="p-4! rounded-none gap-1">
-                          <p className="text-sm font-semibold mb-2">
-                            {t("pickup")}
-                          </p>
-                          <Button
-                            className="w-fit p-0! h-fit!"
-                            variant={"link"}
-                            asChild
-                          >
-                            <Link
-                              href={`https://www.google.com/maps/dir/?api=1&destination=${bokunResponse.pickupPlace.location.latitude},${bokunResponse.pickupPlace.location.longitude}`}
-                            >
-                              <BusFront />
-                              {bokunResponse.pickupPlace.title}
-                            </Link>
-                          </Button>
-                        </Card>
-                      )}
                     </DialogContent>
                   </Dialog>
                 </div>
@@ -339,12 +387,49 @@ export default async function Page({
                     })}
                   </h3>
                 </div>
-                {bokunResponse.pickup && bokunResponse.pickupPlace && (
+
+                {bookingQuestions.success &&
+                  bookingQuestions.pickupQuestions &&
+                  bokunResponse.pickup && (
+                    <h4 className="text-sm font-semibold">
+                      {t("pickup")}:
+                      {bokunResponse.pickupPlace ? (
+                        <span className="font-normal">
+                          {" "}
+                          {bokunResponse.pickupPlace.title}
+                        </span>
+                      ) : bookingQuestions.pickupQuestions[0]?.answers &&
+                        bookingQuestions.pickupQuestions[0].answers[0] != "" ? (
+                        <span className="font-normal">
+                          {" "}
+                          {bookingQuestions.pickupQuestions[0].answers[0]}
+                        </span>
+                      ) : (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <span className="font-normal inline-flex flex-row items-center justify-start gap-1 ml-1 hover:border-b hover:cursor-pointer">
+                              {t("add-pickup")}
+                              <PlusCircle className="w-3.5 h-3.5 shrink-0" />
+                            </span>
+                          </DialogTrigger>
+                          <DialogContent></DialogContent>
+                        </Dialog>
+                      )}
+                    </h4>
+                  )}
+                {bokunResponse.activity.meetingType == "MEET_ON_LOCATION" && (
                   <h4 className="text-sm font-semibold">
-                    {t("pickup")}:{" "}
-                    <span className="font-normal">
-                      {bokunResponse.pickupPlace.title}
-                    </span>
+                    {t("meet-up-point")}{" "}
+                    <a
+                      href={`https://www.google.com/maps/place/${bokunResponse.activity.startPoints[0].address.geoPoint.latitude},${bokunResponse.activity.startPoints[0].address.geoPoint.longitude}`}
+                      className="font-normal inline-flex items-center gap-1"
+                      target="_blank"
+                    >
+                      {bokunResponse.activity.startPoints
+                        ? bokunResponse.activity.startPoints[0].title
+                        : "No meetup specified."}
+                        <ExternalLink className="w-3.5 h-3.5 shrink-0"/>
+                    </a>
                   </h4>
                 )}
               </div>

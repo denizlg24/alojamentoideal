@@ -475,7 +475,12 @@
     "stating-at": "{hora} en {tiempo}",
     "ticket": "Boleto",
     "timed-out": "Cronometrado",
-    "travel-doc": "Documentos de viaje"
+    "travel-doc": "Documentos de viaje",
+    "add-pickup": "Agregar recogida",
+    "complete-for-better-exp": "Complete esta información para una mejor experiencia general.",
+    "complete-questions": "Complete su información.",
+    "information-missing": "Falta la información de reserva.",
+    "meet-up-point": "Reunirse en:"
   },
   "orderSearch": {
     "placeholder": "Buscar por número de reserva o ID del pedido...",

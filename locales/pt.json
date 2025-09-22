@@ -475,7 +475,12 @@
     "stating-at": "{hora} às {time}",
     "ticket": "Bilhete",
     "timed-out": "Cronometrado",
-    "travel-doc": "Documentos de viagem"
+    "travel-doc": "Documentos de viagem",
+    "add-pickup": "Adicione recolha",
+    "complete-for-better-exp": "Preencha as informações para uma experiência geral melhor.",
+    "complete-questions": "Complete as informações.",
+    "information-missing": "Informação da reserva incompleta.",
+    "meet-up-point": "Encontramo-nos em:"
   },
   "orderSearch": {
     "placeholder": "Procurar pelo número de reserva ou ID da encomenda...",
