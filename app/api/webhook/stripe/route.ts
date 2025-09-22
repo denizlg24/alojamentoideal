@@ -86,7 +86,7 @@ export async function POST(req: Request) {
                         const order_email_html = await buildOrderEmail({ plainItems: foundOrder.items, order_id: foundOrder.orderId,reservationReferences:foundOrder.reservationReferences,activityBookingIds:foundOrder.activityBookingIds });
                         const order_attachments = await buildAttachments({ activityBookingIds: foundOrder.activityBookingIds ?? [], activityBookingReferences: foundOrder.activityBookingReferences ?? [] })
                         const email_sent = await sendOrderEmail({ email: foundOrder.email, orderHtml: order_email_html, attachments: order_attachments, order_id: foundOrder.orderId });
-                        console.log(`Email sent = ${email_sent}`);
+                        console.log(`Email sent = ${email_sent.success}`);
 
                         if (foundOrder && foundOrder.reservationIds.length > 0) {
                             const updatedCart = await issueInvoices({ reservationIds: foundOrder.reservationIds, reservationReferences: foundOrder.reservationReferences, items: foundOrder.items.filter((item) => item.type == 'accommodation'), userInfo: { email: foundOrder.email, name: foundOrder.name, companyName: foundOrder.companyName, tax_number: foundOrder.tax_number, isCompany: foundOrder.isCompany }, charge })
@@ -194,6 +194,7 @@ const confirmActivities = async ({ charge, activityBookingReferences, order_id }
         }
         reservation_successes[bookingCode] = true;
     }
+    return reservation_successes;
 }
 
 const issueInvoices = async ({ reservationIds, reservationReferences, items, userInfo, charge }: {
