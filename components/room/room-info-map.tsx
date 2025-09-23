@@ -50,13 +50,14 @@ export const RoomInfoMap = ({
             </PopoverTrigger>
             <PopoverContent className="w-full max-w-[300px] p-2 flex flex-col gap-1 z-99">
               <div className="w-full flex flex-row gap-1 items-center">
-                <LocateFixedIcon className="min-w-4 w-4 h-4" />
-                <p className="text-sm truncate grow">{street}</p>
+                <LocateFixedIcon className="w-4 h-4 shrink-0" />
+                <p className="text-xs truncate grow">{street}</p>
               </div>
               <div className="w-full flex flex-row gap-1 items-center">
-                <SquareArrowOutUpRightIcon className="w-4 h-4" />
+                <SquareArrowOutUpRightIcon className="w-4 h-4 shrink-0" />
                 <Link
                   target="_blank"
+                  className="text-xs"
                   href={`https://www.google.com/maps/place/${lat},${long}`}
                 >
                   Directions

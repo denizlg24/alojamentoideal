@@ -9,7 +9,7 @@ import {
 import { notFound } from "next/navigation";
 import { Card, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
-import { format } from "date-fns";
+import { format, subMinutes } from "date-fns";
 import { localeMap } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,10 @@ import {
 import { TicketButton } from "./ticket-button";
 import { bokunRequest } from "@/utils/bokun-server";
 import { ExternalLink, PlusCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RoomInfoMap } from "@/components/room/room-info-map";
+import { PickupPlaceCard } from "./pickup-place-card";
+import { CompleteBookingQuestion } from "./booking-questions-complete-card";
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
   return {
@@ -47,6 +51,18 @@ export async function generateMetadata() {
   };
 }
 
+function formatTenMinutesBefore(hour: number, minute: number) {
+  // Create a Date with today's date, and set hour/minute
+  const base = new Date();
+  base.setHours(hour, minute, 0, 0);
+
+  // Subtract 10 minutes
+  const result = subMinutes(base, 10);
+
+  // Format however you like, e.g. "HH:mm"
+  return format(result, "HH:mm");
+}
+
 export default async function Page({
   params,
 }: {
@@ -64,7 +80,7 @@ export default async function Page({
         | "MEET_ON_LOCATION_OR_PICK_UP";
       startPoints: {
         labels?: string[];
-        address:{geoPoint:{latitude:number,longitude:number}};
+        address: { geoPoint: { latitude: number; longitude: number } };
         title: string;
         id: number;
       }[];
@@ -225,7 +241,7 @@ export default async function Page({
                       {t("complete-questions")}
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-[800px]! w-full!">
+                  <DialogContent className="max-w-[800px]! w-[95%]!">
                     <DialogHeader className="gap-0">
                       <DialogTitle className="sm:text-base text-sm">
                         {t("complete-questions")}
@@ -234,6 +250,11 @@ export default async function Page({
                         {t("complete-for-better-exp")}
                       </DialogDescription>
                     </DialogHeader>
+                    <CompleteBookingQuestion
+                      initialBookingQuestions={bookingQuestions.questions}
+                      initialPassengers={bookingQuestions.passengers}
+                      initialPickupQuestions={bookingQuestions.pickupQuestions}
+                    />
                   </DialogContent>
                 </Dialog>
               </div>
@@ -428,7 +449,7 @@ export default async function Page({
                       {bokunResponse.activity.startPoints
                         ? bokunResponse.activity.startPoints[0].title
                         : "No meetup specified."}
-                        <ExternalLink className="w-3.5 h-3.5 shrink-0"/>
+                      <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                     </a>
                   </h4>
                 )}
@@ -436,6 +457,78 @@ export default async function Page({
             </div>
           </CardHeader>
         </Card>
+        {bokunResponse.activity.meetingType != "MEET_ON_LOCATION" &&
+          bokunResponse.pickup &&
+          bookingQuestions.success && (
+            <PickupPlaceCard
+              initialPickup={bokunResponse.pickupPlace}
+              initialPickupQuestions={bookingQuestions.pickupQuestions}
+            />
+          )}
+        {bokunResponse.activity.meetingType == "MEET_ON_LOCATION" &&
+          bokunResponse.activity.startPoints && (
+            <Card className="w-full flex flex-col gap-4 p-4!">
+              <div className="w-full flex flex-col gap-1">
+                <h1 className="sm:text-base text-sm font-bold">
+                  {t("meet-on-location")}
+                </h1>
+                <h2 className="sm:text-sm text-xs">
+                  {t("meet-on-one-of-points")}
+                </h2>
+              </div>
+              <Tabs
+                defaultValue={bokunResponse.activity.startPoints[0].id.toString()}
+              >
+                <TabsList>
+                  {bokunResponse.activity.startPoints.map((startPoint) => {
+                    return (
+                      <TabsTrigger
+                        value={startPoint.id.toString()}
+                        key={startPoint.id}
+                      >
+                        {startPoint.title}
+                      </TabsTrigger>
+                    );
+                  })}
+                </TabsList>
+                {bokunResponse.activity.startPoints.map((startPoint) => {
+                  return (
+                    <TabsContent
+                      className="w-full flex flex-col gap-2"
+                      value={startPoint.id.toString()}
+                      key={startPoint.id + "-content"}
+                    >
+                      <div className="w-full h-[250px] rounded-lg overflow-hidden shadow">
+                        <RoomInfoMap
+                          lat={startPoint.address.geoPoint.latitude}
+                          long={startPoint.address.geoPoint.longitude}
+                          street={startPoint.title}
+                        />
+                      </div>
+                      {bokunResponse.activity.bookingType ==
+                        "DATE_AND_TIME" && (
+                        <p className="sm:text-sm text-xs font-bold text-left">
+                          {t("arrive-by", {
+                            time:
+                              formatTenMinutesBefore(
+                                bokunResponse.activity.startTimes.find(
+                                  (startTime) =>
+                                    startTime.id == bokunResponse.startTimeId
+                                )!.hour,
+                                bokunResponse.activity.startTimes.find(
+                                  (startTime) =>
+                                    startTime.id == bokunResponse.startTimeId
+                                )!.minute
+                              ) ?? "",
+                          })}
+                        </p>
+                      )}
+                    </TabsContent>
+                  );
+                })}
+              </Tabs>
+            </Card>
+          )}
       </div>
     </main>
   );

@@ -355,7 +355,10 @@
     "pickup-details": "Detalhes de recolha",
     "pickup-place": "Escolha um ponto de recolha",
     "traveler-info": "Viajante {count} Detalhes - {category}",
-    "your-details": "Seus detalhes"
+    "your-details": "Seus detalhes",
+    "cancel": "Cancelar",
+    "save-answers": "Salve respostas",
+    "travelers": "Informações sobre viajantes"
   },
   "order": {
     "order_info": "Informações do Pedido",
@@ -480,7 +483,17 @@
     "complete-for-better-exp": "Preencha as informações para uma experiência geral melhor.",
     "complete-questions": "Complete as informações.",
     "information-missing": "Informação da reserva incompleta.",
-    "meet-up-point": "Encontramo-nos em:"
+    "meet-up-point": "Encontramo-nos em:",
+    "arrive-by": "Tente chegar ao redor {time}",
+    "choose-one": "Escolha um",
+    "fill-out-pickup-questions": "Preencha as seguintes perguntas para aproveitar nosso serviço de retirada.",
+    "i-want-to-select-my-own": "Eu quero especificar minha própria picape",
+    "meet-on-location": "Nos encontraremos no local.",
+    "meet-on-one-of-points": "Podemos nos encontrar em qualquer um dos pontos abaixo.",
+    "modifications-to-pickup-unavailable": "Modificações para esta reserva não estão mais disponíveis.",
+    "pickup-place": "Escolha o seu local de coleta",
+    "we-can-pickup": "Podemos buscá -lo",
+    "your-selected-spot": "Seu local selecionado:"
   },
   "orderSearch": {
     "placeholder": "Procurar pelo número de reserva ou ID da encomenda...",

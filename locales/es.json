@@ -355,7 +355,10 @@
     "pickup-details": "Detalles de recogida",
     "pickup-place": "Elija un lugar de recogida",
     "traveler-info": "Traveler {Count} Detalles - {Categoría}",
-    "your-details": "Tus detalles"
+    "your-details": "Tus detalles",
+    "cancel": "Cancelar",
+    "save-answers": "Guardar respuestas",
+    "travelers": "Información del viajero"
   },
   "order": {
     "order_info": "Información del Pedido",
@@ -480,7 +483,17 @@
     "complete-for-better-exp": "Complete esta información para una mejor experiencia general.",
     "complete-questions": "Complete su información.",
     "information-missing": "Falta la información de reserva.",
-    "meet-up-point": "Reunirse en:"
+    "meet-up-point": "Reunirse en:",
+    "arrive-by": "Intenta llegar alrededor {tiempo}",
+    "choose-one": "Elegir uno",
+    "fill-out-pickup-questions": "Complete las siguientes preguntas para aprovechar nuestro servicio de recogida.",
+    "i-want-to-select-my-own": "Quiero especificar mi propia camioneta",
+    "meet-on-location": "Nos reuniremos en la ubicación.",
+    "meet-on-one-of-points": "Podemos reunirnos en cualquiera de los puntos a continuación.",
+    "modifications-to-pickup-unavailable": "Las modificaciones a esta reserva ya no están disponibles.",
+    "pickup-place": "Elija su lugar de recogida",
+    "we-can-pickup": "Podemos recogerte",
+    "your-selected-spot": "Tu lugar seleccionado:"
   },
   "orderSearch": {
     "placeholder": "Buscar por número de reserva o ID del pedido...",

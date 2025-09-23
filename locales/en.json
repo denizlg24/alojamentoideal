@@ -355,7 +355,10 @@
     "traveler-info": "Traveler {count} details - {category}",
     "pickup-details": "Pickup details",
     "pickup-place": "Choose a pickup spot",
-    "i-want-to-select-my-own": "I want to specify my own pick-up"
+    "i-want-to-select-my-own": "I want to specify my own pick-up",
+    "travelers": "Traveler information",
+    "cancel": "Cancel",
+    "save-answers": "Save Answers"
   },
   "order": {
     "order_info": "Order Information",
@@ -480,7 +483,17 @@
     "add-pickup": "Add pickup",
     "complete-questions": "Complete your information.",
     "information-missing": "Booking information missing.",
-    "complete-for-better-exp": "Complete this information for an overall better experience."
+    "complete-for-better-exp": "Complete this information for an overall better experience.",
+    "meet-on-location": "We'll meet on the location.",
+    "meet-on-one-of-points": "We can meet in any of the points below.",
+    "arrive-by": "Try to arrive around {time}",
+    "we-can-pickup": "We can pick you up",
+    "fill-out-pickup-questions": "Fill out the following questions to take advantage of our pick up service.",
+    "your-selected-spot": "Your selected spot:",
+    "pickup-place": "Choose your pickup place",
+    "choose-one": "Choose one",
+    "i-want-to-select-my-own": "I want to specify my own pickup",
+    "modifications-to-pickup-unavailable": "Modifications to this booking are no longer available."
   },
   "orderSearch": {
     "placeholder": "Search for reservation number or order id...",
