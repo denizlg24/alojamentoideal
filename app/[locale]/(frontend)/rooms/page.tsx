@@ -19,7 +19,7 @@ export async function generateMetadata() {
       description:
         t("rooms.description") ||
         "Compare rooms, see features, and book directly from our platform.",
-      url: "https://alojamentoideal.com/rooms",
+      url: "https://alojamentoideal.pt/rooms",
       type: "website",
     },
     twitter: {

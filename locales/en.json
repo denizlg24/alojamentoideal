@@ -84,6 +84,26 @@
       "title": "Property Owner Form | Alojamento Ideal",
       "description": "Submit your property details to receive a personalized profitability study for your house. Our experts will analyze your property and provide a tailored report.",
       "keywords": "property owner, profitability study, house analysis, property evaluation, Alojamento Ideal, submit property details"
+    },
+    "activity_reservation_details": {
+      "title": "Activity Reservation Details | Alojamento Ideal",
+      "description": "View the details of your reserved activity.",
+      "keywords": "activity, reservation, booking, details"
+    },
+    "activities": {
+      "title": "Activities | Alojamento Ideal",
+      "description": "Discover our wide range of activities available for booking.",
+      "keywords": "activities, tours, experiences, booking"
+    },
+    "activity_details": {
+      "title": "Activity Details | Alojamento Ideal",
+      "description": "Learn more about this activity, schedule, and availability.",
+      "keywords": "activity, details, booking, schedule"
+    },
+    "checkout_activity": {
+      "title": "Checkout - Activity | Alojamento Ideal",
+      "description": "Complete your booking for this activity.",
+      "keywords": "checkout, activity, booking, payment"
     }
   },
   "not-found": {
@@ -93,11 +113,11 @@
     "cta": "Here are some helpful links instead:",
     "home": "Homepage",
     "homes": "Homes",
-    "tours": "Tours"
+    "tours": "Activities"
   },
   "header": {
     "homes": "Homes",
-    "tours": "Tours",
+    "tours": "Activities",
     "about": "About Us",
     "contact": "Help",
     "porto-exp": "Porto City Experiences",
@@ -114,7 +134,9 @@
     "homes-tours": "Homes & Tours",
     "property-owner": "Property owner?",
     "terms": "Terms & Conditions",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "tours-desc": "Explore all our activities.",
+    "no-tours-available": "No tours are available at this time."
   },
   "home": {
     "map-title": "Where will you stay tonight?",
@@ -358,7 +380,10 @@
     "i-want-to-select-my-own": "I want to specify my own pick-up",
     "travelers": "Traveler information",
     "cancel": "Cancel",
-    "save-answers": "Save Answers"
+    "save-answers": "Save Answers",
+    "all-fields-must-be-correct": "Some fields are malformed.",
+    "error-saving": "There was a problem saving your answers.",
+    "saving": "Saving answers..."
   },
   "order": {
     "order_info": "Order Information",
@@ -483,7 +508,7 @@
     "add-pickup": "Add pickup",
     "complete-questions": "Complete your information.",
     "information-missing": "Booking information missing.",
-    "complete-for-better-exp": "Complete this information for an overall better experience.",
+    "complete-for-better-exp": "Complete these informations for an overall better experience.",
     "meet-on-location": "We'll meet on the location.",
     "meet-on-one-of-points": "We can meet in any of the points below.",
     "arrive-by": "Try to arrive around {time}",
@@ -493,7 +518,11 @@
     "pickup-place": "Choose your pickup place",
     "choose-one": "Choose one",
     "i-want-to-select-my-own": "I want to specify my own pickup",
-    "modifications-to-pickup-unavailable": "Modifications to this booking are no longer available."
+    "modifications-to-pickup-unavailable": "Modifications to this booking are no longer available.",
+    "information-complete": "Booking questions completed.",
+    "edit-questions": "Update your information.",
+    "update-questions": "Update your information.",
+    "update-for-better-exp": "Update your information if anything relevant to the experience changed."
   },
   "orderSearch": {
     "placeholder": "Search for reservation number or order id...",

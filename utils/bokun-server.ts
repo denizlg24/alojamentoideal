@@ -67,6 +67,14 @@ export async function bokunRequest<T = unknown>({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return { success: true, data: base64 } as any;
     }
+    try {
+        //const clone = res.clone();
+        const json = ((await res.json()) as T);
+        return { success: true, ...json };
+    } catch (error) {
+        console.log(error);
+        return { success: false, message: 'Error parsing', status: 403 }
+    }
 
-    return { success: true, ...((await res.json()) as T) };
+
 }

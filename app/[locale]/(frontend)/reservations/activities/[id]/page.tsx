@@ -1,8 +1,8 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
+  ActivityBookingQuestionsDto,
   categoriesMap,
   FullExperienceType,
-  PassengerQuestionsDto,
   PickupPlaceDto,
   QuestionSpecificationDto,
 } from "@/utils/bokun-requests";
@@ -23,7 +23,7 @@ import {
 
 import { TicketButton } from "./ticket-button";
 import { bokunRequest } from "@/utils/bokun-server";
-import { ExternalLink, PlusCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, ExternalLink, PlusCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoomInfoMap } from "@/components/room/room-info-map";
 import { PickupPlaceCard } from "./pickup-place-card";
@@ -31,22 +31,22 @@ import { CompleteBookingQuestion } from "./booking-questions-complete-card";
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
   return {
-    title: t("reservation_details.title"),
-    description: t("reservation_details.description"),
-    keywords: t("reservation_details.keywords")
+    title: t("activity_reservation_details.title"),
+    description: t("activity_reservation_details.description"),
+    keywords: t("activity_reservation_details.keywords")
       .split(",")
       .map((k) => k.trim()),
     robots: "noindex, nofollow",
     openGraph: {
-      title: t("reservation_details.title"),
-      description: t("reservation_details.description"),
-      url: "https://alojamentoideal.com/reservations/[id]",
+      title: t("activity_reservation_details.title"),
+      description: t("activity_reservation_details.description"),
+      url: "https://alojamentoideal.pt/reservations/[id]",
       type: "website",
     },
     twitter: {
       card: "summary",
-      title: t("reservation_details.title"),
-      description: t("reservation_details.description"),
+      title: t("activity_reservation_details.title"),
+      description: t("activity_reservation_details.description"),
     },
   };
 }
@@ -146,7 +146,6 @@ export default async function Page({
   if (!bokunResponse.success) {
     notFound();
   }
-  console.log(bokunResponse);
   const uniqueIds = bokunResponse.bookedPricingCategories.reduce<
     {
       id: number;
@@ -196,70 +195,166 @@ export default async function Page({
     notFound();
   }
   const bookingQuestions = await bokunRequest<{
-    questions: QuestionSpecificationDto[];
-    passengers: PassengerQuestionsDto[];
-    pickupQuestions?: QuestionSpecificationDto[];
+    mainContactDetails: QuestionSpecificationDto[];
+    activityBookings: ActivityBookingQuestionsDto[];
   }>({
     method: "GET",
-    path: `/question.json/activity-booking/${bokunResponse.bookingId}`,
+    path: `/question.json/booking/${bokunResponse.parentBookingId}`,
   });
 
+  const hasEmptyAnswer =
+    bookingQuestions.success &&
+    (bookingQuestions.activityBookings
+      .find((activity) => activity.bookingId === bokunResponse.bookingId)
+      ?.questions?.some(
+        (question) =>
+          (question.answers ?? []).length === 0 ||
+          question.answers?.[0]?.trim?.() === ""
+      ) ||
+      bookingQuestions.activityBookings
+        .find((activity) => activity.bookingId === bokunResponse.bookingId)
+        ?.passengers.some((passenger) =>
+          passenger.questions.some(
+            (question) =>
+              (question.answers ?? []).length === 0 ||
+              question.answers?.[0]?.trim?.() === ""
+          )
+        ) ||
+      bookingQuestions.activityBookings
+        .find((activity) => activity.bookingId === bokunResponse.bookingId)
+        ?.passengers.some((passenger) =>
+          passenger.passengerDetails.some(
+            (question) =>
+              (question.answers ?? []).length === 0 ||
+              question.answers?.[0]?.trim?.() === ""
+          )
+        ) ||
+      bookingQuestions.activityBookings
+        .find((activity) => activity.bookingId === bokunResponse.bookingId)
+        ?.pickupQuestions?.some(
+          (question) =>
+            (question.answers ?? []).length === 0 ||
+            question.answers?.[0]?.trim?.() === ""
+        ));
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full px-4 max-w-7xl mx-auto pt-12 flex flex-col gap-4">
         <h1 className="md:text-xl sm:text-lg text-base font-semibold">
           {t("confirmation-code")}: {id}
         </h1>
-        {bookingQuestions.success &&
-          (bookingQuestions.questions.some(
-            (question) => (question.answers ?? []).length == 0
-          ) ||
-            bookingQuestions.passengers.some((passenger) =>
-              passenger.questions.some(
-                (question) => (question.answers ?? []).length == 0
-              )
-            ) ||
-            bookingQuestions.passengers.some((passenger) =>
-              passenger.passengerDetails.some(
-                (question) => (question.answers ?? []).length == 0
-              )
-            ) ||
-            bookingQuestions.pickupQuestions?.some(
-              (question) => (question.answers ?? []).length == 0
-            )) && (
-            <div className="w-full p-2 shadow border rounded-sm bg-muted flex flex-col gap-2">
-              <div className="flex min-[420px]:flex-row flex-col items-center justify-between">
+        {hasEmptyAnswer && (
+          <div className="w-full p-2 shadow border rounded-sm bg-muted flex flex-col gap-2">
+            <div className="flex min-[420px]:flex-row flex-col items-center justify-between">
+              <div className="flex flex-row items-center gap-2 justify-start">
                 <h1 className="sm:text-sm text-xs font-semibold">
                   {t("information-missing")}
                 </h1>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      className="h-fit p-0! sm:text-sm text-xs"
-                      variant={"link"}
-                    >
-                      {t("complete-questions")}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-[800px]! w-[95%]!">
-                    <DialogHeader className="gap-0">
-                      <DialogTitle className="sm:text-base text-sm">
-                        {t("complete-questions")}
-                      </DialogTitle>
-                      <DialogDescription className="sm:text-sm text-xs">
-                        {t("complete-for-better-exp")}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <CompleteBookingQuestion
-                      initialBookingQuestions={bookingQuestions.questions}
-                      initialPassengers={bookingQuestions.passengers}
-                      initialPickupQuestions={bookingQuestions.pickupQuestions}
-                    />
-                  </DialogContent>
-                </Dialog>
+                <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-600" />
               </div>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    className="h-fit p-0! sm:text-sm text-xs"
+                    variant={"link"}
+                  >
+                    {t("complete-questions")}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-[800px]! w-[95%]!">
+                  <DialogHeader className="gap-0">
+                    <DialogTitle className="sm:text-base text-sm">
+                      {t("complete-questions")}
+                    </DialogTitle>
+                    <DialogDescription className="sm:text-sm text-xs">
+                      {t("complete-for-better-exp")}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <CompleteBookingQuestion
+                    mainContactDetails={bookingQuestions.mainContactDetails}
+                    individualId={bokunResponse.bookingId}
+                    activityBookingId={bokunResponse.parentBookingId}
+                    activityBookings={bookingQuestions.activityBookings}
+                    initialBookingQuestions={
+                      bookingQuestions.activityBookings.find(
+                        (activity) =>
+                          activity.bookingId == bokunResponse.bookingId
+                      )?.questions
+                    }
+                    initialPassengers={
+                      bookingQuestions.activityBookings.find(
+                        (activity) =>
+                          activity.bookingId == bokunResponse.bookingId
+                      )?.passengers
+                    }
+                    initialPickupQuestions={
+                      bookingQuestions.activityBookings.find(
+                        (activity) =>
+                          activity.bookingId == bokunResponse.bookingId
+                      )?.pickupQuestions
+                    }
+                  />
+                </DialogContent>
+              </Dialog>
             </div>
-          )}
+          </div>
+        )}
+        {!hasEmptyAnswer && bookingQuestions.success && (
+          <div className="w-full p-2 shadow border rounded-sm bg-muted flex flex-col gap-2">
+            <div className="flex flex-row items-center justify-between">
+              <div className="flex flex-row items-center gap-2 justify-start">
+                <h1 className="sm:text-sm text-xs font-semibold">
+                  {t("information-complete")}
+                </h1>
+                <CheckCircle className="w-3.5 h-3.5 shrink-0 text-green-600" />
+              </div>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    className="h-fit p-0! sm:text-sm text-xs"
+                    variant={"link"}
+                  >
+                    {t("edit-questions")}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-[800px]! w-[95%]!">
+                  <DialogHeader className="gap-0">
+                    <DialogTitle className="sm:text-base text-sm">
+                      {t("update-questions")}
+                    </DialogTitle>
+                    <DialogDescription className="sm:text-sm text-xs">
+                      {t("update-for-better-exp")}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <CompleteBookingQuestion
+                    mainContactDetails={bookingQuestions.mainContactDetails}
+                    individualId={bokunResponse.bookingId}
+                    activityBookingId={bokunResponse.parentBookingId}
+                    activityBookings={bookingQuestions.activityBookings}
+                    initialBookingQuestions={
+                      bookingQuestions.activityBookings.find(
+                        (activity) =>
+                          activity.bookingId == bokunResponse.bookingId
+                      )?.questions
+                    }
+                    initialPassengers={
+                      bookingQuestions.activityBookings.find(
+                        (activity) =>
+                          activity.bookingId == bokunResponse.bookingId
+                      )?.passengers
+                    }
+                    initialPickupQuestions={
+                      bookingQuestions.activityBookings.find(
+                        (activity) =>
+                          activity.bookingId == bokunResponse.bookingId
+                      )?.pickupQuestions
+                    }
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        )}
         <Card className="w-full flex flex-col gap-4 p-4!">
           <CardHeader className="w-full p-0">
             <div className="flex sm:flex-row flex-col items-start justify-start gap-4">
@@ -379,7 +474,7 @@ export default async function Page({
                 </div>
                 <div className="flex flex-col">
                   <h2 className="sm:text-lg text-base font-semibold">
-                    {bokunResponse.activity.title}
+                    {bokunResponse.activity.title}{bokunResponse.activity.startTimes.find((startTime) => startTime.id == bokunResponse.startTimeId)?.externalLabel? ` - ${bokunResponse.activity.startTimes.find((startTime) => startTime.id == bokunResponse.startTimeId)?.externalLabel}` : ''}
                   </h2>
                   <h3 className="sm:text-base text-sm font-medium text-muted-foreground">
                     {bokunResponse.startTime &&
@@ -410,7 +505,9 @@ export default async function Page({
                 </div>
 
                 {bookingQuestions.success &&
-                  bookingQuestions.pickupQuestions &&
+                  bookingQuestions.activityBookings.find(
+                    (activity) => activity.bookingId == bokunResponse.bookingId
+                  )?.pickupQuestions?.length &&
                   bokunResponse.pickup && (
                     <h4 className="text-sm font-semibold">
                       {t("pickup")}:
@@ -419,11 +516,22 @@ export default async function Page({
                           {" "}
                           {bokunResponse.pickupPlace.title}
                         </span>
-                      ) : bookingQuestions.pickupQuestions[0]?.answers &&
-                        bookingQuestions.pickupQuestions[0].answers[0] != "" ? (
+                      ) : bookingQuestions.activityBookings.find(
+                          (activity) =>
+                            activity.bookingId == bokunResponse.bookingId
+                        )?.pickupQuestions![0].answers &&
+                        bookingQuestions.activityBookings.find(
+                          (activity) =>
+                            activity.bookingId == bokunResponse.bookingId
+                        )?.pickupQuestions![0].answers[0] != "" ? (
                         <span className="font-normal">
                           {" "}
-                          {bookingQuestions.pickupQuestions[0].answers[0]}
+                          {
+                            bookingQuestions.activityBookings.find(
+                              (activity) =>
+                                activity.bookingId == bokunResponse.bookingId
+                            )?.pickupQuestions![0].answers[0]
+                          }
                         </span>
                       ) : (
                         <Dialog>
@@ -462,7 +570,11 @@ export default async function Page({
           bookingQuestions.success && (
             <PickupPlaceCard
               initialPickup={bokunResponse.pickupPlace}
-              initialPickupQuestions={bookingQuestions.pickupQuestions}
+              initialPickupQuestions={
+                bookingQuestions.activityBookings.find(
+                  (activity) => activity.bookingId == bokunResponse.bookingId
+                )?.pickupQuestions
+              }
             />
           )}
         {bokunResponse.activity.meetingType == "MEET_ON_LOCATION" &&
@@ -472,6 +584,24 @@ export default async function Page({
                 <h1 className="sm:text-base text-sm font-bold">
                   {t("meet-on-location")}
                 </h1>
+                {bokunResponse.activity.bookingType ==
+                        "DATE_AND_TIME" && (
+                        <p className="sm:text-sm text-xs font-bold text-left">
+                          {t("arrive-by", {
+                            time:
+                              formatTenMinutesBefore(
+                                bokunResponse.activity.startTimes.find(
+                                  (startTime) =>
+                                    startTime.id == bokunResponse.startTimeId
+                                )!.hour,
+                                bokunResponse.activity.startTimes.find(
+                                  (startTime) =>
+                                    startTime.id == bokunResponse.startTimeId
+                                )!.minute
+                              ) ?? "",
+                          })}.
+                        </p>
+                      )}
                 <h2 className="sm:text-sm text-xs">
                   {t("meet-on-one-of-points")}
                 </h2>
@@ -505,24 +635,7 @@ export default async function Page({
                           street={startPoint.title}
                         />
                       </div>
-                      {bokunResponse.activity.bookingType ==
-                        "DATE_AND_TIME" && (
-                        <p className="sm:text-sm text-xs font-bold text-left">
-                          {t("arrive-by", {
-                            time:
-                              formatTenMinutesBefore(
-                                bokunResponse.activity.startTimes.find(
-                                  (startTime) =>
-                                    startTime.id == bokunResponse.startTimeId
-                                )!.hour,
-                                bokunResponse.activity.startTimes.find(
-                                  (startTime) =>
-                                    startTime.id == bokunResponse.startTimeId
-                                )!.minute
-                              ) ?? "",
-                          })}
-                        </p>
-                      )}
+                      
                     </TabsContent>
                   );
                 })}

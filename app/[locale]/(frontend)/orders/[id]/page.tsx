@@ -21,7 +21,7 @@ export async function generateMetadata() {
       description:
         t("order_details.description") ||
         "View your accommodation reservation summary and payment information.",
-      url: "https://alojamentoideal.com/orders/[id]",
+      url: "https://alojamentoideal.pt/orders/[id]",
       type: "website",
     },
     twitter: {

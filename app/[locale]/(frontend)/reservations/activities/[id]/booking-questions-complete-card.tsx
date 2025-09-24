@@ -1,5 +1,6 @@
 "use client";
 
+import { answerActivityBookingQuestions } from "@/app/actions/getExperience";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -24,8 +25,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import {
+  ActivityBookingQuestionsDto,
   categoriesMap,
   isValid,
   PassengerQuestionsDto,
@@ -34,22 +37,30 @@ import {
 import { DialogClose } from "@radix-ui/react-dialog";
 import { PopoverClose } from "@radix-ui/react-popover";
 import { format, parse } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export const CompleteBookingQuestion = ({
+  mainContactDetails,
+  individualId,
   initialPickupQuestions,
   initialBookingQuestions,
   initialPassengers,
+  activityBookingId,
+  activityBookings,
 }: {
+  individualId: number;
+  mainContactDetails: QuestionSpecificationDto[];
+  activityBookings: ActivityBookingQuestionsDto[];
+  activityBookingId: number;
   initialPickupQuestions?: QuestionSpecificationDto[];
-  initialBookingQuestions: QuestionSpecificationDto[];
-  initialPassengers: PassengerQuestionsDto[];
+  initialBookingQuestions?: QuestionSpecificationDto[];
+  initialPassengers?: PassengerQuestionsDto[];
 }) => {
   const displayT = useTranslations("tourDisplay");
   const t = useTranslations("checkout_form");
-
+  const pathname = usePathname();
   const [pickupQuestions, setPickupQuestions] = useState(
     initialPickupQuestions
   );
@@ -57,6 +68,173 @@ export const CompleteBookingQuestion = ({
     initialBookingQuestions
   );
   const [passengers, setPassengers] = useState(initialPassengers);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  function answersChanged(arr1?: string[], arr2?: string[]) {
+    if (!arr1 && !arr2) return false;
+    if (!arr1 || !arr2) return true;
+    if (arr1.length !== arr2.length) return true;
+    return arr1.some((a, i) => a !== arr2[i]);
+  }
+
+  const hasChanges =
+    bookingQuestions?.some((question) => {
+      const initial = initialBookingQuestions?.find(
+        (_q) => _q.questionId === question.questionId
+      )?.answers;
+      return answersChanged(question.answers, initial);
+    }) ||
+    pickupQuestions?.some((question) => {
+      const initial = initialPickupQuestions?.find(
+        (_q) => _q.questionId === question.questionId
+      )?.answers;
+      return answersChanged(question.answers, initial);
+    }) ||
+    passengers?.some((passenger, indx) =>
+      passenger.passengerDetails?.some((question) => {
+        const initialAnswer = initialPassengers
+          ?.at(indx)
+          ?.passengerDetails?.find(
+            (_q) => _q.questionId === question.questionId
+          )?.answers;
+        return answersChanged(question.answers, initialAnswer);
+      })
+    ) ||
+    passengers?.some((passenger, indx) =>
+      passenger.questions?.some((question) => {
+        const initialAnswer = initialPassengers
+          ?.at(indx)
+          ?.questions?.find(
+            (_q) => _q.questionId === question.questionId
+          )?.answers;
+        return answersChanged(question.answers, initialAnswer);
+      })
+    );
+
+  function validateAllQuestions() {
+    let invalidFound = false;
+
+    for (const question of bookingQuestions ?? []) {
+      if ((question.answers?.[0] && !isValid(question.answers?.[0] ?? "", question.dataFormat)) || (!question.answers?.[0] && question.required)) {
+        invalidFound = true;
+        break;
+      }
+    }
+
+    if (!invalidFound) {
+      for (const question of pickupQuestions ?? []) {
+        if ((question.answers?.[0] && !isValid(question.answers?.[0] ?? "", question.dataFormat)) || (!question.answers?.[0] && question.required)) {
+          invalidFound = true;
+          break;
+        }
+      }
+    }
+
+    if (!invalidFound) {
+      for (const [, passenger] of (passengers ?? []).entries()) {
+        for (const question of passenger.passengerDetails ?? []) {
+          if ((question.answers?.[0] && !isValid(question.answers?.[0] ?? "", question.dataFormat)) || (!question.answers?.[0] && question.required)) {
+            invalidFound = true;
+            break;
+          }
+        }
+        if (invalidFound) break;
+      }
+    }
+
+    if (!invalidFound) {
+      for (const [, passenger] of (passengers ?? []).entries()) {
+        for (const question of passenger.questions ?? []) {
+          if ((question.answers?.[0] && !isValid(question.answers?.[0] ?? "", question.dataFormat)) || (!question.answers?.[0] && question.required)) {
+            invalidFound = true;
+            break;
+          }
+        }
+        if (invalidFound) break;
+      }
+    }
+    return !invalidFound;
+  }
+
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const handleSubmit = async () => {
+    console.log("here");
+    setSaving(true);
+    const updateResponse = await answerActivityBookingQuestions({
+      activityBookingId,
+      activityBookings: activityBookings.map((activity) => {
+        if (activity.bookingId == individualId) {
+          return {
+            activityId: activity.activityId,
+            bookingId: activity.bookingId,
+            answers:
+              bookingQuestions?.map((question) => ({
+                questionId: question.questionId,
+                values: question.answers?.length ? question.answers : [""],
+              })) ?? [],
+            pickupAnswers:
+              pickupQuestions?.map((question) => ({
+                questionId: question.questionId,
+                values: question.answers?.length ? question.answers : [""],
+              })) ?? [],
+            passengers: passengers?.map((passenger) => ({
+              bookingId: passenger.bookingId,
+              pricingCategoryId: passenger.pricingCategoryId,
+              passengerDetails:
+                passenger.passengerDetails?.map((question) => ({
+                  questionId: question.questionId,
+                  values: question.answers?.length ? question.answers : [""],
+                })) ?? [],
+              answers:
+                passenger.questions?.map((question) => ({
+                  questionId: question.questionId,
+                  values: question.answers?.length ? question.answers : [""],
+                })) ?? [],
+            })),
+          };
+        }
+        return {
+          activityId: activity.activityId,
+          bookingId: activity.bookingId,
+          answers:
+            activity.questions?.map((question) => ({
+              questionId: question.questionId,
+              values: question.answers?.length ? question.answers : [""],
+            })) ?? [],
+          pickupAnswers:
+            activity.pickupQuestions?.map((question) => ({
+              questionId: question.questionId,
+              values: question.answers?.length ? question.answers : [""],
+            })) ?? [],
+          passengers: activity.passengers.map((passenger) => ({
+            pricingCategoryId: passenger.pricingCategoryId,
+            passengerDetails:
+              passenger.passengerDetails?.map((question) => ({
+                questionId: question.questionId,
+                values: question.answers?.length ? question.answers : [""],
+              })) ?? [],
+            answers:
+              passenger.questions?.map((question) => ({
+                questionId: question.questionId,
+                values: question.answers?.length ? question.answers : [""],
+              })) ?? [],
+            bookingId: passenger.bookingId,
+          })),
+        };
+      }),
+      mainContactDetails: mainContactDetails.map((question) => ({
+        questionId: question.questionId,
+        values: question.answers?.length ? question.answers : [""],
+      })),
+    });
+    if (updateResponse) {
+      closeBtnRef.current?.click();
+      window.location.href = pathname;
+    } else {
+      setError(t("error-saving"));
+    }
+    setSaving(false);
+  };
 
   return (
     <div className="w-full flex flex-col gap-4 items-start">
@@ -79,15 +257,16 @@ export const CompleteBookingQuestion = ({
                   <Select
                     defaultValue={question.defaultValue ?? undefined}
                     value={question.answers ? question.answers[0] : ""}
-                    onValueChange={(v) =>
+                    onValueChange={(v) => {
+                      setError("");
                       setBookingQuestions((prev) =>
                         prev?.map((_q) =>
                           _q.questionId == question.questionId
                             ? { ..._q, answers: [v] }
                             : _q
                         )
-                      )
-                    }
+                      );
+                    }}
                   >
                     <SelectTrigger
                       className={cn(
@@ -134,6 +313,7 @@ export const CompleteBookingQuestion = ({
                       (question.answers ? question.answers[0] : "no") != "no"
                     }
                     onCheckedChange={(c) => {
+                      setError("");
                       setBookingQuestions((prev) =>
                         prev?.map((_q) =>
                           _q.questionId == question.questionId
@@ -214,6 +394,7 @@ export const CompleteBookingQuestion = ({
                             : undefined
                         }
                         onSelect={(date) => {
+                          setError("");
                           if (!date) {
                             setBookingQuestions((prev) =>
                               prev?.map((_q) =>
@@ -265,8 +446,9 @@ export const CompleteBookingQuestion = ({
                   )}
                 </Label>
                 <Input
-                  value={question.answers ? question.answers[0] : ""}
+                  value={question.answers.length ? question.answers[0] : ""}
                   onChange={(e) => {
+                    setError("");
                     setBookingQuestions((prev) =>
                       prev?.map((_q) =>
                         _q.questionId == question.questionId
@@ -312,15 +494,16 @@ export const CompleteBookingQuestion = ({
                     <Select
                       defaultValue={question.defaultValue ?? undefined}
                       value={question.answers ? question.answers[0] : ""}
-                      onValueChange={(v) =>
+                      onValueChange={(v) => {
+                        setError("");
                         setPickupQuestions((prev) =>
                           prev?.map((_q) =>
                             _q.questionId == question.questionId
                               ? { ..._q, answers: [v] }
                               : _q
                           )
-                        )
-                      }
+                        );
+                      }}
                     >
                       <SelectTrigger
                         className={cn(
@@ -371,6 +554,7 @@ export const CompleteBookingQuestion = ({
                         (question.answers ? question.answers[0] : "no") != "no"
                       }
                       onCheckedChange={(c) => {
+                        setError("");
                         setPickupQuestions((prev) =>
                           prev?.map((_q) =>
                             _q.questionId == question.questionId
@@ -427,7 +611,10 @@ export const CompleteBookingQuestion = ({
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent align="start" className="w-auto p-0 z-99!">
+                      <PopoverContent
+                        align="start"
+                        className="w-auto p-0 z-99!"
+                      >
                         <Calendar
                           defaultMonth={
                             question.answers
@@ -452,6 +639,7 @@ export const CompleteBookingQuestion = ({
                               : undefined
                           }
                           onSelect={(date) => {
+                            setError("");
                             if (!date) {
                               setPickupQuestions((prev) =>
                                 prev?.map((_q) =>
@@ -503,8 +691,9 @@ export const CompleteBookingQuestion = ({
                     )}
                   </Label>
                   <Input
-                    value={question.answers ? question.answers[0] : ""}
+                    value={question.answers.length ? question.answers[0] : ""}
                     onChange={(e) => {
+                      setError("");
                       setPickupQuestions((prev) =>
                         prev?.map((_q) =>
                           _q.questionId == question.questionId
@@ -578,9 +767,10 @@ export const CompleteBookingQuestion = ({
                                 value={
                                   question.answers ? question.answers[0] : ""
                                 }
-                                onValueChange={(v) =>
+                                onValueChange={(v) => {
+                                  setError("");
                                   setPassengers((prev) =>
-                                    prev.map((pax, i) =>
+                                    prev?.map((pax, i) =>
                                       i == pIndx
                                         ? {
                                             ...pax,
@@ -598,8 +788,8 @@ export const CompleteBookingQuestion = ({
                                           }
                                         : pax
                                     )
-                                  )
-                                }
+                                  );
+                                }}
                               >
                                 <SelectTrigger
                                   className={cn(
@@ -655,8 +845,9 @@ export const CompleteBookingQuestion = ({
                                     : "no") != "no"
                                 }
                                 onCheckedChange={(c) => {
+                                  setError("");
                                   setPassengers((prev) =>
-                                    prev.map((pax, i) =>
+                                    prev?.map((pax, i) =>
                                       i == pIndx
                                         ? {
                                             ...pax,
@@ -734,7 +925,10 @@ export const CompleteBookingQuestion = ({
                                     )}
                                   </Button>
                                 </PopoverTrigger>
-                                <PopoverContent align="start" className="w-auto p-0 z-99!">
+                                <PopoverContent
+                                  align="start"
+                                  className="w-auto p-0 z-99!"
+                                >
                                   <Calendar
                                     defaultMonth={
                                       question.answers
@@ -759,9 +953,10 @@ export const CompleteBookingQuestion = ({
                                         : undefined
                                     }
                                     onSelect={(date) => {
+                                      setError("");
                                       if (!date) {
                                         setPassengers((prev) =>
-                                          prev.map((pax, i) =>
+                                          prev?.map((pax, i) =>
                                             i == pIndx
                                               ? {
                                                   ...pax,
@@ -782,7 +977,7 @@ export const CompleteBookingQuestion = ({
                                         );
                                       } else {
                                         setPassengers((prev) =>
-                                          prev.map((pax, i) =>
+                                          prev?.map((pax, i) =>
                                             i == pIndx
                                               ? {
                                                   ...pax,
@@ -841,11 +1036,14 @@ export const CompleteBookingQuestion = ({
                             </Label>
                             <Input
                               value={
-                                question.answers ? question.answers[0] : ""
+                                question.answers.length
+                                  ? question.answers[0]
+                                  : ""
                               }
                               onChange={(e) => {
+                                setError("");
                                 setPassengers((prev) =>
-                                  prev.map((pax, i) =>
+                                  prev?.map((pax, i) =>
                                     i == pIndx
                                       ? {
                                           ...pax,
@@ -907,9 +1105,10 @@ export const CompleteBookingQuestion = ({
                                 value={
                                   question.answers ? question.answers[0] : ""
                                 }
-                                onValueChange={(v) =>
+                                onValueChange={(v) => {
+                                  setError("");
                                   setPassengers((prev) =>
-                                    prev.map((pax, i) =>
+                                    prev?.map((pax, i) =>
                                       i == pIndx
                                         ? {
                                             ...pax,
@@ -926,8 +1125,8 @@ export const CompleteBookingQuestion = ({
                                           }
                                         : pax
                                     )
-                                  )
-                                }
+                                  );
+                                }}
                               >
                                 <SelectTrigger
                                   className={cn(
@@ -983,8 +1182,9 @@ export const CompleteBookingQuestion = ({
                                     : "no") != "no"
                                 }
                                 onCheckedChange={(c) => {
+                                  setError("");
                                   setPassengers((prev) =>
-                                    prev.map((pax, i) =>
+                                    prev?.map((pax, i) =>
                                       i == pIndx
                                         ? {
                                             ...pax,
@@ -1061,7 +1261,10 @@ export const CompleteBookingQuestion = ({
                                     )}
                                   </Button>
                                 </PopoverTrigger>
-                                <PopoverContent align="start" className="w-auto p-0 z-99!">
+                                <PopoverContent
+                                  align="start"
+                                  className="w-auto p-0 z-99!"
+                                >
                                   <Calendar
                                     defaultMonth={
                                       question.answers
@@ -1086,9 +1289,10 @@ export const CompleteBookingQuestion = ({
                                         : undefined
                                     }
                                     onSelect={(date) => {
+                                      setError("");
                                       if (!date) {
                                         setPassengers((prev) =>
-                                          prev.map((pax, i) =>
+                                          prev?.map((pax, i) =>
                                             i == pIndx
                                               ? {
                                                   ...pax,
@@ -1108,7 +1312,7 @@ export const CompleteBookingQuestion = ({
                                         );
                                       } else {
                                         setPassengers((prev) =>
-                                          prev.map((pax, i) =>
+                                          prev?.map((pax, i) =>
                                             i == pIndx
                                               ? {
                                                   ...pax,
@@ -1166,11 +1370,14 @@ export const CompleteBookingQuestion = ({
                             </Label>
                             <Input
                               value={
-                                question.answers ? question.answers[0] : ""
+                                question.answers.length
+                                  ? question.answers[0]
+                                  : ""
                               }
                               onChange={(e) => {
+                                setError("");
                                 setPassengers((prev) =>
-                                  prev.map((pax, i) =>
+                                  prev?.map((pax, i) =>
                                     i == pIndx
                                       ? {
                                           ...pax,
@@ -1220,11 +1427,35 @@ export const CompleteBookingQuestion = ({
           </div>
         )}
       <div className="grid sm:grid-cols-2 grid-cols-1 gap-x-8 gap-y-1 w-full">
-        <Button disabled={bookingQuestions == initialBookingQuestions && passengers == initialPassengers && pickupQuestions == initialPickupQuestions}>{t("save-answers")}</Button>
+        <Button
+          disabled={!hasChanges || saving}
+          onClick={() => {
+            console.log("Clicked");
+            const validated = validateAllQuestions();
+            if (!validated) {
+              setError(t("all-fields-must-be-correct"));
+              return;
+            }
+            handleSubmit();
+          }}
+        >
+          {saving ? (
+            <>
+              <Loader2 className="animate-spin" /> {t("saving")}
+            </>
+          ) : (
+            t("save-answers")
+          )}
+        </Button>
         <DialogClose asChild>
-          <Button variant={"secondary"}>{t("cancel")}</Button>
+          <Button ref={closeBtnRef} variant={"secondary"}>{t("cancel")}</Button>
         </DialogClose>
       </div>
+      {error && (
+        <div className="w-full text-center items-center text-xs font-semibold text-destructive">
+          {error}
+        </div>
+      )}
     </div>
   );
 };

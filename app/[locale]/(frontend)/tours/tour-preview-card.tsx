@@ -80,26 +80,26 @@ export const ActivityPreviewCard = ({
         className
       )}
     >
-      {isLoadingThumbnail && (
-        <Skeleton className="w-full h-auto aspect-[1/0.75] flex items-center justify-center rounded-t-lg absolute top-0">
-          <Loader2 className="animate-spin mx-auto w-4 h-4 text-primary" />
-        </Skeleton>
-      )}
-      <div className="relative">
-        <Image unoptimized 
+      <div className="relative w-full">
+        <Image
+          unoptimized
           src={activity.photos[selectedImg].originalUrl}
           alt={activity.photos[selectedImg].caption || "Activity Picture"}
           width={600}
           height={600}
           className={cn(
             "w-full h-auto aspect-[1/0.75] rounded-t-lg object-cover",
-            isLoadingThumbnail ? "opacity-0" : "opacity-100"
+            isLoadingThumbnail ? "hidden" : ""
           )}
           onLoad={() => {
             setIsLoadingThumbnail(false);
           }}
         />
-
+        {isLoadingThumbnail && (
+          <Skeleton className="w-full h-auto aspect-[1/0.75] flex items-center justify-center rounded-t-lg">
+            <Loader2 className="animate-spin mx-auto w-4 h-4 text-primary" />
+          </Skeleton>
+        )}
         <ImageSliderDots
           total={activity.photos.length}
           className="absolute left-1/2 -translate-x-1/2 bottom-2 z-10 bg-black/50 p-1 flex flex-row items-center gap-1 rounded-full w-fit"

@@ -84,6 +84,26 @@
       "title": "Formulario de Propietario | Alojamento Ideal",
       "description": "Envíe los detalles de su propiedad para recibir un estudio de rentabilidad personalizado para su casa. Nuestros expertos analizarán su propiedad y le proporcionarán un informe adaptado.",
       "keywords": "propietario, estudio de rentabilidad, análisis de casa, evaluación de propiedad, Alojamento Ideal, enviar detalles de propiedad"
+    },
+    "activity_reservation_details": {
+      "title": "Detalles de la Reserva de Actividad | Alojamento Ideal",
+      "description": "Vea los detalles de su actividad reservada.",
+      "keywords": "actividad, reserva, detalles, experiencia"
+    },
+    "activities": {
+      "title": "Actividades | Alojamento Ideal",
+      "description": "Descubra nuestra amplia variedad de actividades disponibles para reservar.",
+      "keywords": "actividades, tours, experiencias, reserva"
+    },
+    "activity_details": {
+      "title": "Detalles de la Actividad | Alojamento Ideal",
+      "description": "Conozca más sobre esta actividad, horarios y disponibilidad.",
+      "keywords": "actividad, detalles, reserva, horarios"
+    },
+    "checkout_activity": {
+      "title": "Checkout - Actividad | Alojamento Ideal",
+      "description": "Complete su reserva para esta actividad.",
+      "keywords": "checkout, actividad, reserva, pago"
     }
   },
   "not-found": {
@@ -114,7 +134,9 @@
     "homes-tours": "Casas y Tours",
     "property-owner": "¿Eres propietario?",
     "terms": "Términos y Condiciones",
-    "privacy": "Política de Privacidad"
+    "privacy": "Política de Privacidad",
+    "no-tours-available": "No hay experiencias disponibles en este momento.",
+    "tours-desc": "Explore todas nuestras experiencias."
   },
   "home": {
     "map-title": "¿Dónde te alojarás esta noche?",
@@ -354,11 +376,14 @@
     "i-want-to-select-my-own": "Quiero especificar mi propia recogida",
     "pickup-details": "Detalles de recogida",
     "pickup-place": "Elija un lugar de recogida",
-    "traveler-info": "Traveler {Count} Detalles - {Categoría}",
+    "traveler-info": "Traveler {count} Detalles - {category}",
     "your-details": "Tus detalles",
     "cancel": "Cancelar",
     "save-answers": "Guardar respuestas",
-    "travelers": "Información del viajero"
+    "travelers": "Información del viajero",
+    "all-fields-must-be-correct": "Algunos campos están malformados.",
+    "error-saving": "Hubo un problema para guardar sus respuestas.",
+    "saving": "Guardar respuestas ..."
   },
   "order": {
     "order_info": "Información del Pedido",
@@ -475,7 +500,7 @@
     "rejected": "Rechazado",
     "requested": "Solicitado",
     "reserved": "Reservado",
-    "stating-at": "{hora} en {tiempo}",
+    "stating-at": "{hours} en {time}",
     "ticket": "Boleto",
     "timed-out": "Cronometrado",
     "travel-doc": "Documentos de viaje",
@@ -484,7 +509,7 @@
     "complete-questions": "Complete su información.",
     "information-missing": "Falta la información de reserva.",
     "meet-up-point": "Reunirse en:",
-    "arrive-by": "Intenta llegar alrededor {tiempo}",
+    "arrive-by": "Intenta llegar alrededor {time}",
     "choose-one": "Elegir uno",
     "fill-out-pickup-questions": "Complete las siguientes preguntas para aprovechar nuestro servicio de recogida.",
     "i-want-to-select-my-own": "Quiero especificar mi propia camioneta",
@@ -493,7 +518,11 @@
     "modifications-to-pickup-unavailable": "Las modificaciones a esta reserva ya no están disponibles.",
     "pickup-place": "Elija su lugar de recogida",
     "we-can-pickup": "Podemos recogerte",
-    "your-selected-spot": "Tu lugar seleccionado:"
+    "your-selected-spot": "Tu lugar seleccionado:",
+    "edit-questions": "Actualice su información.",
+    "information-complete": "Preguntas de reserva completadas.",
+    "update-for-better-exp": "Actualice su información si algo relevante para la experiencia cambió.",
+    "update-questions": "Actualice su información."
   },
   "orderSearch": {
     "placeholder": "Buscar por número de reserva o ID del pedido...",
@@ -1344,7 +1373,7 @@
     "total": "Total"
   },
   "checkout-activity-card": {
-    "min-booking": "Necesitamos al menos {Count} personas para reservar esta actividad ahora.",
+    "min-booking": "Necesitamos al menos {count} personas para reservar esta actividad ahora.",
     "no-more-room": "Esta actividad no tiene suficiente espacio.",
     "total": "Total"
   },

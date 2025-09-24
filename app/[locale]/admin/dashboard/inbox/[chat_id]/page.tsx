@@ -19,7 +19,7 @@ export async function generateMetadata() {
     openGraph: {
       title: t("adminDashboard.title"),
       description: t("adminDashboard.description"),
-      url: "https://alojamentoideal.com/admin/dashboard/inbox/[chat_id]",
+      url: "https://alojamentoideal.pt/admin/dashboard/inbox/[chat_id]",
       type: "website",
     },
     twitter: {

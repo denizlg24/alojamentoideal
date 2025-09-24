@@ -17,7 +17,7 @@ export async function generateMetadata() {
     openGraph: {
       title: t("contact.title"),
       description: t("contact.description"),
-      url: "https://alojamentoideal.com/help",
+      url: "https://alojamentoideal.pt/help",
       type: "website",
     },
     twitter: {

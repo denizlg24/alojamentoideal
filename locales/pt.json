@@ -84,6 +84,26 @@
       "title": "Formulário de Proprietário | Alojamento Ideal",
       "description": "Submeta os detalhes da sua propriedade para receber um estudo de rentabilidade personalizado para a sua casa. Os nossos especialistas irão analisar a sua propriedade e fornecer um relatório adaptado.",
       "keywords": "proprietário, estudo de rentabilidade, análise de casa, avaliação de propriedade, Alojamento Ideal, submeter detalhes da propriedade"
+    },
+    "activity_reservation_details": {
+      "title": "Detalhes da Reserva de Atividade | Alojamento Ideal",
+      "description": "Veja os detalhes da sua atividade reservada.",
+      "keywords": "atividade, reserva, marcação, detalhes"
+    },
+    "activities": {
+      "title": "Atividades | Alojamento Ideal",
+      "description": "Descubra a nossa ampla variedade de atividades disponíveis para reserva.",
+      "keywords": "atividades, passeios, experiências, reserva"
+    },
+    "activity_details": {
+      "title": "Detalhes da Atividade | Alojamento Ideal",
+      "description": "Saiba mais sobre esta atividade, horários e disponibilidade.",
+      "keywords": "atividade, detalhes, reserva, horários"
+    },
+    "checkout_activity": {
+      "title": "Checkout - Atividade | Alojamento Ideal",
+      "description": "Finalize a sua reserva para esta atividade.",
+      "keywords": "checkout, atividade, reserva, pagamento"
     }
   },
   "not-found": {
@@ -93,11 +113,11 @@
     "cta": "Aqui estão alguns links úteis:",
     "home": "Página inicial",
     "homes": "Alojamentos",
-    "tours": "Experiências"
+    "tours": "Atividades"
   },
   "header": {
     "homes": "Alojamentos",
-    "tours": "Experiências",
+    "tours": "Atividades",
     "about": "Sobre Nós",
     "contact": "Ajuda",
     "porto-exp": "Experiências na cidade do Porto",
@@ -114,7 +134,9 @@
     "homes-tours": "Casas e Tours",
     "property-owner": "É proprietário?",
     "terms": "Termos e Condições",
-    "privacy": "Política de Privacidade"
+    "privacy": "Política de Privacidade",
+    "no-tours-available": "Nenhuma atividade está disponível no momento.",
+    "tours-desc": "Explore todas as nossas atividades."
   },
   "home": {
     "map-title": "Onde vai ficar esta noite?",
@@ -358,7 +380,10 @@
     "your-details": "Seus detalhes",
     "cancel": "Cancelar",
     "save-answers": "Salve respostas",
-    "travelers": "Informações sobre viajantes"
+    "travelers": "Informações sobre viajantes",
+    "all-fields-must-be-correct": "Alguns campos estão malformados.",
+    "error-saving": "Houve um problema ao salvar as suas respostas.",
+    "saving": "Salvando respostas ..."
   },
   "order": {
     "order_info": "Informações do Pedido",
@@ -475,7 +500,7 @@
     "rejected": "Rejeitado",
     "requested": "Solicitado",
     "reserved": "Reservado",
-    "stating-at": "{hora} às {time}",
+    "stating-at": "{hour} às {time}",
     "ticket": "Bilhete",
     "timed-out": "Cronometrado",
     "travel-doc": "Documentos de viagem",
@@ -487,13 +512,17 @@
     "arrive-by": "Tente chegar ao redor {time}",
     "choose-one": "Escolha um",
     "fill-out-pickup-questions": "Preencha as seguintes perguntas para aproveitar nosso serviço de retirada.",
-    "i-want-to-select-my-own": "Eu quero especificar minha própria picape",
+    "i-want-to-select-my-own": "Eu quero especificar minha própria recolha",
     "meet-on-location": "Nos encontraremos no local.",
     "meet-on-one-of-points": "Podemos nos encontrar em qualquer um dos pontos abaixo.",
     "modifications-to-pickup-unavailable": "Modificações para esta reserva não estão mais disponíveis.",
     "pickup-place": "Escolha o seu local de coleta",
-    "we-can-pickup": "Podemos buscá -lo",
-    "your-selected-spot": "Seu local selecionado:"
+    "we-can-pickup": "Podemos buscá-lo",
+    "your-selected-spot": "Seu local selecionado:",
+    "edit-questions": "Atualize as suas informações.",
+    "information-complete": "Perguntas da reserva preenchidas.",
+    "update-for-better-exp": "Atualize as suas informações se alguma coisa relevante para a experiência foi alterada.",
+    "update-questions": "Atualize as suas informações."
   },
   "orderSearch": {
     "placeholder": "Procurar pelo número de reserva ou ID da encomenda...",
@@ -1344,7 +1373,7 @@
     "total": "Total"
   },
   "checkout-activity-card": {
-    "min-booking": "Precisamos depelo menos {count} pessoas para reservar essa atividade agora.",
+    "min-booking": "Precisamos de pelo menos {count} pessoas para reservar essa atividade agora.",
     "no-more-room": "Esta atividade não tem espaço suficiente.",
     "total": "Total"
   },

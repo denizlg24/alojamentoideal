@@ -31,7 +31,7 @@ export async function generateMetadata({
       description:
         t("not_found.description") ||
         "Sorry, we couldn’t find the accommodation you’re looking for.",
-      url: "https://alojamentoideal.com/rooms/not-found",
+      url: "https://alojamentoideal.pt/rooms/not-found",
       type: "website",
     },
     twitter: {

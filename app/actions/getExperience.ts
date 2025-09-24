@@ -262,23 +262,6 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
       source: 'DIRECT_REQUEST'
     },
   });
-  console.log(JSON.stringify({
-    checkoutOption: 'CUSTOMER_FULL_PAYMENT',
-    directBooking: {
-      mainContactDetails,
-      activityBookings: activityBookings.map((booking) => ({
-        ...booking,
-        ...(booking.pickupAnswers?.length ? { pickupAnswers: booking.pickupAnswers } : {}),
-        ...(booking.answers?.length ? { answers: booking.answers } : {})
-      })),
-      externalBookingReference: randomOrderId,
-      externalBookingEntityName: 'Alojamento Ideal',
-    },
-    sendNotificationToMainContact: false,
-    paymentMethod: 'RESERVE_FOR_EXTERNAL_PAYMENT',
-    checkoutOptionAnswers,
-    source: 'DIRECT_REQUEST'
-  }))
   console.log(response);
   if (!response.success || response.booking.status == 'ERROR' || !response.booking.totalPrice) {
     return false;
@@ -327,4 +310,39 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
   });
 
   return { success: success && order_success, client_secret, payment_id: id, order_id: orderId };
+}
+
+export async function answerActivityBookingQuestions({
+  mainContactDetails,
+  activityBookingId,
+  activityBookings
+}:
+  {
+    mainContactDetails: { questionId: string, values: string[] }[],
+    activityBookingId: number,
+    activityBookings: {
+      activityId: number,
+      answers?: { questionId: string, values: string[] }[],
+      pickupAnswers?: { questionId: string, values: string[] }[],
+      bookingId: number,
+      passengers?: {
+        answers: { questionId: string, values: string[] }[],
+        passengerDetails: { questionId: string, values: string[] }[],
+        bookingId: number,
+        pricingCategoryId: number
+      }[]
+
+    }[]
+  }
+
+) {
+  const updatedResponse = await bokunRequest({
+    method: "POST",
+    path: `/question.json/booking/${activityBookingId}`,
+    body: {
+      mainContactDetails,
+      activityBookings
+    }
+  })
+  return updatedResponse.success;
 }

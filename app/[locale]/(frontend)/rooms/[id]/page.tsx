@@ -23,7 +23,7 @@ export async function generateMetadata() {
       description:
         t("room_detail.description") ||
         "See photos, features, and prices for this accommodation.",
-      url: "https://alojamentoideal.com/rooms/[id]",
+      url: "https://alojamentoideal.pt/rooms/[id]",
       type: "article",
     },
     twitter: {

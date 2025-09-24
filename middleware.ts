@@ -24,10 +24,23 @@ async function createHmac(payload: string, secret: string) {
 
 export default async function middleware(req: NextRequest) {
     const cookieStore = await cookies()
-    const session = cookieStore.get('session_id')
+    const session = cookieStore.get('session_id');
     const res = intlMiddleware(req);
+    const maxAgeMs = 60 * 60 * 24;
+    let needsNewSession = false;
 
-    if (!session) {
+    if (session) {
+        const [timestamp] = session.value.split('.');
+        const createdAt = parseInt(timestamp, 10);
+    
+        if (isNaN(createdAt) || Date.now() - createdAt > maxAgeMs) {
+            needsNewSession = true;
+        }
+    } else {
+        needsNewSession = true;
+    }
+    
+    if (needsNewSession) {
         const random = crypto.randomUUID();
         const payload = `${Date.now()}.${random}`;
         const secret = env.SESSION_SECRET!;
@@ -39,7 +52,7 @@ export default async function middleware(req: NextRequest) {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 60 * 60 * 24,
+            maxAge: maxAgeMs,
             path: '/',
         })
     }

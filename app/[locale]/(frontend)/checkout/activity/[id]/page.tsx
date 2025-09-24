@@ -15,28 +15,28 @@ import { bokunRequest } from "@/utils/bokun-server";
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
   return {
-    title: t("order_details.title") || "Order Details | Alojamento Ideal",
+    title: t("checkout_activity.title") || "Order Details | Alojamento Ideal",
     description:
-      t("order_details.description") ||
+      t("checkout_activity.description") ||
       "Here are the details of your completed reservation, including dates, rooms, and payment status.",
-    keywords: t("order_details.keywords")
+    keywords: t("checkout_activity.keywords")
       .split(",")
       .map((k) => k.trim()),
     robots: "noindex, nofollow",
     openGraph: {
       title:
-        t("order_details.title") || "Your Booking Details - Alojamento Ideal",
+        t("checkout_activity.title") || "Your Booking Details - Alojamento Ideal",
       description:
-        t("order_details.description") ||
+        t("checkout_activity.description") ||
         "View your accommodation reservation summary and payment information.",
-      url: "https://alojamentoideal.com/orders/[id]",
+      url: "https://alojamentoideal.pt/orders/[id]",
       type: "website",
     },
     twitter: {
       card: "summary",
-      title: t("order_details.title") || "Order Details - Alojamento Ideal",
+      title: t("checkout_activity.title") || "Order Details - Alojamento Ideal",
       description:
-        t("order_details.description") ||
+        t("checkout_activity.description") ||
         "Access your reservation confirmation and details.",
     },
   };
