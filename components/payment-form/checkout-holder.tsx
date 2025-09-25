@@ -127,6 +127,8 @@ export const CheckoutHolder = ({
     }
   }, [cart, cartLoading]);
 
+  console.log(mappedActivities);
+
   return (
     <div className="lg:grid flex flex-col-reverse grid-cols-5 w-full max-w-7xl px-4 pt-12 gap-8 relative lg:items-start items-center">
       <Card className="col-span-3 flex flex-col gap-4 p-4 w-full">
@@ -246,18 +248,18 @@ export const CheckoutHolder = ({
         )}
       </Card>
       <div className="col-span-2 w-full">
-        <Elements stripe={stripePromise}>
-          {cart.filter((item) => item.type == "activity").length == 0 ||
-          mappedActivities.length != 0 ? (
+        {cart.filter((item) => item.type == "activity").length == 0 ||
+        mappedActivities.length != 0 ? (
+          <Elements stripe={stripePromise}>
             <CheckoutForm
               initialCountry={initialCountry}
               cartId={cartId}
               activities={mappedActivities}
             />
-          ) : (
-            <Skeleton className="w-full h-full min-h-[250px]" />
-          )}
-        </Elements>
+          </Elements>
+        ) : (
+          <Skeleton className="w-full h-full min-h-[250px]" />
+        )}
       </div>
     </div>
   );
