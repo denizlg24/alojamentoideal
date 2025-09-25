@@ -93,15 +93,15 @@ export async function getCheckoutData(cart: TourItem[]) {
         }
         const availabilityResponse = await GetActivityAvailability(
           response.id.toString(),
-          new Date(date),
-          addDays(new Date(date), 1)
+          date,
+          addDays(date, 1)
         );
         console.log(`availabilityResponse: `,availabilityResponse)
         if (!availabilityResponse) {
           return;
         }
         const availability = Object.values(availabilityResponse).find(
-          (avail) => isSameDay(avail.date, new Date(date))
+          (avail) => isSameDay(avail.date, date)
         );
         if (!availability) {
           return;
