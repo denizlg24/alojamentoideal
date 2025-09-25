@@ -527,7 +527,8 @@
     "update-questions": "Atualize as suas informações.",
     "add-guest-info": "Adicionar hóspede.",
     "children": "Criança",
-    "infant": "Bebé"
+    "infant": "Bebé",
+    "guests-for": "Hóspedes para {title} de {startDate}-{endDate}"
   },
   "orderSearch": {
     "placeholder": "Procurar pelo número de reserva ou ID da encomenda...",

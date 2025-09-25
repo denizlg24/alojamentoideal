@@ -527,7 +527,8 @@
     "update-for-better-exp": "Update your information if anything relevant to the experience changed.",
     "add-guest-info": "Add guest.",
     "children": "Child",
-    "infant": "Infant"
+    "infant": "Infant",
+    "guests-for": "Guests for {title} from {startDate}-{endDate}"
   },
   "orderSearch": {
     "placeholder": "Search for reservation number or order id...",

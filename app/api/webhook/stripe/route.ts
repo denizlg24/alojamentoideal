@@ -90,7 +90,9 @@ export async function POST(req: Request) {
 
                         if (foundOrder && foundOrder.reservationIds.length > 0) {
                             const updatedCart = await issueInvoices({ reservationIds: foundOrder.reservationIds, reservationReferences: foundOrder.reservationReferences, items: foundOrder.items.filter((item) => item.type == 'accommodation'), userInfo: { email: foundOrder.email, name: foundOrder.name, companyName: foundOrder.companyName, tax_number: foundOrder.tax_number, isCompany: foundOrder.isCompany }, charge })
+                            console.log("Updated cart: ",updatedCart);
                             const newCart = [...foundOrder.items.filter((item) => item.type != "accommodation"), ...updatedCart]
+                            console.log("Updated new cart: ",newCart)
                             const updatedOrder = await OrderModel.findOneAndUpdate({ payment_id: payment_id }, { items: newCart });
                             console.log(updatedOrder);
                         }
@@ -236,14 +238,14 @@ const issueInvoices = async ({ reservationIds, reservationReferences, items, use
                 { "{{order-number}}": t('reservation-number', { order_id: reservationCode }) },
                 { '{{invoice_url}}': itemInvoice.url }
                 ])
-
+            newCart.push({ ...orderItem, invoice: itemInvoice.url, invoice_id: itemInvoice.id });
             await sendMail({
                 email: userInfo.email,
                 html: orderHtml,
                 subject: t('invoice-for-reservation', { order_id: reservationCode }),
             });
+           
         }
-        newCart.push({ ...orderItem, invoice: itemInvoice.url, invoice_id: itemInvoice.id });
     }
     return newCart;
 }
