@@ -29,9 +29,9 @@ import {
   FormMessage,
 } from "../../ui/form";
 import { Input } from "../../ui/input";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { purchaseAccommodation } from "@/app/actions/createReservation";
-import { ArrowRight, Edit3, Loader2 } from "lucide-react";
+import { ArrowRight, CalendarIcon, Edit3, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -50,6 +50,15 @@ import { Appearance, PaymentRequest } from "@stripe/stripe-js";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ok } from "assert";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn, localeMap } from "@/lib/utils";
+import { CountrySelect } from "@/components/orders/country-select";
+import { Guest } from "@/models/GuestData";
 
 const elementStyle: Appearance = {
   variables: {
@@ -84,7 +93,8 @@ const FlagComponent = ({
   );
 };
 
-export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
+export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: CartItem,initialCountry:string; }) => {
+  ok(property.type == "accommodation");
   const t = useTranslations("checkout_form");
   const stripe = useStripe();
   const elements = useElements();
@@ -109,11 +119,69 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
     };
     phone?: string | undefined;
   }>();
+  const isMobile = useIsMobile();
+  const questionsT = useTranslations("propertyCard");
+  const locale = useLocale();
+  const [birthdayOpen,setBirthdayOpen] = useState(false);
+  const [pIndx,changePIndx] = useState(0);
+  const [guest_data,setGuestData] = useState<Guest[]>([]);
+  const addGuestSchema = z.object({
+    first_name: z.string().min(2, { message: "" }),
+    last_name: z.string().min(2, { message: "" }),
+    birthday: z.date(),
+    document_type: z.enum(["P", "ID", "O"]),
+    document_country: z.string(),
+    document_number: z.string().min(2, { message: "" }),
+    nationality: z.string(),
+    country_residence: z.string(),
+    city_residence: z.string().min(2, { message: "" }),
+  });
+  const addGuestForm = useForm<z.infer<typeof addGuestSchema>>({
+    resolver: zodResolver(addGuestSchema),
+    defaultValues: {
+      first_name: "",
+      last_name: "",
+      document_type: "P",
+      document_country: "PRT",
+      document_number: "",
+      nationality: "PRT",
+      country_residence: "PRT",
+      city_residence: "",
+    },
+  });
+
+  async function onSubmitAddGuest(values: z.infer<typeof addGuestSchema>) {
+    ok(property.type == "accommodation");
+      setGuestData((prev) => {
+        return [...prev,{
+          ...values,
+          birthday: format(values.birthday, "yyyy-MM-dd"),
+          arrival: property.start_date,
+          departure: property.end_date,
+        }]
+      })
+      addGuestForm.reset();
+      if(pIndx+1 == (property.adults + property.children+property.infants)){
+        setStep("paying");
+        changePIndx(0);
+        return;
+      }
+      changePIndx((prev) => prev+1);
+  /*setGuestData((prev) => {
+    return prev?.map((guest_data,indx) => indx == pIndx ? {
+      ...values,
+      birthday: format(values.birthday, "yyyy-MM-dd"),
+      arrival: property.start_date,
+      departure: property.end_date,
+    }: guest_data)
+  })
+    addGuestForm.reset();*/
+  }
 
   const [needCompanySwitch, setNeedCompanySwitch] = useState(false);
   const [vatCountryCode, setVatCountryCode] = useState("PT");
   const [selectedTab, selectTab] = useState("card");
-  const [paying, setPaying] = useState(false);
+  const [step, setStep] = useState<"client_info"|"questions"|"paying">("client_info");
 
   const router = useRouter();
   useEffect(() => {
@@ -148,6 +216,11 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
       setError("provide_information");
       return;
     }
+    if(!guest_data.length){
+      setLoading(false);
+      setError("provide_information");
+      return;
+    }
     const clientName =
       addressData.name ?? addressData.firstName + " " + addressData.lastName;
     const clientBusiness = data.business_name;
@@ -174,6 +247,7 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
       clientTax,
       isCompany: needCompanySwitch,
       companyName: clientBusiness,
+      guest_data
     });
 
     if (
@@ -368,6 +442,7 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
           clientTax,
           isCompany: needCompanySwitch,
           companyName: clientBusiness,
+          guest_data
         });
         if (
           !success ||
@@ -423,7 +498,12 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
     clientInfo,
     router,
     needCompanySwitch,
+    guest_data
   ]);
+
+  //questions
+ 
+
 
   if (checking) return null;
 
@@ -434,7 +514,7 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
           onSubmit={clientInfo.handleSubmit(handleSubmit)}
           className="w-full flex flex-col gap-2"
         >
-          {!paying && (
+          {step == 'client_info' && (
             <>
               <FormField
                 control={clientInfo.control}
@@ -504,6 +584,11 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
                       display: { name: "split" },
                       fields: { phone: "always" },
                       validation: { phone: { required: "always" } },
+                      defaultValues:{
+                        address:{
+                          country:initialCountry
+                        }
+                      }
                     }}
                   />
                 </>
@@ -523,6 +608,11 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
                     display: { name: "split" },
                     fields: { phone: "always" },
                     validation: { phone: { required: "always" } },
+                    defaultValues:{
+                      address:{
+                        country:initialCountry
+                      }
+                    }
                   }}
                 />
               )}
@@ -627,15 +717,355 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
                     setError("provide_information");
                     return;
                   }
-                  setPaying(true);
+                  setStep("questions");
                 }}
               >
-                {t("proceed-payment")} <ArrowRight />
+                {t("continue")} <ArrowRight />
               </Button>
             </>
           )}
 
-          {paying && (
+          {step == 'questions' && (
+             <><div
+                     key={"Adult-"+pIndx}
+                     className="w-full flex flex-col gap-2 items-start mx-auto border-none!"
+                   >
+                     <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
+                       {t("guest-info", {
+                         count: pIndx + 1,
+                         category: pIndx < property.adults ? t("adult") : pIndx >= property.adults && pIndx < property.adults+property.children ? questionsT("children") : questionsT("infant"),
+                       })}
+                     </p>
+                     <Form {...addGuestForm}>
+                        <div className="flex flex-col gap-2 w-full">
+                          <div className="-mt-1 sm:grid flex flex-col grid-cols-2 w-full gap-1">
+                            <div className="flex flex-col gap-0 col-span-1">
+                              <p className="text-sm">{questionsT("first-name")}</p>
+                              <FormField
+                                control={addGuestForm.control}
+                                name="first_name"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        placeholder={questionsT(
+                                          "first_name_placeholder"
+                                        )}
+                                        className="grow"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <div className="flex flex-col gap-0 col-span-1">
+                              <p className="text-sm">{questionsT("last-name")}</p>
+                              <FormField
+                                control={addGuestForm.control}
+                                name="last_name"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        placeholder={questionsT("last_name_placeholder")}
+                                        className="grow"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <div className="flex flex-col gap-0 col-span-1">
+                              <p className="text-sm">{questionsT("birthdate")}</p>
+                              <FormField
+                                control={addGuestForm.control}
+                                name="birthday"
+                                render={({ field }) => {
+                                  if (isMobile) {
+                                    return (
+                                      <FormItem>
+                                        <FormControl>
+                                          <Dialog
+                                            open={birthdayOpen}
+                                            onOpenChange={setBirthdayOpen}
+                                          >
+                                            <DialogTrigger asChild>
+                                              <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                  "grow pl-3 text-left font-normal",
+                                                  !field.value &&
+                                                    "text-muted-foreground",
+                                                  addGuestForm.getFieldState(
+                                                    "birthday"
+                                                  ).error &&
+                                                    "outline-destructive outline"
+                                                )}
+                                              >
+                                                {field.value ? (
+                                                  format(field.value, "PPP")
+                                                ) : (
+                                                  <span>Pick a date</span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                              </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="w-[300px] overflow-hidden p-0 z-99 pt-6 gap-1">
+                                              <DialogHeader>
+                                                <DialogTitle>
+                                                  {questionsT("birthdate")}
+                                                </DialogTitle>
+                                                <DialogDescription className="hidden">
+                                                  Birthday
+                                                </DialogDescription>
+                                              </DialogHeader>
+                                              <Calendar
+                                                mode="single"
+                                                showOutsideDays={false}
+                                                locale={
+                                                  localeMap[
+                                                    locale as keyof typeof localeMap
+                                                  ]
+                                                }
+                                                selected={field.value}
+                                                onSelect={(date) => {
+                                                  field.onChange(date);
+                                                  setBirthdayOpen(false);
+                                                }}
+                                                disabled={(date) =>
+                                                  date > new Date() ||
+                                                  date < new Date("1900-01-01")
+                                                }
+                                                captionLayout="dropdown-years"
+                                              />
+                                            </DialogContent>
+                                          </Dialog>
+                                        </FormControl>
+                                      </FormItem>
+                                    );
+                                  }
+                                  return (
+                                    <FormItem>
+                                      <FormControl>
+                                        <Popover
+                                          open={birthdayOpen}
+                                          onOpenChange={setBirthdayOpen}
+                                        >
+                                          <PopoverTrigger asChild>
+                                            <Button
+                                              variant={"outline"}
+                                              className={cn(
+                                                "w-full pl-3 text-left font-normal",
+                                                !field.value &&
+                                                  "text-muted-foreground",
+                                                addGuestForm.formState.errors
+                                                  .birthday &&
+                                                  "border! border-destructive!"
+                                              )}
+                                            >
+                                              {field.value ? (
+                                                format(field.value, "PPP")
+                                              ) : (
+                                                <span>Pick a date</span>
+                                              )}
+                                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                          </PopoverTrigger>
+                                          <PopoverContent
+                                            className="w-auto overflow-hidden p-0 z-99"
+                                            align="start"
+                                          >
+                                            <Calendar
+                                              mode="single"
+                                              showOutsideDays={false}
+                                              locale={
+                                                localeMap[
+                                                  locale as keyof typeof localeMap
+                                                ]
+                                              }
+                                              selected={field.value}
+                                              onSelect={(d) => {
+                                                setBirthdayOpen(false);
+                                                field.onChange(d);
+                                              }}
+                                              disabled={(date) =>
+                                                date > new Date() ||
+                                                date < new Date("1900-01-01")
+                                              }
+                                              captionLayout="dropdown-years"
+                                            />
+                                          </PopoverContent>
+                                        </Popover>
+                                      </FormControl>
+                                    </FormItem>
+                                  );
+                                }}
+                              />
+                            </div>
+                          
+                            <div className="flex flex-col gap-0">
+                              <p className="text-sm">{questionsT("document")}</p>
+                              <FormField
+                                control={addGuestForm.control}
+                                name="document_type"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Select
+                                        {...field}
+                                        value={field.value}
+                                        onValueChange={(v) => {
+                                          field.onChange(v);
+                                        }}
+                                        defaultValue="P"
+                                      >
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue
+                                            placeholder={questionsT("passport")}
+                                          />
+                                        </SelectTrigger>
+                                        <SelectContent className="z-99 w-full">
+                                          <SelectItem value="P">
+                                            {questionsT("passport")}
+                                          </SelectItem>
+                                          <SelectItem value="ID">
+                                            {questionsT("id")}
+                                          </SelectItem>
+                                          <SelectItem value="O">
+                                            {questionsT("other")}
+                                          </SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <div className="flex flex-col gap-0">
+                              <p className="text-sm">{questionsT("document_country")}</p>
+
+                              <FormField
+                                control={addGuestForm.control}
+                                name="document_country"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <CountrySelect
+                                        {...field}
+                                        value={field.value}
+                                        onChange={(v) => {
+                                          field.onChange(v);
+                                        }}
+                                        defaultValue="PRT"
+                                        className="z-99 w-full"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <div className="flex flex-col gap-0">
+                              <p className="text-sm">{questionsT("document_number")}</p>
+
+                              <FormField
+                                control={addGuestForm.control}
+                                name="document_number"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        placeholder={questionsT("doc_id_placeholder")}
+                                        className="grow"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <div className="flex flex-col gap-0">
+                              <p className="text-sm">{questionsT("nationality")}</p>
+                              <FormField
+                                control={addGuestForm.control}
+                                name="nationality"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <CountrySelect
+                                        {...field}
+                                        defaultValue="PRT"
+                                        className="z-99 w-full"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <div className="flex flex-col gap-0">
+                              <p className="text-sm">{questionsT("residence")}</p>
+                              <FormField
+                                control={addGuestForm.control}
+                                name="country_residence"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <CountrySelect
+                                        {...field}
+                                        defaultValue="PRT"
+                                        className="z-99 w-full"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <div className="flex flex-col gap-0">
+                              <p className="text-sm">{questionsT("residence-city")}</p>
+                              <FormField
+                                control={addGuestForm.control}
+                                name="city_residence"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        placeholder={questionsT("city_placeholder")}
+                                        className="grow"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                           
+                          {Object.keys(addGuestForm.formState.errors).length >
+                            0 && (
+                            <p className="text-sm text-destructive text-center w-full col-span-full">
+                              {questionsT("all-fields-required")}
+                            </p>
+                          )}
+                            </div>
+                            
+                        </div>
+                       
+                      </Form>
+                  </div>
+           <Button
+              type="button"
+                onClick={async () => {
+                  const success = await addGuestForm.trigger();
+                  if(success){
+                    onSubmitAddGuest(addGuestForm.getValues());
+                  }
+                }}
+              >
+                {t("continue")} <ArrowRight />
+              </Button></>
+          )}
+
+          {step == 'paying' && (
             <>
               {addressData && (
                 <Card className="p-2 text-sm flex flex-row gap-2 items-start">
@@ -669,9 +1099,10 @@ export const RoomCheckoutForm = ({ property }: { property: CartItem }) => {
                   </div>
 
                   <Button
+                    type="button"
                     disabled={!stripe || loading || priceLoading}
                     onClick={() => {
-                      setPaying(false);
+                      setStep('client_info');
                     }}
                     variant={"ghost"}
                     className="h-fit! p-1! text-xs gap-1"

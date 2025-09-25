@@ -14,7 +14,7 @@ import { localeMap } from "@/lib/utils";
 import { CheckoutActivityCard } from "./checkout-activity-card";
 import { PickupPlaceDto } from "@/utils/bokun-requests";
 import { getCheckoutData } from "@/app/actions/getExperience";
-export const CheckoutHolder = ({ cartId }: { cartId: string }) => {
+export const CheckoutHolder = ({ cartId,initialCountry }: { cartId: string,initialCountry:string }) => {
   const locale = useLocale();
   const supportedLocales = [
     "auto",
@@ -239,7 +239,7 @@ export const CheckoutHolder = ({ cartId }: { cartId: string }) => {
           <Elements stripe={stripePromise}>
             {cart.filter((item) => item.type == "activity").length == 0 ||
             mappedActivities.length != 0 ? (
-              <CheckoutForm cartId={cartId} activities={mappedActivities} />
+              <CheckoutForm initialCountry={initialCountry} cartId={cartId} activities={mappedActivities} />
             ) : (
               <Skeleton className="w-full h-full min-h-[250px]" />
             )}

@@ -10,8 +10,9 @@ import { registerOrder } from "./createOrder";
 import { verifySession } from "@/utils/verifySession";
 import { generateUniqueId } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
+import GuestDataModel, { Guest } from "@/models/GuestData";
 
-export async function purchaseAccommodation({ property, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName }: {
+export async function purchaseAccommodation({ property, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName,guest_data }: {
     property: AccommodationItem, clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
         line1: string;
         line2: string | null;
@@ -19,7 +20,7 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
         state: string;
         postal_code: string;
         country: string;
-    }, clientTax?: string, isCompany: boolean, companyName?: string
+    }, clientTax?: string, isCompany: boolean, companyName?: string, guest_data:Guest[]
 }) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
@@ -103,6 +104,9 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
             guest_name: clientName,
             status: "open"
         });
+
+        const newGuestData = new GuestDataModel({ booking_code:reservation.reservation.confirmation_code, listing_id:reservation.reservation.listing_id, guest_data, synced: false, succeeded: false });
+        await newGuestData.save();
 
         await newChat.save();
         return { success: success && order_success, client_secret, payment_id: id, reservation, transaction, order_id: orderId };

@@ -6,6 +6,7 @@ import { eachDayOfInterval, format } from "date-fns";
 import { FullListingType } from "@/schemas/full-listings.schema";
 import { PriceType } from "@/schemas/price.schema";
 import { redirect } from "@/i18n/navigation";
+import { headers } from "next/headers";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -180,9 +181,11 @@ export default async function Page({
     redirect({ href: { pathname: `/rooms/${id}` }, locale });
     return;
   }
+  const country = (await headers()).get("x-vercel-ip-country") || "PT";
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <RoomCheckoutProvider
+      initialCountry={country}
         listingInfo={listingInfo}
         stayPrice={price.price}
         rangeBooked={isRangeBooked}

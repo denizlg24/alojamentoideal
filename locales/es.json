@@ -383,7 +383,9 @@
     "travelers": "Información del viajero",
     "all-fields-must-be-correct": "Algunos campos están malformados.",
     "error-saving": "Hubo un problema para guardar sus respuestas.",
-    "saving": "Guardar respuestas ..."
+    "saving": "Guardar respuestas ...",
+    "adult": "Adulto",
+    "guest-info": "Información de hospede {count} - {category}"
   },
   "order": {
     "order_info": "Información del Pedido",
@@ -522,7 +524,10 @@
     "edit-questions": "Actualice su información.",
     "information-complete": "Preguntas de reserva completadas.",
     "update-for-better-exp": "Actualice su información si algo relevante para la experiencia cambió.",
-    "update-questions": "Actualice su información."
+    "update-questions": "Actualice su información.",
+    "add-guest-info": "Agregar hospede.",
+    "children": "Niño",
+    "infant": "Niño"
   },
   "orderSearch": {
     "placeholder": "Buscar por número de reserva o ID del pedido...",
