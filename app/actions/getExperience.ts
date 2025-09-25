@@ -34,6 +34,7 @@ export async function getCheckoutData(cart: TourItem[]) {
           guests,
           id,
         } = item;
+        console.log(date,startTimeId,selectedRateId,guests,id);
         const response = await bokunRequest<FullExperienceType>({
           method: "GET",
           path: `/restapi/v2.0/experience/${id}/components?componentType=ALL`,
