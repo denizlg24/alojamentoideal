@@ -115,6 +115,7 @@ export default async function Page({
     new Date(date),
     addDays(new Date(date), 1)
   );
+  console.log(availabilityResponse);
   if (!availabilityResponse) {
     redirect({ href: `/tours/${id}`, locale });
     return;
