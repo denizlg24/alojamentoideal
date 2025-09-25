@@ -4,7 +4,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { CheckoutForm } from "@/components/payment-form/checkout-form";
 import { useLocale, useTranslations } from "next-intl";
 import { useCart } from "@/hooks/cart-context";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Separator } from "../ui/separator";
 import Image from "next/image";
 import { format } from "date-fns";
@@ -76,10 +76,11 @@ export const CheckoutHolder = ({ cartId,initialCountry }: { cartId: string,initi
 
   const safeLocale: StripeLocale = isValidLocale(locale) ? locale : "auto";
 
-  const stripePromise = loadStripe(
+  const stripePromise = useMemo( () => loadStripe(
     process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
     { locale: safeLocale }
-  );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ),[])
 
   const [mappedActivities, setMappedActivities] = useState<
     {
