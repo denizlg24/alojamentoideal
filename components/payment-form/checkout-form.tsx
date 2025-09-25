@@ -151,9 +151,10 @@ export const CheckoutForm = ({
   }[];
 }) => {
   const displayT = useTranslations("tourDisplay");
-  const t = useTranslations("checkout_form");
+
   const isMobile = useIsMobile();
   const questionsT = useTranslations("propertyCard");
+  const t = useTranslations("checkout_form");
   const locale = useLocale();
   const [birthdayOpen, setBirthdayOpen] = useState(false);
   const [pIndx, changePIndx] = useState(0);
@@ -1000,6 +1001,11 @@ export const CheckoutForm = ({
 
           {typeof step == "number" && !accommodationQuestions && (
             <div className="w-full flex flex-col gap-4">
+              <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
+                {t("booking-details-for", {
+                  name: cart.filter((it) => it.type == "activity")[step].name,
+                })}
+              </p>
               {(activityBookings[step]?.questions?.length ?? 0) > 0 && (
                 <div className="w-full flex flex-col gap-2 items-start">
                   <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">

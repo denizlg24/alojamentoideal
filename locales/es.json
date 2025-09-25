@@ -385,7 +385,8 @@
     "error-saving": "Hubo un problema para guardar sus respuestas.",
     "saving": "Guardar respuestas ...",
     "adult": "Adulto",
-    "guest-info": "Información de hospede {count} - {category}"
+    "guest-info": "Información de hospede {count} - {category}",
+    "booking-details-for": "Perguntas sobre {name}"
   },
   "order": {
     "order_info": "Información del Pedido",

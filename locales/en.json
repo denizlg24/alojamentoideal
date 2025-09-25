@@ -385,7 +385,8 @@
     "error-saving": "There was a problem saving your answers.",
     "saving": "Saving answers...",
     "guest-info": "Guest {count} information - {category}",
-    "adult": "Adult"
+    "adult": "Adult",
+    "booking-details-for": "Questions for {name}"
   },
   "order": {
     "order_info": "Order Information",
