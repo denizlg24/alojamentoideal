@@ -182,8 +182,6 @@ export const CheckoutForm = ({
     },
   });
 
-
-
   async function onSubmitAddGuest(values: z.infer<typeof addGuestSchema>) {
     ok(typeof step == "number");
     const property = cart.filter((item) => item.type == "accommodation")[step];
@@ -211,7 +209,12 @@ export const CheckoutForm = ({
       if (pIndx + 1 == property.adults + property.children + property.infants) {
         changePIndx(0);
         setAccommodationQuestions(false);
-        setStep("paying");
+        if ((activities?.length ?? 0) > 0) {
+          setStep(0);
+        } else {
+          setStep("paying");
+        }
+
         return;
       } else {
         changePIndx((prev) => prev + 1);
@@ -422,7 +425,7 @@ export const CheckoutForm = ({
           })),
         })),
       })),
-      guest_data
+      guest_data,
     });
     if (!success || !client_secret || !payment_id) {
       setError("error_reservation");
@@ -706,7 +709,7 @@ export const CheckoutForm = ({
               })),
             })),
           })),
-          guest_data
+          guest_data,
         });
         if (!success || !client_secret || !payment_id || !order_id) {
           event.complete("fail");
@@ -758,7 +761,7 @@ export const CheckoutForm = ({
     mainContactDetails,
     activityBookings,
     selectedPickupPlaceId,
-    guest_data
+    guest_data,
   ]);
 
   if (checking) return <Skeleton className="w-full h-full min-h-[250px]" />;
@@ -973,8 +976,10 @@ export const CheckoutForm = ({
                     setError("provide_information");
                     return;
                   }
-                  const accommodations = cart.filter((item) => item.type == 'accommodation');
-                  if(accommodations.length > 0){
+                  const accommodations = cart.filter(
+                    (item) => item.type == "accommodation"
+                  );
+                  if (accommodations.length > 0) {
                     setAccommodationQuestions(true);
                     setStep(0);
                     return;
@@ -987,7 +992,7 @@ export const CheckoutForm = ({
                   }
                 }}
               >
-                {activities.length > 0 ? t("continue") : t("proceed-payment")}{" "}
+                {t("continue")}
                 <ArrowRight />
               </Button>
             </>
@@ -2894,9 +2899,7 @@ export const CheckoutForm = ({
 
           {typeof step == "number" && accommodationQuestions && (
             <>
-              <div
-                className="w-full flex flex-col gap-2 items-start mx-auto border-none!"
-              >
+              <div className="w-full flex flex-col gap-2 items-start mx-auto border-none!">
                 <p className="w-fit max-w-full pr-4 border-b-2 border-primary font-semibold text-sm">
                   {questionsT("guests-for", {
                     title: cart.filter((item) => item.type == "accommodation")[
