@@ -96,7 +96,7 @@ export async function getCheckoutData(cart: TourItem[]) {
           new Date(date),
           addDays(new Date(date), 1)
         );
-        console.log(`availabilityResponse: ${availabilityResponse}`)
+        console.log(`availabilityResponse: `,availabilityResponse)
         if (!availabilityResponse) {
           return;
         }
@@ -137,7 +137,7 @@ export async function getCheckoutData(cart: TourItem[]) {
             return;
           }
         }
-        
+
         return {
           guests: guests,
           rateId: selectedRate.id,
