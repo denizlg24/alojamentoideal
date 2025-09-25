@@ -94,8 +94,16 @@ export const CheckoutActivityCard = ({
   const [displayPrice, setDisplayPrice] = useState(0);
 
   useEffect(() => {
-    if (!activityInfo || !activityInfo.availability || !activityInfo.rate)
+    if(loading){
       return;
+    }
+    if (!activityInfo || !activityInfo.availability || !activityInfo.rate){
+      setAvailabilityError(t("this-activity-is-no-longer-available"));
+      if (!activityItem.disabled) {
+        disableItem(index);
+      }
+      return;
+  }
 
     let error = "";
 
@@ -163,7 +171,7 @@ export const CheckoutActivityCard = ({
     if (!activityItem.disabled) {
       disableItem(index);
     }
-  }, [activityInfo, activityItem.disabled, disableItem, index, t]);
+  }, [activityInfo, activityItem.disabled, disableItem, index, t,loading]);
 
   if (
     loading ||

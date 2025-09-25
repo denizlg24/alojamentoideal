@@ -120,7 +120,7 @@ export const CheckoutHolder = ({
       const mapped = (
         await getCheckoutData(cart.filter((item) => item.type == "activity"))
       ).filter((v) => v != undefined);
-      console.log("Mapped useeffect return: ",mapped);
+      console.log("Mapped useeffect return: ", mapped);
       setMappedActivities(mapped);
     };
     if (!cartLoading && cart.length > 0) {
@@ -250,7 +250,9 @@ export const CheckoutHolder = ({
       </Card>
       <div className="col-span-2 w-full">
         {cart.filter((item) => item.type == "activity").length == 0 ||
-        mappedActivities.length != 0 ? (
+        mappedActivities.length ==
+          cart.filter((item) => item.type == "activity" && !item.disabled)
+            .length ? (
           <Elements stripe={stripePromise}>
             <CheckoutForm
               initialCountry={initialCountry}

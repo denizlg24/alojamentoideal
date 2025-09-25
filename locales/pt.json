@@ -1381,7 +1381,8 @@
   "checkout-activity-card": {
     "min-booking": "Precisamos de pelo menos {count} pessoas para reservar essa atividade agora.",
     "no-more-room": "Esta atividade não tem espaço suficiente.",
-    "total": "Total"
+    "total": "Total",
+    "this-activity-is-no-longer-available": "Esta atividade não está mais disponível"
   },
   "chat-email": {
     "new-admin-message": "Nova mensagem de convidado da reserva {order_id}",

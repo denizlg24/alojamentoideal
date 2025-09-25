@@ -1381,7 +1381,8 @@
   "checkout-activity-card": {
     "total": "Total",
     "no-more-room": "This activity doesn't have enough room.",
-    "min-booking": "We need atleast {count} people to book this activity now."
+    "min-booking": "We need atleast {count} people to book this activity now.",
+    "this-activity-is-no-longer-available": "This activity is no longer available"
   },
   "chat-email": {
     "you-got-a-new-message": "You got a new message.",
