@@ -102,8 +102,13 @@ export async function getCheckoutData(cart: TourItem[]) {
           return;
         }
         const availability = Object.values(availabilityResponse).find(
-          (avail) => isSameDay(new Date(avail.date), date)
+          (avail) => {
+            console.log(new Date(avail.date), date);
+            console.log("Result: ",isSameDay(new Date(avail.date), date));
+            return isSameDay(new Date(avail.date), date)
+          }
         );
+        console.log(availability);
         if (!availability) {
           return;
         }
