@@ -2,7 +2,6 @@
 
 import { connectDB } from "@/lib/mongodb";
 import OrderModel from "@/models/Order";
-import { verifySession } from "@/utils/verifySession";
 
 export async function attachInvoice({
     orderId,
@@ -13,9 +12,6 @@ export async function attachInvoice({
     index: number,
     invoice_url: { url: string, id: string },
 }) {
-    if (!(await verifySession())) {
-        throw new Error('Unauthorized');
-    }
     try {
         await connectDB();
         const updated = await OrderModel.findOneAndUpdate(

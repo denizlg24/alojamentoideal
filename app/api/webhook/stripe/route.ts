@@ -1,7 +1,8 @@
+import { attachInvoice } from "@/app/actions/attachInvoice";
 import { createHouseInvoice } from "@/app/actions/createHouseInvoice";
 import { getHtml } from "@/app/actions/getHtml";
 import { sendMail } from "@/app/actions/sendMail";
-import { AccommodationItem, CartItem } from "@/hooks/cart-context";
+import {CartItem } from "@/hooks/cart-context";
 import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
 import OrderModel from "@/models/Order";
@@ -89,12 +90,8 @@ export async function POST(req: Request) {
                         console.log(`Email sent = ${email_sent.success}`);
 
                         if (foundOrder && foundOrder.reservationIds.length > 0) {
-                            const updatedCart = await issueInvoices({ reservationIds: foundOrder.reservationIds, reservationReferences: foundOrder.reservationReferences, items: foundOrder.items.filter((item) => item.type == 'accommodation'), userInfo: { email: foundOrder.email, name: foundOrder.name, companyName: foundOrder.companyName, tax_number: foundOrder.tax_number, isCompany: foundOrder.isCompany }, charge })
+                            const updatedCart = await issueInvoices({ reservationIds: foundOrder.reservationIds, reservationReferences: foundOrder.reservationReferences, items: foundOrder.items, userInfo: { email: foundOrder.email, name: foundOrder.name, companyName: foundOrder.companyName, tax_number: foundOrder.tax_number, isCompany: foundOrder.isCompany }, charge,order_id:foundOrder.orderId })
                             console.log("Updated cart: ",updatedCart);
-                            const newCart = [...foundOrder.items.filter((item) => item.type != "accommodation"), ...updatedCart]
-                            console.log("Updated new cart: ",newCart)
-                            const updatedOrder = await OrderModel.findOneAndUpdate({ payment_id: payment_id }, { items: newCart });
-                            console.log(updatedOrder);
                         }
                     }
 
@@ -199,20 +196,20 @@ const confirmActivities = async ({ charge, activityBookingReferences, order_id }
     return reservation_successes;
 }
 
-const issueInvoices = async ({ reservationIds, reservationReferences, items, userInfo, charge }: {
-    reservationIds: string[], reservationReferences: string[], items: AccommodationItem[], userInfo: {
+const issueInvoices = async ({ reservationIds, reservationReferences, items, userInfo, charge, order_id }: {
+    reservationIds: string[], reservationReferences: string[], items: CartItem[], userInfo: {
         isCompany?: boolean,
         email: string,
         companyName?: string,
         name: string,
         tax_number?: string
-    }, charge: Stripe.Charge
+    }, charge: Stripe.Charge, order_id:string
 }) => {
     const t = await getTranslations("order-email");
-    const newCart: AccommodationItem[] = []
     for (let index = 0; index < reservationIds.length; index++) {
         const reservationCode = reservationReferences[index];
-        const orderItem = items[index];
+        const orderItem = items.filter((item) => item.type == 'accommodation')[index];
+        const order_index = items.findIndex((item) => item == orderItem);
         const itemInvoice = await createHouseInvoice({ item: orderItem, clientName: userInfo.isCompany ? (userInfo.companyName || userInfo.name) : userInfo.name, clientTax: userInfo.tax_number, booking_code: reservationCode, clientAddress: charge.billing_details.address ?? undefined })
         if (itemInvoice.url && itemInvoice.id) {
             const nights =
@@ -238,16 +235,17 @@ const issueInvoices = async ({ reservationIds, reservationReferences, items, use
                 { "{{order-number}}": t('reservation-number', { order_id: reservationCode }) },
                 { '{{invoice_url}}': itemInvoice.url }
                 ])
-            newCart.push({ ...orderItem, invoice: itemInvoice.url, invoice_id: itemInvoice.id });
+            const success = await attachInvoice({orderId:order_id,index:order_index,invoice_url:{url:itemInvoice.url, id:itemInvoice.id}})
+           
             await sendMail({
                 email: userInfo.email,
                 html: orderHtml,
                 subject: t('invoice-for-reservation', { order_id: reservationCode }),
             });
-           
+           return success;
         }
     }
-    return newCart;
+    return true;
 }
 
 const buildOrderEmail = async ({ plainItems, order_id,reservationReferences,activityBookingIds }: { plainItems: CartItem[], order_id: string;reservationReferences:string[],activityBookingIds?:string[] }) => {
