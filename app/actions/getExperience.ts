@@ -38,6 +38,7 @@ export async function getCheckoutData(cart: TourItem[]) {
           method: "GET",
           path: `/restapi/v2.0/experience/${id}/components?componentType=ALL`,
         });
+        console.log(`Experience response: ${response}`)
         if (!response.success) {
           return;
         }
@@ -57,6 +58,7 @@ export async function getCheckoutData(cart: TourItem[]) {
               method: "GET",
               path: `/activity.json/${response.id}/pickup-places`,
             });
+            console.log(`Pickup response: ${pickUpPlaces}`)
             if (pickUpPlaces.success) {
               meeting = {
                 type: "PICK_UP",
@@ -75,6 +77,7 @@ export async function getCheckoutData(cart: TourItem[]) {
                 method: "GET",
                 path: `/activity.json/${response.id}/pickup-places`,
               });
+            console.log(`Pickup Meet response: ${pickUpPlacesMeet}`)
             if (pickUpPlacesMeet.success) {
               meeting = {
                 type: "MEET_ON_LOCATION_OR_PICK_UP",
@@ -93,6 +96,7 @@ export async function getCheckoutData(cart: TourItem[]) {
           new Date(date),
           addDays(new Date(date), 1)
         );
+        console.log(`availabilityResponse: ${availabilityResponse}`)
         if (!availabilityResponse) {
           return;
         }
@@ -105,6 +109,7 @@ export async function getCheckoutData(cart: TourItem[]) {
         const selectedRate = availability.rates.find(
           (rate) => rate.id == selectedRateId
         );
+        console.log(`selected rate: ${selectedRate}`)
         if (!selectedRate) {
           return;
         }
@@ -119,7 +124,7 @@ export async function getCheckoutData(cart: TourItem[]) {
           (sum, val) => sum + val,
           0
         );
-
+        
         if (!availability.unlimitedAvailability) {
           if (
             availability.availabilityCount == 0 ||
@@ -132,7 +137,7 @@ export async function getCheckoutData(cart: TourItem[]) {
             return;
           }
         }
-
+        
         return {
           guests: guests,
           rateId: selectedRate.id,

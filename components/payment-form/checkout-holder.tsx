@@ -120,6 +120,7 @@ export const CheckoutHolder = ({
       const mapped = (
         await getCheckoutData(cart.filter((item) => item.type == "activity"))
       ).filter((v) => v != undefined);
+      console.log("Mapped useeffect return: ",mapped);
       setMappedActivities(mapped);
     };
     if (!cartLoading && cart.length > 0) {
