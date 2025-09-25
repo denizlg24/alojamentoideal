@@ -14,7 +14,13 @@ import { localeMap } from "@/lib/utils";
 import { CheckoutActivityCard } from "./checkout-activity-card";
 import { PickupPlaceDto } from "@/utils/bokun-requests";
 import { getCheckoutData } from "@/app/actions/getExperience";
-export const CheckoutHolder = ({ cartId,initialCountry }: { cartId: string,initialCountry:string }) => {
+export const CheckoutHolder = ({
+  cartId,
+  initialCountry,
+}: {
+  cartId: string;
+  initialCountry: string;
+}) => {
   const locale = useLocale();
   const supportedLocales = [
     "auto",
@@ -76,11 +82,14 @@ export const CheckoutHolder = ({ cartId,initialCountry }: { cartId: string,initi
 
   const safeLocale: StripeLocale = isValidLocale(locale) ? locale : "auto";
 
-  const stripePromise = useMemo( () => loadStripe(
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-    { locale: safeLocale }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  ),[])
+  const stripePromise = useMemo(
+    () =>
+      loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!, {
+        locale: safeLocale,
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   const [mappedActivities, setMappedActivities] = useState<
     {
@@ -159,7 +168,8 @@ export const CheckoutHolder = ({ cartId,initialCountry }: { cartId: string,initi
                   key={cartItem.property_id}
                   className="w-full flex flex-row items-start justify-between gap-2 relative"
                 >
-                  <Image unoptimized 
+                  <Image
+                    unoptimized
                     src={cartItem.photo}
                     alt="cart-logo"
                     width={1080}
@@ -236,18 +246,18 @@ export const CheckoutHolder = ({ cartId,initialCountry }: { cartId: string,initi
         )}
       </Card>
       <div className="col-span-2 w-full">
-        {stripePromise ? (
-          <Elements stripe={stripePromise}>
-            {cart.filter((item) => item.type == "activity").length == 0 ||
-            mappedActivities.length != 0 ? (
-              <CheckoutForm initialCountry={initialCountry} cartId={cartId} activities={mappedActivities} />
-            ) : (
-              <Skeleton className="w-full h-full min-h-[250px]" />
-            )}
-          </Elements>
-        ) : (
-          <Skeleton className="w-full h-full min-h-[250px]" />
-        )}
+        <Elements stripe={stripePromise}>
+          {cart.filter((item) => item.type == "activity").length == 0 ||
+          mappedActivities.length != 0 ? (
+            <CheckoutForm
+              initialCountry={initialCountry}
+              cartId={cartId}
+              activities={mappedActivities}
+            />
+          ) : (
+            <Skeleton className="w-full h-full min-h-[250px]" />
+          )}
+        </Elements>
       </div>
     </div>
   );
