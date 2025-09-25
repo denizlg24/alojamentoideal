@@ -21,7 +21,9 @@ export const RoomCheckoutProvider = ({
   tripDetails,
   rangeBooked,
   stayPrice,
+  initialCountry
 }: {
+  initialCountry:string;
   id: string;
   listingInfo: FullListingType;
   tripDetails: {
@@ -201,6 +203,7 @@ export const RoomCheckoutProvider = ({
       <div className="col-span-2 w-full">
         <Elements stripe={stripePromise}>
           <RoomCheckoutForm
+          initialCountry={initialCountry}
             property={{
               type: "accommodation",
               property_id: parseInt(id),

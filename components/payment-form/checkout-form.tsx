@@ -114,7 +114,9 @@ const FlagComponent = ({
 export const CheckoutForm = ({
   activities,
   cartId,
+  initialCountry="PT"
 }: {
+  initialCountry:string;
   cartId: string;
   activities: {
     meeting:
@@ -713,6 +715,11 @@ export const CheckoutForm = ({
                       display: { name: "split" },
                       fields: { phone: "always" },
                       validation: { phone: { required: "always" } },
+                      defaultValues:{
+                        address:{
+                          country:initialCountry
+                        }
+                      }
                     }}
                   />
                 </>
@@ -732,6 +739,11 @@ export const CheckoutForm = ({
                     display: { name: "split" },
                     fields: { phone: "always" },
                     validation: { phone: { required: "always" } },
+                    defaultValues:{
+                      address:{
+                        country:initialCountry
+                      }
+                    }
                   }}
                 />
               )}

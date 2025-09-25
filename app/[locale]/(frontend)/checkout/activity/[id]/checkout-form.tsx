@@ -115,6 +115,7 @@ export const FlagComponent = ({
 };
 
 export const TourCheckoutForm = ({
+  initialCountry="PT",
   cartId,
   meeting,
   rateId,
@@ -123,6 +124,7 @@ export const TourCheckoutForm = ({
   experienceId,
   selectedDate,
 }: {
+  initialCountry:string;
   cartId: string;
   meeting:
     | {
@@ -523,12 +525,18 @@ export const TourCheckoutForm = ({
                     display: { name: "split" },
                     fields: { phone: "always" },
                     validation: { phone: { required: "always" } },
+                    defaultValues:{
+                      address:{
+                        country:initialCountry
+                      }
+                    }
                   }}
                 />
               </>
             )}
             {!needCompanySwitch && (
               <AddressElement
+              
                 onChange={(e) => {
                   setError("");
                   if (!e.complete) {
@@ -542,6 +550,11 @@ export const TourCheckoutForm = ({
                   display: { name: "split" },
                   fields: { phone: "always" },
                   validation: { phone: { required: "always" } },
+                  defaultValues:{
+                    address:{
+                      country:initialCountry
+                    }
+                  }
                 }}
               />
             )}

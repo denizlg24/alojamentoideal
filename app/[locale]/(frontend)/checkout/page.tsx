@@ -1,7 +1,7 @@
-import { use } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CheckoutHolder } from "@/components/payment-form/checkout-holder";
 import { randomUUID } from "crypto";
+import { headers } from "next/headers";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -34,19 +34,18 @@ export async function generateMetadata() {
   };
 }
 
-export default function Page({
+export default async function Page({
   params,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params: any;
+  params: Promise<{locale:string}>;
 }) {
-  const { locale } = use<{ locale: string }>(params);
-
+  const { locale } = await params;
   setRequestLocale(locale);
   const cartId = randomUUID();
+  const country = (await headers()).get("x-vercel-ip-country") || "PT";
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
-      <CheckoutHolder cartId={cartId}/>
+      <CheckoutHolder initialCountry={country} cartId={cartId}/>
     </main>
   );
 }

@@ -383,7 +383,9 @@
     "save-answers": "Save Answers",
     "all-fields-must-be-correct": "Some fields are malformed.",
     "error-saving": "There was a problem saving your answers.",
-    "saving": "Saving answers..."
+    "saving": "Saving answers...",
+    "guest-info": "Guest {count} information - {category}",
+    "adult": "Adult"
   },
   "order": {
     "order_info": "Order Information",
@@ -522,7 +524,10 @@
     "information-complete": "Booking questions completed.",
     "edit-questions": "Update your information.",
     "update-questions": "Update your information.",
-    "update-for-better-exp": "Update your information if anything relevant to the experience changed."
+    "update-for-better-exp": "Update your information if anything relevant to the experience changed.",
+    "add-guest-info": "Add guest.",
+    "children": "Child",
+    "infant": "Infant"
   },
   "orderSearch": {
     "placeholder": "Search for reservation number or order id...",

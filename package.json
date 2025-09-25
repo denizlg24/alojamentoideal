@@ -41,6 +41,7 @@
     "@stripe/stripe-js": "^7.3.1",
     "@stripe/ui-extension-sdk": "^9.0.0",
     "@tanstack/react-table": "^8.21.3",
+    "@vercel/functions": "^3.1.0",
     "@vis.gl/react-google-maps": "^1.5.3",
     "apple-pay-button": "^1.2.0",
     "bcryptjs": "^3.0.2",

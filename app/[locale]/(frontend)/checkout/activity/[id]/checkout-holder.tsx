@@ -66,7 +66,9 @@ export const CheckoutHolder = ({
   selectedStartTime,
   guests,
   displayPrice,
+  initialCountry = "PT"
 }: {
+  initialCountry:string;
   cartId:string,
   displayPrice: number;
   selectedDate: Date;
@@ -264,6 +266,7 @@ export const CheckoutHolder = ({
       <Card className="col-span-2 w-full p-4">
         <Elements stripe={stripePromise}>
           <TourCheckoutForm
+          initialCountry={initialCountry}
           cartId={cartId}
             bookingQuestions={experience.bookingQuestions}
             mainPaxInfo={experience.mainPaxInfo}
