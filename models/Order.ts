@@ -100,7 +100,7 @@ const ItemSchema = new mongoose.Schema<CartItem>(
             of: Number,
         },
         selectedDate: {
-            type: Date,
+            type: String,
         },
         selectedRateId: { type: Number },
         selectedStartTimeId: { type: Number },

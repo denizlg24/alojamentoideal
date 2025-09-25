@@ -28,7 +28,7 @@ export type TourItem = {
   type: "activity";
   name: string;
   price: number;
-  selectedDate: Date;
+  selectedDate: string;
   selectedRateId: number;
   selectedStartTimeId: number;
   guests: { [categoryId: number]: number };

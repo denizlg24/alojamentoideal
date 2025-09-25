@@ -4,7 +4,7 @@
 import { TourItem } from "@/hooks/cart-context";
 import { ActivityBookingQuestionsDto, ActivityPlacesDto, FullExperienceType, PickupPlaceDto, QuestionSpecificationDto } from "@/utils/bokun-requests";
 import { verifySession } from "@/utils/verifySession";
-import { addDays, format, isSameDay } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { GetActivityAvailability } from "./getExperienceAvailability";
 import { generateReservationID } from "@/lib/utils";
 import { fetchClientSecret } from "./stripe";
@@ -94,8 +94,7 @@ export async function getCheckoutData(cart: TourItem[]) {
         }
         const availabilityResponse = await GetActivityAvailability(
           response.id.toString(),
-          date,
-          addDays(date, 1)
+          date
         );
         console.log(`availabilityResponse: `,availabilityResponse)
         if (!availabilityResponse) {
@@ -157,7 +156,7 @@ export async function getCheckoutData(cart: TourItem[]) {
 }
 
 export async function startShoppingCart(cartId: string, experienceId: number,
-  rateId: number, selectedStartTimeId: number | undefined, selectedDate: Date, guests: { [categoryId: number]: number }, pickupPlaceId?: string
+  rateId: number, selectedStartTimeId: number | undefined, selectedDate: string, guests: { [categoryId: number]: number }, pickupPlaceId?: string
 ) {
   if (!(await verifySession())) {
     throw new Error("Unauthorized");
@@ -168,7 +167,7 @@ export async function startShoppingCart(cartId: string, experienceId: number,
     body: {
       activityId: experienceId,
       rateId: rateId,
-      date: format(selectedDate, "yyyy-MM-dd"),
+      date: selectedDate,
       startTimeId: selectedStartTimeId,
       pickup: pickupPlaceId ? true : false,
       pickupPlaceId,
@@ -284,7 +283,7 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
     type: 'activity',
     name: activity.title,
     price: activity.totalPrice,
-    selectedDate: new Date(activity.startDateTime),
+    selectedDate: format(new Date(activity.startDateTime),"yyyy-MM-dd"),
     selectedRateId: selectedRateId[i],
     selectedStartTimeId: selectedStartTimeId[i],
     guests: guests[i],

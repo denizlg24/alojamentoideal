@@ -107,7 +107,7 @@ export const CheckoutHolder = ({
           };
       rateId: number;
       experienceId: number;
-      selectedDate: Date;
+      selectedDate: string;
       selectedStartTimeId: number | undefined;
       guests: { [categoryId: number]: number };
     }[]

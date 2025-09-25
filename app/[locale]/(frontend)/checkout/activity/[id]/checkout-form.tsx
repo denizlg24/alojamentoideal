@@ -143,7 +143,7 @@ export const TourCheckoutForm = ({
   experienceId: number;
   mainPaxInfo: ContactInformationDto[];
   otherPaxInfo?: ContactInformationDto[];
-  selectedDate: Date;
+  selectedDate: string;
   selectedStartTimeId: number | undefined;
   guests: { [categoryId: number]: number };
 }) => {

@@ -71,7 +71,7 @@ export const CheckoutHolder = ({
   initialCountry:string;
   cartId:string,
   displayPrice: number;
-  selectedDate: Date;
+  selectedDate: string;
   selectedStartTime: ExperienceStartTimeDto | undefined;
   selectedRate: ExperienceRateDto;
   guests: { [categoryId: number]: number };
@@ -182,7 +182,7 @@ export const CheckoutHolder = ({
                 , {displayT("starting-at")}{" "}
                 {format(
                   new Date(
-                    selectedDate.setHours(selectedStartTime.hour)
+                    new Date(selectedDate).setHours(selectedStartTime.hour)
                   ).setMinutes(selectedStartTime.minute),
                   "HH:mm a",
                   { locale: localeMap[locale as keyof typeof localeMap] }
@@ -242,7 +242,7 @@ export const CheckoutHolder = ({
             selectedRate.cancellationPolicy.policyType != "NON_REFUNDABLE" ? (
               formatCancellationPolicy(
                 selectedRate.cancellationPolicy,
-                selectedDate
+                new Date(selectedDate)
               ).map((policy) => {
                 return (
                   <li className="" key={policy}>

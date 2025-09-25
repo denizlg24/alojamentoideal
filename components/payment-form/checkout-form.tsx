@@ -145,7 +145,7 @@ export const CheckoutForm = ({
         };
     rateId: number;
     experienceId: number;
-    selectedDate: Date;
+    selectedDate: string;
     selectedStartTimeId: number | undefined;
     guests: { [categoryId: number]: number };
   }[];
@@ -554,7 +554,7 @@ export const CheckoutForm = ({
     tourItem: {
       rateId: number;
       experienceId: number;
-      selectedDate: Date;
+      selectedDate: string;
       selectedStartTimeId: number | undefined;
       guests: { [categoryId: number]: number };
     },

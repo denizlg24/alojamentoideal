@@ -12,7 +12,7 @@ import {
   FullExperienceType,
 } from "@/utils/bokun-requests";
 import { GetActivityAvailability } from "@/app/actions/getExperienceAvailability";
-import { addDays, format, isSameDay } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { getExperience } from "@/app/actions/getExperience";
 import { Skeleton } from "../ui/skeleton";
 import { Ban, BusFront, Users } from "lucide-react";
@@ -52,8 +52,7 @@ export const CheckoutActivityCard = ({
       }
       const availability = await GetActivityAvailability(
         id.toString(),
-        activityItem.selectedDate,
-        addDays(activityItem.selectedDate, 1)
+        activityItem.selectedDate
       );
       if (!availability) {
         return;

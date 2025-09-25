@@ -1329,7 +1329,7 @@ export const TourDisplay = ({
                             }
                             const newItem: TourItem = {
                               id: experience.id,
-                              selectedDate: selectedDate,
+                              selectedDate: format(selectedDate,"yyyy-MM-dd"),
                               selectedStartTimeId: selectedTime
                                 ? selectedTime.id
                                 : 0,

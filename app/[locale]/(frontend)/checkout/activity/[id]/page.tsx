@@ -8,7 +8,7 @@ import { notFound } from "next/navigation";
 import { GetActivityAvailability } from "@/app/actions/getExperienceAvailability";
 import { CheckoutHolder } from "./checkout-holder";
 import { redirect } from "@/i18n/navigation";
-import { addDays, isSameDay } from "date-fns";
+import { isSameDay } from "date-fns";
 import { randomUUID } from "crypto";
 import { bokunRequest } from "@/utils/bokun-server";
 import { headers } from "next/headers";
@@ -112,8 +112,7 @@ export default async function Page({
   }
   const availabilityResponse = await GetActivityAvailability(
     response.id.toString(),
-    new Date(date),
-    addDays(new Date(date), 1)
+    date
   );
   console.log(availabilityResponse);
   if (!availabilityResponse) {
@@ -197,7 +196,7 @@ export default async function Page({
       <CheckoutHolder
       initialCountry={country}
       cartId={cartId}
-        selectedDate={new Date(date)}
+        selectedDate={date}
         selectedRate={selectedRate}
         selectedStartTime={startTime}
         guests={parsedGuests}
