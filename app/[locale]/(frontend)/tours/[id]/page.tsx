@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { TourDisplay } from "./tour-display";
 import { GetActivityAvailability } from "@/app/actions/getExperienceAvailability";
 import { bokunRequest } from "@/utils/bokun-server";
+import { format } from "date-fns";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -93,7 +94,7 @@ export default async function Page({
       meeting = { type: "MEET_ON_LOCATION_OR_PICK_UP", pickUpPlaces: [] };
       break;
   }
-  const availability = await GetActivityAvailability(response.id.toString());
+  const availability = await GetActivityAvailability(response.id.toString(),format(new Date(),"yyyy-MM-dd"));
   if (!availability) {
     notFound();
   }
