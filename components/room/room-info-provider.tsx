@@ -1402,9 +1402,6 @@ export const RoomInfoProvider = ({
                     <div className="w-full flex flex-col gap-4">
                       <div className="w-full flex flex-col gap-2">
                         {stayPrice.fees.map((fee) => {
-                          {
-                            console.log(fee);
-                          }
                           return (
                             <div
                               key={fee.fee_id}

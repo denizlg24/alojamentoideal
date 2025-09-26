@@ -1,6 +1,5 @@
 import { Link } from "@/i18n/navigation";
 import { getArticlesByLocale } from "@/utils/help-articles";
-import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -43,12 +42,10 @@ export default function Home({
   if (!foundArticle) {
     notFound();
   }
-  const t = useTranslations("contact");
 
   return (
     <main className="flex flex-col items-stretch w-full mx-auto md:gap-0 gap-2 mb-16 sm:pt-12 pt-6">
       <article className="md:prose prose-sm w-full! max-w-5xl! mx-auto! flex flex-col px-4">
-            <Image src={foundArticle.photo} alt={foundArticle.preview} className="w-full max-h-[250px] object-cover shadow rounded"/>
             <h1>{foundArticle.title}</h1>
             {foundArticle.content?.map((content,indx) => {
                 switch (content.type){
@@ -76,7 +73,7 @@ export default function Home({
                                 })}
                             </ul>
                     case "with-img":
-                        return <div key={`with-img-${indx}`} className="w-full grid sm:grid-cols-3 grid-cols-1">
+                        return <div key={`with-img-${indx}`} className="w-full grid sm:grid-cols-3 grid-cols-1 gap-x-8 gap-y-2">
                             <div className="col-span-2">
                                 {content.items.map((item,_indx) => {
                                     switch (item.content.type){
@@ -88,7 +85,7 @@ export default function Home({
                                 })}
                             </div>
                             <div className="col-span-1 sm:max-h-[300px] max-h-[200px]">
-                                <Image  src={content.img} alt={foundArticle.preview} className="w-full object-cover rounded shadow"/>
+                                <Image  src={content.img} alt={foundArticle.preview} className="w-full object-cover rounded shadow  sm:max-h-[300px] max-h-[200px]"/>
                             </div>
                         </div>
                     case "text":

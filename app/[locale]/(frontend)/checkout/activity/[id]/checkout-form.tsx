@@ -315,7 +315,6 @@ export const TourCheckoutForm = ({
         setLoading(false);
         return;
       }
-      console.log(success, order_id);
       if (success && order_id) {
         localStorage.clear();
         router.push(`/orders/${order_id}`);

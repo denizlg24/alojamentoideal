@@ -25,8 +25,6 @@ export async function createHouseInvoice({ item, clientName, clientAddress, clie
         listingId: item.property_id.toString(), endpoint: "getProperty"
     });
 
-    console.log(property);
-
     if (property.invoicing_nif && property.default_series) {
         const invoicing_nif = property.invoicing_nif;
         const series = property.default_series;
@@ -45,8 +43,6 @@ export async function createHouseInvoice({ item, clientName, clientAddress, clie
         const newInvoice = await callHostkitAPI<{ status: 'success' | unknown, id?: string }>({
             listingId: item.property_id.toString(), endpoint: "addInvoice", query: newInvoiceQuery
         })
-
-        console.log(newInvoice);
 
         if (newInvoice.id) {
             const id = newInvoice.id;
@@ -119,7 +115,6 @@ export async function createHouseInvoice({ item, clientName, clientAddress, clie
                     type,
                     reason_code: vat == 0 ? 'M99' : ''
                 };
-                console.log(query);
                 const response = await callHostkitAPI<{ status: 'success' | unknown, line?: string }>({
                     listingId: item.property_id.toString(), endpoint: "addInvoiceLine", query
                 })
@@ -132,7 +127,6 @@ export async function createHouseInvoice({ item, clientName, clientAddress, clie
             const invoice = await callHostkitAPI<{ invoice_url: string }[]>({
                 listingId: item.property_id.toString(), endpoint: "getReservationInvoices", query: { rcode: booking_code, invoicing_nif }
             })*/
-            console.log(closed);
             if (closed && closed.invoice_url) {
                 return { url: closed.invoice_url, id: newInvoice.id };
             }
@@ -146,16 +140,13 @@ export async function issueCreditNote({ clientEmail, invoice_id, item, reservati
     const invoice = await callHostkitAPI<{ invoice_url: string, series: string, }[]>({
         listingId: item.property_id.toString(), endpoint: "getReservationInvoices", query: { rcode:reservationCode }
     })
-    console.log(invoice);
     const creditNote = await callHostkitAPI<{ status: 'success' | unknown, id?: string }>({
         listingId: item.property_id.toString(), endpoint: "addCreditNote", query: { refid: invoice_id, refseries: invoice[0].series }
     })
-    console.log(creditNote);
     if (creditNote.status == 'success' && creditNote.id) {
         const finalCreditNote = await callHostkitAPI<{ credit_note_url?: string,refid:string }[]>({
             listingId: item.property_id.toString(), endpoint: "getCreditNotes", query: { series: invoice[0].series}
         })
-        console.log(finalCreditNote);
         if ((finalCreditNote?.length ?? 0) > 0) {
             const t = await getTranslations("order-email");
             const note = finalCreditNote.find((no) => no.refid == invoice_id)?.credit_note_url;

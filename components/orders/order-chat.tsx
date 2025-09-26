@@ -114,7 +114,6 @@ export function OrderChat({ chat_id }: { chat_id: string }) {
         lastMessageTime.current = savedMessage.createdAt;
       }
     } catch {
-      console.log("Error");
     }
   };
 

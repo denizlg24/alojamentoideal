@@ -11,7 +11,6 @@ export async function GetActivityAvailability(id: string, startDate?: string, en
     }
     try {
         const response = await bokunRequest<{ [key: string]: ExperienceAvailabilityDto }>({ method: "GET", path: `/activity.json/${id}/availabilities?start=${startDate?? format(new Date(),"yyyy-MM-dd")}&end=${endDate ?? format(addMonths(new Date(), 10), 'yyyy-MM-dd')}` });
-        console.log(response);
         if (response.success) {
             return response;
         }

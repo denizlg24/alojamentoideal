@@ -187,7 +187,6 @@ export async function buyCart({ guest_data, cart, clientName, clientEmail, clien
                     source: 'DIRECT_REQUEST'
                 },
             });
-            console.log(bokunResponse);
             if (!bokunResponse.success) {
                 return { success: false }
             }

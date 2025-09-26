@@ -158,7 +158,6 @@ export const CompleteBookingQuestion = ({
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const handleSubmit = async () => {
-    console.log("here");
     setSaving(true);
     const updateResponse = await answerActivityBookingQuestions({
       activityBookingId,
@@ -1430,7 +1429,6 @@ export const CompleteBookingQuestion = ({
         <Button
           disabled={!hasChanges || saving}
           onClick={() => {
-            console.log("Clicked");
             const validated = validateAllQuestions();
             if (!validated) {
               setError(t("all-fields-must-be-correct"));

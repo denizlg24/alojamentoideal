@@ -34,7 +34,6 @@ import { IssueNoteButton } from "./issueNoteButton";
 import { getGuestData } from "@/app/actions/getGuestData";
 import { callHostkitAPI } from "@/app/actions/callHostkitApi";
 import { IGuestDataDocument } from "@/models/GuestData";
-import { auth } from "@/auth";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -108,8 +107,6 @@ export default async function Home({
   const propertyCardT = await getTranslations("propertyCard");
   const feeT = await getTranslations("feeTranslations");
   const t = await getTranslations("order");
-  const session = await auth();
-  console.log(session?.user ? "Logged In" : "Logged out");
   const order = await getAdminOrder(id);
   if (!order) {
     return;

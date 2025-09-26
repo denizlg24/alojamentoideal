@@ -52,10 +52,21 @@ import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ok } from "assert";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { format, parse } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn, localeMap } from "@/lib/utils";
 import { CountrySelect } from "@/components/orders/country-select";
 import { Guest } from "@/models/GuestData";
@@ -93,7 +104,13 @@ const FlagComponent = ({
   );
 };
 
-export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: CartItem,initialCountry:string; }) => {
+export const RoomCheckoutForm = ({
+  property,
+  initialCountry = "PT",
+}: {
+  property: CartItem;
+  initialCountry: string;
+}) => {
   ok(property.type == "accommodation");
   const t = useTranslations("checkout_form");
   const stripe = useStripe();
@@ -122,9 +139,25 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
   const isMobile = useIsMobile();
   const questionsT = useTranslations("propertyCard");
   const locale = useLocale();
-  const [birthdayOpen,setBirthdayOpen] = useState(false);
-  const [pIndx,changePIndx] = useState(0);
-  const [guest_data,setGuestData] = useState<Guest[]>([]);
+  const [birthdayOpen, setBirthdayOpen] = useState(false);
+  const [pIndx, changePIndx] = useState(0);
+  const [guest_data, setGuestData] = useState<Guest[]>(
+    Array.from({
+      length: property.adults + property.children + property.infants,
+    }).map(() => ({
+      first_name: "",
+      last_name: "",
+      document_type: "",
+      document_number: "",
+      document_country: "",
+      nationality: "",
+      birthday: "",
+      arrival: "",
+      departure: "",
+      country_residence: "",
+      city_residence: "",
+    }))
+  );
   const addGuestSchema = z.object({
     first_name: z.string().min(2, { message: "" }),
     last_name: z.string().min(2, { message: "" }),
@@ -152,22 +185,41 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
 
   async function onSubmitAddGuest(values: z.infer<typeof addGuestSchema>) {
     ok(property.type == "accommodation");
-      setGuestData((prev) => {
-        return [...prev,{
-          ...values,
-          birthday: format(values.birthday, "yyyy-MM-dd"),
-          arrival: property.start_date,
-          departure: property.end_date,
-        }]
-      })
+    setGuestData((prev) =>
+      prev.map((prev, indx) =>
+        indx == pIndx
+          ? {
+              ...values,
+              birthday: format(values.birthday, "yyyy-MM-dd"),
+              arrival: property.start_date,
+              departure: property.end_date,
+            }
+          : prev
+      )
+    );
+
+    if (pIndx + 1 == property.adults + property.children + property.infants) {
+      setStep("paying");
+      changePIndx(0);
+      return;
+    }
+    if (guest_data[pIndx + 1].first_name){
+      addGuestForm.reset({
+        ...guest_data[pIndx + 1],
+        birthday: parse(
+          guest_data[pIndx + 1].birthday,
+          "yyyy-MM-dd",
+          new Date()
+        ),
+        document_type: guest_data[pIndx + 1].document_type as "P" | "ID" | "O",
+      });
+    } else {
       addGuestForm.reset();
-      if(pIndx+1 == (property.adults + property.children+property.infants)){
-        setStep("paying");
-        changePIndx(0);
-        return;
-      }
-      changePIndx((prev) => prev+1);
-  /*setGuestData((prev) => {
+    }
+     
+    changePIndx((prev) => prev + 1);
+
+    /*setGuestData((prev) => {
     return prev?.map((guest_data,indx) => indx == pIndx ? {
       ...values,
       birthday: format(values.birthday, "yyyy-MM-dd"),
@@ -181,7 +233,9 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
   const [needCompanySwitch, setNeedCompanySwitch] = useState(false);
   const [vatCountryCode, setVatCountryCode] = useState("PT");
   const [selectedTab, selectTab] = useState("card");
-  const [step, setStep] = useState<"client_info"|"questions"|"paying">("client_info");
+  const [step, setStep] = useState<"client_info" | "questions" | "paying">(
+    "client_info"
+  );
 
   const router = useRouter();
   useEffect(() => {
@@ -216,7 +270,7 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
       setError("provide_information");
       return;
     }
-    if(!guest_data.length){
+    if (!guest_data.length) {
       setLoading(false);
       setError("provide_information");
       return;
@@ -247,7 +301,7 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
       clientTax,
       isCompany: needCompanySwitch,
       companyName: clientBusiness,
-      guest_data
+      guest_data,
     });
 
     if (
@@ -442,7 +496,7 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
           clientTax,
           isCompany: needCompanySwitch,
           companyName: clientBusiness,
-          guest_data
+          guest_data,
         });
         if (
           !success ||
@@ -498,12 +552,10 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
     clientInfo,
     router,
     needCompanySwitch,
-    guest_data
+    guest_data,
   ]);
 
   //questions
- 
-
 
   if (checking) return null;
 
@@ -514,7 +566,7 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
           onSubmit={clientInfo.handleSubmit(handleSubmit)}
           className="w-full flex flex-col gap-2"
         >
-          {step == 'client_info' && (
+          {step == "client_info" && (
             <>
               <FormField
                 control={clientInfo.control}
@@ -584,11 +636,13 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
                       display: { name: "split" },
                       fields: { phone: "always" },
                       validation: { phone: { required: "always" } },
-                      defaultValues:{
-                        address:{
-                          country:initialCountry
-                        }
-                      }
+                      defaultValues: !addressData
+                        ? {
+                            address: {
+                              country: initialCountry,
+                            },
+                          }
+                        : {},
                     }}
                   />
                 </>
@@ -608,11 +662,13 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
                     display: { name: "split" },
                     fields: { phone: "always" },
                     validation: { phone: { required: "always" } },
-                    defaultValues:{
-                      address:{
-                        country:initialCountry
-                      }
-                    }
+                    defaultValues: !addressData
+                      ? {
+                          address: {
+                            country: initialCountry,
+                          },
+                        }
+                      : {},
                   }}
                 />
               )}
@@ -704,6 +760,7 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
                 )}
               />
               <Button
+                type="button"
                 onClick={async () => {
                   const result = await clientInfo.trigger();
                   if (!result) {
@@ -717,6 +774,20 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
                     setError("provide_information");
                     return;
                   }
+                  if (guest_data[0].first_name) {
+                    addGuestForm.reset({
+                      ...guest_data[0],
+                      birthday: parse(
+                        guest_data[0].birthday,
+                        "yyyy-MM-dd",
+                        new Date()
+                      ),
+                      document_type: guest_data[0].document_type as
+                        | "P"
+                        | "ID"
+                        | "O",
+                    });
+                  }
                   setStep("questions");
                 }}
               >
@@ -725,347 +796,363 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
             </>
           )}
 
-          {step == 'questions' && (
-             <><div
-                     key={"Adult-"+pIndx}
-                     className="w-full flex flex-col gap-2 items-start mx-auto border-none!"
-                   >
-                     <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
-                       {t("guest-info", {
-                         count: pIndx + 1,
-                         category: pIndx < property.adults ? t("adult") : pIndx >= property.adults && pIndx < property.adults+property.children ? questionsT("children") : questionsT("infant"),
-                       })}
-                     </p>
-                     <Form {...addGuestForm}>
-                        <div className="flex flex-col gap-2 w-full">
-                          <div className="-mt-1 sm:grid flex flex-col grid-cols-2 w-full gap-1">
-                            <div className="flex flex-col gap-0 col-span-1">
-                              <p className="text-sm">{questionsT("first-name")}</p>
-                              <FormField
-                                control={addGuestForm.control}
-                                name="first_name"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <Input
-                                        {...field}
-                                        placeholder={questionsT(
-                                          "first_name_placeholder"
-                                        )}
-                                        className="grow"
-                                      />
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            <div className="flex flex-col gap-0 col-span-1">
-                              <p className="text-sm">{questionsT("last-name")}</p>
-                              <FormField
-                                control={addGuestForm.control}
-                                name="last_name"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <Input
-                                        {...field}
-                                        placeholder={questionsT("last_name_placeholder")}
-                                        className="grow"
-                                      />
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            <div className="flex flex-col gap-0 col-span-1">
-                              <p className="text-sm">{questionsT("birthdate")}</p>
-                              <FormField
-                                control={addGuestForm.control}
-                                name="birthday"
-                                render={({ field }) => {
-                                  if (isMobile) {
-                                    return (
-                                      <FormItem>
-                                        <FormControl>
-                                          <Dialog
-                                            open={birthdayOpen}
-                                            onOpenChange={setBirthdayOpen}
-                                          >
-                                            <DialogTrigger asChild>
-                                              <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                  "grow pl-3 text-left font-normal",
-                                                  !field.value &&
-                                                    "text-muted-foreground",
-                                                  addGuestForm.getFieldState(
-                                                    "birthday"
-                                                  ).error &&
-                                                    "outline-destructive outline"
-                                                )}
-                                              >
-                                                {field.value ? (
-                                                  format(field.value, "PPP")
-                                                ) : (
-                                                  <span>Pick a date</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                              </Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="w-[300px] overflow-hidden p-0 z-99 pt-6 gap-1">
-                                              <DialogHeader>
-                                                <DialogTitle>
-                                                  {questionsT("birthdate")}
-                                                </DialogTitle>
-                                                <DialogDescription className="hidden">
-                                                  Birthday
-                                                </DialogDescription>
-                                              </DialogHeader>
-                                              <Calendar
-                                                mode="single"
-                                                showOutsideDays={false}
-                                                locale={
-                                                  localeMap[
-                                                    locale as keyof typeof localeMap
-                                                  ]
-                                                }
-                                                selected={field.value}
-                                                onSelect={(date) => {
-                                                  field.onChange(date);
-                                                  setBirthdayOpen(false);
-                                                }}
-                                                disabled={(date) =>
-                                                  date > new Date() ||
-                                                  date < new Date("1900-01-01")
-                                                }
-                                                captionLayout="dropdown-years"
-                                              />
-                                            </DialogContent>
-                                          </Dialog>
-                                        </FormControl>
-                                      </FormItem>
-                                    );
-                                  }
-                                  return (
-                                    <FormItem>
-                                      <FormControl>
-                                        <Popover
-                                          open={birthdayOpen}
-                                          onOpenChange={setBirthdayOpen}
-                                        >
-                                          <PopoverTrigger asChild>
-                                            <Button
-                                              variant={"outline"}
-                                              className={cn(
-                                                "w-full pl-3 text-left font-normal",
-                                                !field.value &&
-                                                  "text-muted-foreground",
-                                                addGuestForm.formState.errors
-                                                  .birthday &&
-                                                  "border! border-destructive!"
-                                              )}
-                                            >
-                                              {field.value ? (
-                                                format(field.value, "PPP")
-                                              ) : (
-                                                <span>Pick a date</span>
-                                              )}
-                                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                          </PopoverTrigger>
-                                          <PopoverContent
-                                            className="w-auto overflow-hidden p-0 z-99"
-                                            align="start"
-                                          >
-                                            <Calendar
-                                              mode="single"
-                                              showOutsideDays={false}
-                                              locale={
-                                                localeMap[
-                                                  locale as keyof typeof localeMap
-                                                ]
-                                              }
-                                              selected={field.value}
-                                              onSelect={(d) => {
-                                                setBirthdayOpen(false);
-                                                field.onChange(d);
-                                              }}
-                                              disabled={(date) =>
-                                                date > new Date() ||
-                                                date < new Date("1900-01-01")
-                                              }
-                                              captionLayout="dropdown-years"
-                                            />
-                                          </PopoverContent>
-                                        </Popover>
-                                      </FormControl>
-                                    </FormItem>
-                                  );
-                                }}
-                              />
-                            </div>
-                          
-                            <div className="flex flex-col gap-0">
-                              <p className="text-sm">{questionsT("document")}</p>
-                              <FormField
-                                control={addGuestForm.control}
-                                name="document_type"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <Select
-                                        {...field}
-                                        value={field.value}
-                                        onValueChange={(v) => {
-                                          field.onChange(v);
-                                        }}
-                                        defaultValue="P"
-                                      >
-                                        <SelectTrigger className="w-full">
-                                          <SelectValue
-                                            placeholder={questionsT("passport")}
-                                          />
-                                        </SelectTrigger>
-                                        <SelectContent className="z-99 w-full">
-                                          <SelectItem value="P">
-                                            {questionsT("passport")}
-                                          </SelectItem>
-                                          <SelectItem value="ID">
-                                            {questionsT("id")}
-                                          </SelectItem>
-                                          <SelectItem value="O">
-                                            {questionsT("other")}
-                                          </SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            <div className="flex flex-col gap-0">
-                              <p className="text-sm">{questionsT("document_country")}</p>
-
-                              <FormField
-                                control={addGuestForm.control}
-                                name="document_country"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <CountrySelect
-                                        {...field}
-                                        value={field.value}
-                                        onChange={(v) => {
-                                          field.onChange(v);
-                                        }}
-                                        defaultValue="PRT"
-                                        className="z-99 w-full"
-                                      />
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            <div className="flex flex-col gap-0">
-                              <p className="text-sm">{questionsT("document_number")}</p>
-
-                              <FormField
-                                control={addGuestForm.control}
-                                name="document_number"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <Input
-                                        {...field}
-                                        placeholder={questionsT("doc_id_placeholder")}
-                                        className="grow"
-                                      />
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            <div className="flex flex-col gap-0">
-                              <p className="text-sm">{questionsT("nationality")}</p>
-                              <FormField
-                                control={addGuestForm.control}
-                                name="nationality"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <CountrySelect
-                                        {...field}
-                                        defaultValue="PRT"
-                                        className="z-99 w-full"
-                                      />
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            <div className="flex flex-col gap-0">
-                              <p className="text-sm">{questionsT("residence")}</p>
-                              <FormField
-                                control={addGuestForm.control}
-                                name="country_residence"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <CountrySelect
-                                        {...field}
-                                        defaultValue="PRT"
-                                        className="z-99 w-full"
-                                      />
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            <div className="flex flex-col gap-0">
-                              <p className="text-sm">{questionsT("residence-city")}</p>
-                              <FormField
-                                control={addGuestForm.control}
-                                name="city_residence"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <Input
-                                        {...field}
-                                        placeholder={questionsT("city_placeholder")}
-                                        className="grow"
-                                      />
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                           
-                          {Object.keys(addGuestForm.formState.errors).length >
-                            0 && (
-                            <p className="text-sm text-destructive text-center w-full col-span-full">
-                              {questionsT("all-fields-required")}
-                            </p>
+          {step == "questions" && (
+            <>
+              <div
+                key={"Adult-" + pIndx}
+                className="w-full flex flex-col gap-2 items-start mx-auto border-none!"
+              >
+                <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
+                  {t("guest-info", {
+                    count: pIndx + 1,
+                    category:
+                      pIndx < property.adults
+                        ? t("adult")
+                        : pIndx >= property.adults &&
+                          pIndx < property.adults + property.children
+                        ? questionsT("children")
+                        : questionsT("infant"),
+                  })}
+                </p>
+                <Form {...addGuestForm}>
+                  <div className="flex flex-col gap-2 w-full">
+                    <div className="-mt-1 sm:grid flex flex-col grid-cols-2 w-full gap-1">
+                      <div className="flex flex-col gap-0 col-span-1">
+                        <p className="text-sm">{questionsT("first-name")}</p>
+                        <FormField
+                          control={addGuestForm.control}
+                          name="first_name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder={questionsT(
+                                    "first_name_placeholder"
+                                  )}
+                                  className="grow"
+                                />
+                              </FormControl>
+                            </FormItem>
                           )}
-                            </div>
-                            
-                        </div>
-                       
-                      </Form>
+                        />
+                      </div>
+                      <div className="flex flex-col gap-0 col-span-1">
+                        <p className="text-sm">{questionsT("last-name")}</p>
+                        <FormField
+                          control={addGuestForm.control}
+                          name="last_name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder={questionsT(
+                                    "last_name_placeholder"
+                                  )}
+                                  className="grow"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-0 col-span-1">
+                        <p className="text-sm">{questionsT("birthdate")}</p>
+                        <FormField
+                          control={addGuestForm.control}
+                          name="birthday"
+                          render={({ field }) => {
+                            if (isMobile) {
+                              return (
+                                <FormItem>
+                                  <FormControl>
+                                    <Dialog
+                                      open={birthdayOpen}
+                                      onOpenChange={setBirthdayOpen}
+                                    >
+                                      <DialogTrigger asChild>
+                                        <Button
+                                          type="button"
+                                          variant={"outline"}
+                                          className={cn(
+                                            "grow pl-3 text-left font-normal",
+                                            !field.value &&
+                                              "text-muted-foreground",
+                                            addGuestForm.getFieldState(
+                                              "birthday"
+                                            ).error &&
+                                              "outline-destructive outline"
+                                          )}
+                                        >
+                                          {field.value ? (
+                                            format(field.value, "PPP")
+                                          ) : (
+                                            <span>Pick a date</span>
+                                          )}
+                                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent className="w-[300px] overflow-hidden p-0 z-99 pt-6 gap-1">
+                                        <DialogHeader>
+                                          <DialogTitle>
+                                            {questionsT("birthdate")}
+                                          </DialogTitle>
+                                          <DialogDescription className="hidden">
+                                            Birthday
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        <Calendar
+                                          mode="single"
+                                          showOutsideDays={false}
+                                          locale={
+                                            localeMap[
+                                              locale as keyof typeof localeMap
+                                            ]
+                                          }
+                                          selected={field.value}
+                                          onSelect={(date) => {
+                                            field.onChange(date);
+                                            setBirthdayOpen(false);
+                                          }}
+                                          disabled={(date) =>
+                                            date > new Date() ||
+                                            date < new Date("1900-01-01")
+                                          }
+                                          captionLayout="dropdown-years"
+                                        />
+                                      </DialogContent>
+                                    </Dialog>
+                                  </FormControl>
+                                </FormItem>
+                              );
+                            }
+                            return (
+                              <FormItem>
+                                <FormControl>
+                                  <Popover
+                                    open={birthdayOpen}
+                                    onOpenChange={setBirthdayOpen}
+                                  >
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        type="button"
+                                        variant={"outline"}
+                                        className={cn(
+                                          "w-full pl-3 text-left font-normal",
+                                          !field.value &&
+                                            "text-muted-foreground",
+                                          addGuestForm.formState.errors
+                                            .birthday &&
+                                            "border! border-destructive!"
+                                        )}
+                                      >
+                                        {field.value ? (
+                                          format(field.value, "PPP")
+                                        ) : (
+                                          <span>Pick a date</span>
+                                        )}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                      className="w-auto overflow-hidden p-0 z-99"
+                                      align="start"
+                                    >
+                                      <Calendar
+                                        mode="single"
+                                        showOutsideDays={false}
+                                        locale={
+                                          localeMap[
+                                            locale as keyof typeof localeMap
+                                          ]
+                                        }
+                                        selected={field.value}
+                                        onSelect={(d) => {
+                                          setBirthdayOpen(false);
+                                          field.onChange(d);
+                                        }}
+                                        disabled={(date) =>
+                                          date > new Date() ||
+                                          date < new Date("1900-01-01")
+                                        }
+                                        captionLayout="dropdown-years"
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                </FormControl>
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-0">
+                        <p className="text-sm">{questionsT("document")}</p>
+                        <FormField
+                          control={addGuestForm.control}
+                          name="document_type"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Select
+                                  {...field}
+                                  value={field.value}
+                                  onValueChange={(v) => {
+                                    field.onChange(v);
+                                  }}
+                                  defaultValue="P"
+                                >
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue
+                                      placeholder={questionsT("passport")}
+                                    />
+                                  </SelectTrigger>
+                                  <SelectContent className="z-99 w-full">
+                                    <SelectItem value="P">
+                                      {questionsT("passport")}
+                                    </SelectItem>
+                                    <SelectItem value="ID">
+                                      {questionsT("id")}
+                                    </SelectItem>
+                                    <SelectItem value="O">
+                                      {questionsT("other")}
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-0">
+                        <p className="text-sm">
+                          {questionsT("document_country")}
+                        </p>
+
+                        <FormField
+                          control={addGuestForm.control}
+                          name="document_country"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <CountrySelect
+                                  {...field}
+                                  value={field.value}
+                                  onChange={(v) => {
+                                    field.onChange(v);
+                                  }}
+                                  defaultValue="PRT"
+                                  className="z-99 w-full"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-0">
+                        <p className="text-sm">
+                          {questionsT("document_number")}
+                        </p>
+
+                        <FormField
+                          control={addGuestForm.control}
+                          name="document_number"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder={questionsT("doc_id_placeholder")}
+                                  className="grow"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-0">
+                        <p className="text-sm">{questionsT("nationality")}</p>
+                        <FormField
+                          control={addGuestForm.control}
+                          name="nationality"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <CountrySelect
+                                  {...field}
+                                  defaultValue="PRT"
+                                  className="z-99 w-full"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-0">
+                        <p className="text-sm">{questionsT("residence")}</p>
+                        <FormField
+                          control={addGuestForm.control}
+                          name="country_residence"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <CountrySelect
+                                  {...field}
+                                  defaultValue="PRT"
+                                  className="z-99 w-full"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-0">
+                        <p className="text-sm">
+                          {questionsT("residence-city")}
+                        </p>
+                        <FormField
+                          control={addGuestForm.control}
+                          name="city_residence"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder={questionsT("city_placeholder")}
+                                  className="grow"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {Object.keys(addGuestForm.formState.errors).length >
+                        0 && (
+                        <p className="text-sm text-destructive text-center w-full col-span-full">
+                          {questionsT("all-fields-required")}
+                        </p>
+                      )}
+                    </div>
                   </div>
-           <Button
-              type="button"
+                </Form>
+              </div>
+              <Button
+                type="button"
                 onClick={async () => {
                   const success = await addGuestForm.trigger();
-                  if(success){
+                  if (success) {
                     onSubmitAddGuest(addGuestForm.getValues());
                   }
                 }}
               >
                 {t("continue")} <ArrowRight />
-              </Button></>
+              </Button>
+            </>
           )}
 
-          {step == 'paying' && (
+          {step == "paying" && (
             <>
               {addressData && (
                 <Card className="p-2 text-sm flex flex-row gap-2 items-start">
@@ -1102,7 +1189,8 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
                     type="button"
                     disabled={!stripe || loading || priceLoading}
                     onClick={() => {
-                      setStep('client_info');
+                      setStep("client_info");
+                      changePIndx(0);
                     }}
                     variant={"ghost"}
                     className="h-fit! p-1! text-xs gap-1"
@@ -1121,11 +1209,11 @@ export const RoomCheckoutForm = ({ property,initialCountry="PT" }: { property: C
               >
                 <TabsList className="w-full flex flex-row items-center">
                   <TabsTrigger value="card" className="px-4">
-                    <Image unoptimized  src={cardSvg} alt="Card-icon" />
+                    <Image unoptimized src={cardSvg} alt="Card-icon" />
                     {t("card")}
                   </TabsTrigger>
                   <TabsTrigger value="sepa" className="px-4">
-                    <Image unoptimized  src={sepaSvg} alt="Sepa-icon" />
+                    <Image unoptimized src={sepaSvg} alt="Sepa-icon" />
                     SEPA Direct Debit
                   </TabsTrigger>
                 </TabsList>

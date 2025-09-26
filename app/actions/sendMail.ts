@@ -22,8 +22,7 @@ export async function sendMail({ email, html, subject, attachments }: { email: s
             html,
             attachments: attachments
         };
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Mail sent: ", info.messageId);
+        await transporter.sendMail(mailOptions);
         return { success: true };
     } catch (error) {
         console.error("Mail failed: ", error);

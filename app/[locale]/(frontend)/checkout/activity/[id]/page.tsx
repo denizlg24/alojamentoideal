@@ -114,7 +114,6 @@ export default async function Page({
     response.id.toString(),
     date
   );
-  console.log(availabilityResponse);
   if (!availabilityResponse) {
     redirect({ href: `/tours/${id}`, locale });
     return;

@@ -104,7 +104,6 @@ export function AdminChat({
         lastMessageTime.current = savedMessage.createdAt;
       }
     } catch {
-      console.log("error");
     }
   };
 
