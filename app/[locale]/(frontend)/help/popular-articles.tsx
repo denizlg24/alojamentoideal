@@ -33,7 +33,7 @@ export const PopularArticles = () => {
               className="w-fit! text-xs p-1! px-2! rounded! h-fit! justify-self-end"
               asChild
             >
-              <Link href={`/help/${article.id}`}>
+              <Link href={`/help/${article.slug}`}>
                 {t("read-more")} <SquareArrowOutUpRight />
               </Link>
             </Button>
