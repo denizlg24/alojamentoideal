@@ -34,12 +34,10 @@ export async function getCheckoutData(cart: TourItem[]) {
           guests,
           id,
         } = item;
-        console.log(date,startTimeId,selectedRateId,guests,id);
         const response = await bokunRequest<FullExperienceType>({
           method: "GET",
           path: `/restapi/v2.0/experience/${id}/components?componentType=ALL`,
         });
-        console.log(`Experience response: ${response}`)
         if (!response.success) {
           return;
         }
@@ -59,7 +57,6 @@ export async function getCheckoutData(cart: TourItem[]) {
               method: "GET",
               path: `/activity.json/${response.id}/pickup-places`,
             });
-            console.log(`Pickup response: ${pickUpPlaces}`)
             if (pickUpPlaces.success) {
               meeting = {
                 type: "PICK_UP",
@@ -78,7 +75,6 @@ export async function getCheckoutData(cart: TourItem[]) {
                 method: "GET",
                 path: `/activity.json/${response.id}/pickup-places`,
               });
-            console.log(`Pickup Meet response: ${pickUpPlacesMeet}`)
             if (pickUpPlacesMeet.success) {
               meeting = {
                 type: "MEET_ON_LOCATION_OR_PICK_UP",
@@ -96,25 +92,20 @@ export async function getCheckoutData(cart: TourItem[]) {
           response.id.toString(),
           date
         );
-        console.log(`availabilityResponse: `,availabilityResponse)
         if (!availabilityResponse) {
           return;
         }
         const availability = Object.values(availabilityResponse).find(
           (avail) => {
-            console.log(new Date(avail.date), date);
-            console.log("Result: ",isSameDay(new Date(avail.date), date));
             return isSameDay(new Date(avail.date), date)
           }
         );
-        console.log(availability);
         if (!availability) {
           return;
         }
         const selectedRate = availability.rates.find(
           (rate) => rate.id == selectedRateId
         );
-        console.log(`selected rate: ${selectedRate}`)
         if (!selectedRate) {
           return;
         }

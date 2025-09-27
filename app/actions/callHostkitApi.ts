@@ -36,8 +36,5 @@ export async function callHostkitAPI<T = unknown>({
         const text = await response.text();
         throw new Error(`Hostkit API error ${response.status}: ${text}`);
     }
-    const clone = response.clone(); // so you can read twice
-    const rawText = await clone.text();
-    console.log(rawText);
     return (await response.json()) as T;
 }

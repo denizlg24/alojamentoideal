@@ -202,7 +202,6 @@ export const CheckoutForm = ({
           : guestDataArray
       )
     );
-    addGuestForm.reset();
     if (
       step + 1 ==
       cart.filter((item) => item.type == "accommodation").length
@@ -218,14 +217,62 @@ export const CheckoutForm = ({
 
         return;
       } else {
+        if (guest_data[step][pIndx + 1].first_name) {
+          addGuestForm.reset({
+            ...guest_data[step][pIndx + 1],
+            birthday: parse(
+              guest_data[step][pIndx + 1].birthday,
+              "yyyy-MM-dd",
+              new Date()
+            ),
+            document_type: guest_data[step][pIndx + 1].document_type as
+              | "P"
+              | "ID"
+              | "O",
+          });
+        } else {
+          addGuestForm.reset();
+        }
         changePIndx((prev) => prev + 1);
       }
     } else {
       if (pIndx + 1 == property.adults + property.children + property.infants) {
         changePIndx(0);
+        if (guest_data[step + 1][0].first_name) {
+          addGuestForm.reset({
+            ...guest_data[step + 1][0],
+            birthday: parse(
+              guest_data[step + 1][0].birthday,
+              "yyyy-MM-dd",
+              new Date()
+            ),
+            document_type: guest_data[step + 1][0].document_type as
+              | "P"
+              | "ID"
+              | "O",
+          });
+        } else {
+          addGuestForm.reset();
+        }
         setStep((prev) => (prev as number) + 1);
         return;
       } else {
+        if (guest_data[step][pIndx + 1].first_name) {
+          addGuestForm.reset({
+            ...guest_data[step][pIndx + 1],
+            birthday: parse(
+              guest_data[step][pIndx + 1].birthday,
+              "yyyy-MM-dd",
+              new Date()
+            ),
+            document_type: guest_data[step][pIndx + 1].document_type as
+              | "P"
+              | "ID"
+              | "O",
+          });
+        } else {
+          addGuestForm.reset();
+        }
         changePIndx((prev) => prev + 1);
       }
     }
@@ -264,27 +311,9 @@ export const CheckoutForm = ({
     phone?: string | undefined;
   }>();
 
-  const [guest_data, setGuestData] = useState<Guest[][]>(
-    cart
-      .filter((item) => item.type == "accommodation")
-      .map((item) =>
-        Array.from({ length: item.adults + item.children + item.infants }).map(
-          () => ({
-            first_name: "",
-            last_name: "",
-            document_type: "",
-            document_number: "",
-            document_country: "",
-            nationality: "",
-            birthday: "",
-            arrival: "",
-            departure: "",
-            country_residence: "",
-            city_residence: "",
-          })
-        )
-      )
-  );
+  const [guest_data, setGuestData] = useState<Guest[][]>([]);
+
+  console.log(guest_data);
 
   const [accommodationQuestions, setAccommodationQuestions] = useState(
     cart.filter((item) => item.type == "accommodation").length > 0
@@ -332,7 +361,7 @@ export const CheckoutForm = ({
         }
       }
       const response = await getShoppingCartQuestion(cartId);
-      if (!response.success) {
+      if (!response?.success) {
         return;
       }
       const selectedOption = response.options.find(
@@ -350,6 +379,27 @@ export const CheckoutForm = ({
         router.push("/");
       }
     } else if (!cartLoading) {
+      setGuestData(
+        cart
+          .filter((item) => item.type == "accommodation")
+          .map((item) =>
+            Array.from({
+              length: item.adults + item.children + item.infants,
+            }).map(() => ({
+              first_name: "",
+              last_name: "",
+              document_type: "",
+              document_number: "",
+              document_country: "",
+              nationality: "",
+              birthday: "",
+              arrival: "",
+              departure: "",
+              country_residence: "",
+              city_residence: "",
+            }))
+          )
+      );
       setChecking(false);
       getAmount();
     }
@@ -565,7 +615,6 @@ export const CheckoutForm = ({
     pickupPlaceId: string | undefined
   ) => {
     const removed = await removeActivity(cartId, bookingId);
-    console.log(removed);
     if (removed) {
       await startShoppingCart(
         cartId,
@@ -844,11 +893,13 @@ export const CheckoutForm = ({
                       display: { name: "split" },
                       fields: { phone: "always" },
                       validation: { phone: { required: "always" } },
-                      defaultValues: {
-                        address: {
-                          country: initialCountry,
-                        },
-                      },
+                      defaultValues: !addressData
+                        ? {
+                            address: {
+                              country: initialCountry,
+                            },
+                          }
+                        : {},
                     }}
                   />
                 </>
@@ -868,11 +919,13 @@ export const CheckoutForm = ({
                     display: { name: "split" },
                     fields: { phone: "always" },
                     validation: { phone: { required: "always" } },
-                    defaultValues: {
-                      address: {
-                        country: initialCountry,
-                      },
-                    },
+                    defaultValues: !addressData
+                      ? {
+                          address: {
+                            country: initialCountry,
+                          },
+                        }
+                      : {},
                   }}
                 />
               )}
@@ -964,6 +1017,7 @@ export const CheckoutForm = ({
                 )}
               />
               <Button
+                type="button"
                 onClick={async () => {
                   const result = await clientInfo.trigger();
                   if (!result) {
@@ -981,6 +1035,22 @@ export const CheckoutForm = ({
                     (item) => item.type == "accommodation"
                   );
                   if (accommodations.length > 0) {
+                    if (guest_data[0][0].first_name) {
+                      addGuestForm.reset({
+                        ...guest_data[0][0],
+                        birthday: parse(
+                          guest_data[0][0].birthday,
+                          "yyyy-MM-dd",
+                          new Date()
+                        ),
+                        document_type: guest_data[0][0].document_type as
+                          | "P"
+                          | "ID"
+                          | "O",
+                      });
+                    } else {
+                      addGuestForm.reset();
+                    }
                     setAccommodationQuestions(true);
                     setStep(0);
                     return;
@@ -1151,6 +1221,7 @@ export const CheckoutForm = ({
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button
+                                type="button"
                                 variant="outline"
                                 data-empty={
                                   ((question.answers
@@ -1509,6 +1580,7 @@ export const CheckoutForm = ({
                             <Popover>
                               <PopoverTrigger asChild>
                                 <Button
+                                  type="button"
                                   variant="outline"
                                   data-empty={
                                     ((question.answers
@@ -1828,6 +1900,7 @@ export const CheckoutForm = ({
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <Button
+                                    type="button"
                                     variant="outline"
                                     data-empty={
                                       ((question.answers
@@ -2177,6 +2250,7 @@ export const CheckoutForm = ({
                                       <Popover>
                                         <PopoverTrigger asChild>
                                           <Button
+                                            type="button"
                                             variant="outline"
                                             data-empty={
                                               ((question.answers
@@ -2583,6 +2657,7 @@ export const CheckoutForm = ({
                                       <Popover>
                                         <PopoverTrigger asChild>
                                           <Button
+                                            type="button"
                                             variant="outline"
                                             data-empty={
                                               ((question.answers
@@ -3011,6 +3086,7 @@ export const CheckoutForm = ({
                                     >
                                       <DialogTrigger asChild>
                                         <Button
+                                          type="button"
                                           variant={"outline"}
                                           className={cn(
                                             "grow pl-3 text-left font-normal",
@@ -3073,6 +3149,7 @@ export const CheckoutForm = ({
                                   >
                                     <PopoverTrigger asChild>
                                       <Button
+                                        type="button"
                                         variant={"outline"}
                                         className={cn(
                                           "w-full pl-3 text-left font-normal",

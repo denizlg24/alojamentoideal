@@ -55,7 +55,7 @@ export const ContactSearchBar = ({
             if (debouncedQuery.trim()) {
               const _results = searchArticles(debouncedQuery, locale);
               if (_results.length > 0) {
-                router.push(`/help/${_results[0].id}`);
+                router.push(`/help/${_results[0].slug}`);
               }
             }
           }
@@ -64,6 +64,14 @@ export const ContactSearchBar = ({
         placeholder={placeholder}
       />
       <Button
+      onClick={()=>{
+        if (debouncedQuery.trim()) {
+          const _results = searchArticles(debouncedQuery, locale);
+          if (_results.length > 0) {
+            router.push(`/help/${_results[0].slug}`);
+          }
+        }
+      }}
         className="absolute rounded-full! h-10! w-auto! aspect-square! p-0! right-1.5 top-1/2 -translate-y-1/2 z-10 hover:cursor-pointer"
         size={"lg"}
       >
@@ -92,7 +100,7 @@ export const ContactSearchBar = ({
                     className="w-fit! justify-self-end mt-auto! h-fit! rounded! p-1.5!"
                     asChild
                   >
-                    <Link href={`/help/${res.id}`}>
+                    <Link href={`/help/${res.slug}`}>
                       {readMore} <SquareArrowOutUpRight />
                     </Link>
                   </Button>

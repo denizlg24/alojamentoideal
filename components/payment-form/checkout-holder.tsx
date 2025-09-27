@@ -119,8 +119,7 @@ export const CheckoutHolder = ({
     const mapActivities = async () => {
       const mapped = (
         await getCheckoutData(cart.filter((item) => item.type == "activity"))
-      ).filter((v) => v != undefined);
-      console.log("Mapped useeffect return: ", mapped);
+      )?.filter((v) => v != undefined);
       setMappedActivities(mapped);
     };
     if (!cartLoading && cart.length > 0) {
@@ -128,7 +127,6 @@ export const CheckoutHolder = ({
     }
   }, [cart, cartLoading]);
 
-  console.log(mappedActivities);
 
   return (
     <div className="lg:grid flex flex-col-reverse grid-cols-5 w-full max-w-7xl px-4 pt-12 gap-8 relative lg:items-start items-center">

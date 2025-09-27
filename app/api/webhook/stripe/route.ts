@@ -77,6 +77,7 @@ export async function POST(req: Request) {
 
                     const reservation_update_response = await confirmReservations({ reservationIds: foundOrder.reservationIds, transaction_ids: foundOrder.transaction_id, payment_id })
                     console.log(reservation_update_response);
+                    //implement reservation not confirmed;
 
                     if (charge.paid && charge.status === "succeeded") {
                         if (foundOrder.activityBookingReferences && charge.transfer_data) {
@@ -86,12 +87,10 @@ export async function POST(req: Request) {
 
                         const order_email_html = await buildOrderEmail({ plainItems: foundOrder.items, order_id: foundOrder.orderId,reservationReferences:foundOrder.reservationReferences,activityBookingIds:foundOrder.activityBookingIds });
                         const order_attachments = await buildAttachments({ activityBookingIds: foundOrder.activityBookingIds ?? [], activityBookingReferences: foundOrder.activityBookingReferences ?? [] })
-                        const email_sent = await sendOrderEmail({ email: foundOrder.email, orderHtml: order_email_html, attachments: order_attachments, order_id: foundOrder.orderId });
-                        console.log(`Email sent = ${email_sent.success}`);
+                        await sendOrderEmail({ email: foundOrder.email, orderHtml: order_email_html, attachments: order_attachments, order_id: foundOrder.orderId });
 
                         if (foundOrder && foundOrder.reservationIds.length > 0) {
-                            const updatedCart = await issueInvoices({ reservationIds: foundOrder.reservationIds, reservationReferences: foundOrder.reservationReferences, items: foundOrder.items, userInfo: { email: foundOrder.email, name: foundOrder.name, companyName: foundOrder.companyName, tax_number: foundOrder.tax_number, isCompany: foundOrder.isCompany }, charge,order_id:foundOrder.orderId })
-                            console.log("Updated cart: ",updatedCart);
+                            await issueInvoices({ reservationIds: foundOrder.reservationIds, reservationReferences: foundOrder.reservationReferences, items: foundOrder.items, userInfo: { email: foundOrder.email, name: foundOrder.name, companyName: foundOrder.companyName, tax_number: foundOrder.tax_number, isCompany: foundOrder.isCompany }, charge,order_id:foundOrder.orderId })
                         }
                     }
 

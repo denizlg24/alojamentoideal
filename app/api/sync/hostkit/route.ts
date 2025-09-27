@@ -55,7 +55,6 @@ export async function GET(req: Request) {
                 rcode: booking.booking_code,
             }
         })
-        console.log("validated: ", validated);
         if (validated.status === "success") {
             /*const sent = await callHostkitAPI<{ status: 'success' | unknown }>({
                 listingId: booking.listing_id,

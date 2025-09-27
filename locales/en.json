@@ -1383,7 +1383,8 @@
     "total": "Total",
     "no-more-room": "This activity doesn't have enough room.",
     "min-booking": "We need atleast {count} people to book this activity now.",
-    "this-activity-is-no-longer-available": "This activity is no longer available"
+    "this-activity-is-no-longer-available": "This activity is no longer available",
+    "remove-from-cart": "Remove from cart."
   },
   "chat-email": {
     "you-got-a-new-message": "You got a new message.",
