@@ -1288,7 +1288,7 @@ export const TourDisplay = ({
                               experience.id
                             }?selectedRateId=${
                               selectedRate.id
-                            }&date=${selectedDate}&startTimeId=${
+                            }&date=${format(selectedDate,"yyyy-MM-dd")}&startTimeId=${
                               selectedTime ? selectedTime.id : 0
                             }&guests=${JSON.stringify(guests)}`}
                           >
