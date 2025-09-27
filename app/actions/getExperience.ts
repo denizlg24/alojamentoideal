@@ -10,6 +10,12 @@ import { generateReservationID } from "@/lib/utils";
 import { fetchClientSecret } from "./stripe";
 import { registerOrder } from "./createOrder";
 import { bokunRequest } from "@/utils/bokun-server";
+import OrderModel from "@/models/Order";
+import { stripe } from "@/lib/stripe";
+import env from "@/utils/env";
+import { sendMail } from "./sendMail";
+import { getHtml } from "./getHtml";
+import { getTranslations } from "next-intl/server";
 
 export async function getExperience(id: number) {
   if (!(await verifySession())) {
@@ -120,7 +126,7 @@ export async function getCheckoutData(cart: TourItem[]) {
           (sum, val) => sum + val,
           0
         );
-        
+
         if (!availability.unlimitedAvailability) {
           if (
             availability.availabilityCount == 0 ||
@@ -274,7 +280,7 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
     type: 'activity',
     name: activity.title,
     price: activity.totalPrice,
-    selectedDate: format(new Date(activity.startDateTime),"yyyy-MM-dd"),
+    selectedDate: format(new Date(activity.startDateTime), "yyyy-MM-dd"),
     selectedRateId: selectedRateId[i],
     selectedStartTimeId: selectedStartTimeId[i],
     guests: guests[i],
@@ -346,4 +352,84 @@ export async function answerActivityBookingQuestions({
     }
   })
   return updatedResponse.success;
+}
+
+export async function cancelActivityBooking({
+  productConfirmationCode, totalPrice, refund_amount
+}: { productConfirmationCode: string, totalPrice: number, refund_amount: number }) {
+  if (!(await verifySession()))
+    throw new Error("Unauthorized");
+  try {
+    const foundOrder = await OrderModel.findOne({ activityBookingIds: productConfirmationCode })
+    if (!foundOrder) {
+      return false;
+    }
+    const refundResponse = await bokunRequest<{travelDocuments:{invoice:string}}>({
+      path: `/booking.json/cancel-product-booking/${productConfirmationCode}`, method: "POST", body: {
+        refund: refund_amount > 0,
+        refundAmount: Number(((totalPrice / 100) * refund_amount).toFixed(2)),
+        notify: false,
+      }
+    });
+
+    if(refundResponse.success){
+      const email = foundOrder.email;
+      const t = await getTranslations("order-email")
+      const refundHtml = await getHtml('emails/invoice-sent-email.html',
+        [{ "{{products_html}}":t("success-cancel",{code:productConfirmationCode}) },
+        { "{{your-invoice-is-ready}}": t('activity-cancellation') },
+        { "{{view-your-invoice}}": t('view-activity-page') },
+        { "{{order-number}}": t('order-number', { order_id: foundOrder.orderId }) },
+        { '{{invoice_url}}': `${env.SITE_URL}/reservations/activities/${productConfirmationCode}` }
+        ])
+        await sendMail({email,html:refundHtml,subject:t("activity-cancellation-id",{id:productConfirmationCode})})
+    }
+
+    if(refund_amount == 0){
+      return refundResponse.success;
+    }
+
+    const payment_id = foundOrder.payment_id;
+    const payment_intent = await stripe.paymentIntents.retrieve(payment_id);
+    if (!payment_intent) {
+      return false;
+    }
+    const charge = await stripe.charges.retrieve(payment_intent.latest_charge as string);
+    if (!charge) {
+      return;
+    }
+    const transfer = charge.transfer as string;
+    if (!transfer) {
+      return;
+    }
+    const refund = await stripe.refunds.create({
+      charge: charge.id,
+      amount: Number(((totalPrice / 100) * refund_amount).toFixed(2)) * 100,
+    });
+
+    if(refund){
+      const email = foundOrder.email;
+      const t = await getTranslations("order-email")
+      const refundHtml = await getHtml('emails/invoice-sent-email.html',
+        [{ "{{products_html}}":t("success-refund",{amount:refund.amount/100}) },
+        { "{{your-invoice-is-ready}}": t('activity-cancellation') },
+        { "{{view-your-invoice}}": t('view-activity-page') },
+        { "{{order-number}}": t('order-number', { order_id: foundOrder.orderId }) },
+        { '{{invoice_url}}': `${env.SITE_URL}/reservations/activities/${productConfirmationCode}` }
+        ])
+        await sendMail({email,html:refundHtml,subject:t("activity-refund-id",{id:productConfirmationCode})})
+    }
+    await stripe.transfers.createReversal(
+      transfer,
+      {
+        amount: Number(((totalPrice / 100) * refund_amount).toFixed(2)) * 100,
+      }
+    );
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+
+
 }

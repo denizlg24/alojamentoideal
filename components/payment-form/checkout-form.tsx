@@ -1700,6 +1700,118 @@ export const CheckoutForm = ({
                           </div>
                         );
                       }
+                      if (question.dataFormat == "TIME") {
+                        return (
+                          <div
+                            key={question.questionId}
+                            className="w-full flex flex-col gap-1 items-start"
+                          >
+                            <Label className="text-sm font-normal">
+                              {question.label}
+                              {question.required && (
+                                <span className="text-xs text-destructive">
+                                  *
+                                </span>
+                              )}
+                            </Label>
+                            <div className="flex flex-row items-center gap-1 w-full">
+                              <Select
+                              value={question.answers ? ((question.answers[0] ?? '') == '') ? '' : question.answers[0].split(":")[0] : ''}
+                                onValueChange={(val) => {
+                                  setActivityBookings((prev) =>
+                                    prev.map((activity, indx) =>
+                                      indx == step
+                                        ? {
+                                            ...activity,
+                                            pickupQuestions:
+                                              activity.pickupQuestions?.map(
+                                                (q) =>
+                                                  q.questionId ==
+                                                  question.questionId
+                                                    ? {
+                                                        ...q,
+                                                        answers: q.answers && q.answers[0] ? [`${val}:${q.answers[0]?.split(":")[1] ?? "00"}`] : [`${val}:00`],
+                                                      }
+                                                    : q
+                                              ),
+                                          }
+                                        : activity
+                                    )
+                                  );
+                                }}
+                              >
+                                <SelectTrigger className={cn("grow flex-1",  (!question.answers ||
+                                    ((question.answers[0] ?? "") == "")) &&
+                                    question.required && "border border-destructive")}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Array.from({ length: 24 }).map((_, indx) => {
+                                    return (
+                                      <SelectItem
+                                        key={indx}
+                                        value={(indx).toLocaleString(undefined, {
+                                          minimumIntegerDigits: 2,
+                                        })}
+                                      >
+                                        {(indx).toLocaleString(undefined, {
+                                          minimumIntegerDigits: 2,
+                                        })}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectContent>
+                              </Select>
+                              <p className="text-sm font-semibold shrink-0">:</p>
+                              <Select value={question.answers ? ((question.answers[0] ?? '') == '') ? '' : question.answers[0].split(":")[1] ?? '' : ''}
+                                onValueChange={(val) => {
+                                  setActivityBookings((prev) =>
+                                    prev.map((activity, indx) =>
+                                      indx == step
+                                        ? {
+                                            ...activity,
+                                            pickupQuestions:
+                                              activity.pickupQuestions?.map(
+                                                (q) =>
+                                                  q.questionId ==
+                                                  question.questionId
+                                                    ? {
+                                                        ...q,
+                                                        answers: q.answers && q.answers[0] ? [`${q.answers[0]?.split(":")[0] ?? "00"}:${val}`] : [`00:${val}`],
+                                                      }
+                                                    : q
+                                              ),
+                                          }
+                                        : activity
+                                    )
+                                  );
+                                }}>
+                                <SelectTrigger className={cn("grow flex-1",  (!question.answers ||
+                                    ((question.answers[0] ?? "") == "")) &&
+                                    question.required && "border border-destructive")}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Array.from({ length: 60 }).map((_, indx) => {
+                                    return (
+                                      <SelectItem
+                                        key={indx}
+                                        value={indx.toLocaleString(undefined, {
+                                          minimumIntegerDigits: 2,
+                                        })}
+                                      >
+                                        {indx.toLocaleString(undefined, {
+                                          minimumIntegerDigits: 2,
+                                        })}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        );
+                      }
                       return (
                         <div
                           key={question.questionId}

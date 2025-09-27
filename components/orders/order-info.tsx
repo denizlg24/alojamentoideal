@@ -187,7 +187,7 @@ export const OrderInfo = ({
                         <p className="font-medium text-sm">
                           {indx + 1}. {item.name} - {t("confirmation-code")}
                           {": "}
-                          {order.reservationReferences[indx]}
+                          {order.reservationReferences[order.items.filter((item) => item.type == 'accommodation').indexOf(item)]}
                         </p>
                         <div className="w-full flex flex-col gap-0 pl-3">
                           {item.fees.map((fee) => {
@@ -236,7 +236,7 @@ export const OrderInfo = ({
                           {indx + 1}. {item.name} - {t("confirmation-code")}
                           {": "}
                           {order.activityBookingIds
-                            ? order.activityBookingIds[indx]
+                            ? order.activityBookingIds[order.items.filter((item) => item.type == 'activity').indexOf(item)]
                             : ""}
                         </p>
                         <div className="w-full flex flex-col gap-0 pl-3">

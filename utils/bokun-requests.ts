@@ -840,7 +840,7 @@ export const validators: Record<DataFormat, (value: string) => boolean> = {
 };
 
 export function isValid(value: string, format?: DataFormat): boolean {
-    if (!format) return true;
+    if (!format || !value) return true;
     const validator = validators[format];
     return validator ? validator(value) : true;
 }

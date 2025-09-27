@@ -1,29 +1,50 @@
 import { Link } from "@/i18n/navigation";
 import { getArticlesByLocale } from "@/utils/help-articles";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { use } from "react";
 
-export async function generateMetadata() {
-  const t = await getTranslations("metadata");
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug: string }>;
+}) {
+  const { locale, slug } = await params;
+
+  const foundArticle_EN = getArticlesByLocale("en").find(
+    (article) => article.slug == slug
+  );
+  const foundArticle_PT = getArticlesByLocale("pt").find(
+    (article) => article.slug == slug
+  );
+  const foundArticle_ES = getArticlesByLocale("es").find(
+    (article) => article.slug == slug
+  );
+  if (!foundArticle_EN && !foundArticle_PT && !foundArticle_ES) {
+    notFound();
+  }
+  
+  const foundArticleId = foundArticle_EN?.id ?? foundArticle_ES?.id ?? foundArticle_PT?.id;
+  const article = getArticlesByLocale(locale).find((article) => article.id == foundArticleId);
+
+  if (!article) {
+    return;
+  }
 
   return {
-    title: t("contact.title"),
-    description: t("contact.description"),
-    keywords: t("contact.keywords")
-      .split(",")
-      .map((k) => k.trim()),
+    title: article.title,
+    description: article.preview, // or article.description if you have it
     openGraph: {
-      title: t("contact.title"),
-      description: t("contact.description"),
-      url: "https://alojamentoideal.pt/help",
-      type: "website",
+      title: article.title,
+      description: article.preview,
+      url: `https://alojamentoideal.pt/help/${slug}`,
+      type: "article",
     },
     twitter: {
       card: "summary_large_image",
-      title: t("contact.title"),
-      description: t("contact.description"),
+      title: article.title,
+      description: article.preview,
     },
   };
 }
@@ -36,13 +57,24 @@ export default function Home({
 }) {
   const { locale, slug } = use<{ locale: string; slug: string }>(params);
   setRequestLocale(locale);
-  const foundArticle = getArticlesByLocale(locale).find(
+  const foundArticle_EN = getArticlesByLocale("en").find(
     (article) => article.slug == slug
   );
-  if (!foundArticle) {
+  const foundArticle_PT = getArticlesByLocale("pt").find(
+    (article) => article.slug == slug
+  );
+  const foundArticle_ES = getArticlesByLocale("es").find(
+    (article) => article.slug == slug
+  );
+  if (!foundArticle_EN && !foundArticle_PT && !foundArticle_ES) {
     notFound();
   }
-
+  
+  const foundArticleId = foundArticle_EN?.id ?? foundArticle_ES?.id ?? foundArticle_PT?.id;
+  const foundArticle = getArticlesByLocale(locale).find((article) => article.id == foundArticleId);
+  if(!foundArticle){
+    notFound();
+  }
   return (
     <main className="flex flex-col items-stretch w-full mx-auto md:gap-0 gap-2 mb-16 sm:pt-12 pt-6">
       <article className="md:prose prose-sm w-full! max-w-5xl! mx-auto! flex flex-col px-4">

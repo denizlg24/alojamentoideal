@@ -9,7 +9,7 @@ import {
 import { notFound } from "next/navigation";
 import { Card, CardHeader } from "@/components/ui/card";
 import Image from "next/image";
-import { format, subMinutes } from "date-fns";
+import { differenceInHours, format, subMinutes } from "date-fns";
 import { localeMap } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,11 +23,19 @@ import {
 
 import { TicketButton } from "./ticket-button";
 import { bokunRequest } from "@/utils/bokun-server";
-import { AlertCircle, CheckCircle, ExternalLink, PlusCircle } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  ExternalLink,
+  PlusCircle,
+  RefreshCwIcon,
+} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoomInfoMap } from "@/components/room/room-info-map";
 import { PickupPlaceCard } from "./pickup-place-card";
 import { CompleteBookingQuestion } from "./booking-questions-complete-card";
+import { Separator } from "@/components/ui/separator";
+import { CancelBookingDialog } from "./cancel-booking-dialog";
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
   return {
@@ -63,6 +71,19 @@ function formatTenMinutesBefore(hour: number, minute: number) {
   return format(result, "HH:mm");
 }
 
+function getRefundPercentage(activityDate: Date, currentDate: Date): number {
+  const diffMs = activityDate.getTime() - currentDate.getTime();
+  const diffHours = diffMs / (1000 * 60 * 60);
+
+  if (diffHours >= 48) {
+    return 100; // Full refund
+  } else if (diffHours >= 24) {
+    return 50; // Half refund
+  } else {
+    return 0; // No refund
+  }
+}
+
 export default async function Page({
   params,
 }: {
@@ -94,6 +115,7 @@ export default async function Page({
       question: string;
       type: string;
     }[];
+    productConfirmationCode:string;
     bookedPricingCategories: {
       id: number;
       title: string;
@@ -127,6 +149,17 @@ export default async function Page({
     pickupTime?: string;
     startTime?: string;
     startTimeId?: number;
+    cancellationPolicy?: {
+      id: number;
+      title: string;
+      penaltyRules: {
+        id: number;
+        cutoffHours: number;
+        charge: number;
+        chargeType: "percentage" | "amount";
+        percentage: number;
+      }[];
+    };
     quantityByPricingCategory: { [categoryId: number]: number };
     status:
       | "CART"
@@ -236,6 +269,11 @@ export default async function Page({
             (question.answers ?? []).length === 0 ||
             question.answers?.[0]?.trim?.() === ""
         ));
+
+  const refundPercentage = getRefundPercentage(
+    new Date(bokunResponse.date),
+    new Date()
+  );
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full px-4 max-w-7xl mx-auto pt-12 flex flex-col gap-4">
@@ -255,6 +293,7 @@ export default async function Page({
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
+                  disabled={bokunResponse.status != "CONFIRMED" && bokunResponse.status != "ARRIVED" && bokunResponse.status != "RESERVED"}
                     className="h-fit p-0! sm:text-sm text-xs"
                     variant={"link"}
                   >
@@ -311,6 +350,7 @@ export default async function Page({
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
+                  disabled={bokunResponse.status != "CONFIRMED" && bokunResponse.status != "ARRIVED" && bokunResponse.status != "RESERVED"}
                     className="h-fit p-0! sm:text-sm text-xs"
                     variant={"link"}
                   >
@@ -474,7 +514,17 @@ export default async function Page({
                 </div>
                 <div className="flex flex-col">
                   <h2 className="sm:text-lg text-base font-semibold">
-                    {bokunResponse.activity.title}{bokunResponse.activity.startTimes.find((startTime) => startTime.id == bokunResponse.startTimeId)?.externalLabel? ` - ${bokunResponse.activity.startTimes.find((startTime) => startTime.id == bokunResponse.startTimeId)?.externalLabel}` : ''}
+                    {bokunResponse.activity.title}
+                    {bokunResponse.activity.startTimes.find(
+                      (startTime) => startTime.id == bokunResponse.startTimeId
+                    )?.externalLabel
+                      ? ` - ${
+                          bokunResponse.activity.startTimes.find(
+                            (startTime) =>
+                              startTime.id == bokunResponse.startTimeId
+                          )?.externalLabel
+                        }`
+                      : ""}
                   </h2>
                   <h3 className="sm:text-base text-sm font-medium text-muted-foreground">
                     {bokunResponse.startTime &&
@@ -584,24 +634,24 @@ export default async function Page({
                 <h1 className="sm:text-base text-sm font-bold">
                   {t("meet-on-location")}
                 </h1>
-                {bokunResponse.activity.bookingType ==
-                        "DATE_AND_TIME" && (
-                        <p className="sm:text-sm text-xs font-bold text-left">
-                          {t("arrive-by", {
-                            time:
-                              formatTenMinutesBefore(
-                                bokunResponse.activity.startTimes.find(
-                                  (startTime) =>
-                                    startTime.id == bokunResponse.startTimeId
-                                )!.hour,
-                                bokunResponse.activity.startTimes.find(
-                                  (startTime) =>
-                                    startTime.id == bokunResponse.startTimeId
-                                )!.minute
-                              ) ?? "",
-                          })}.
-                        </p>
-                      )}
+                {bokunResponse.activity.bookingType == "DATE_AND_TIME" && (
+                  <p className="sm:text-sm text-xs font-bold text-left">
+                    {t("arrive-by", {
+                      time:
+                        formatTenMinutesBefore(
+                          bokunResponse.activity.startTimes.find(
+                            (startTime) =>
+                              startTime.id == bokunResponse.startTimeId
+                          )!.hour,
+                          bokunResponse.activity.startTimes.find(
+                            (startTime) =>
+                              startTime.id == bokunResponse.startTimeId
+                          )!.minute
+                        ) ?? "",
+                    })}
+                    .
+                  </p>
+                )}
                 <h2 className="sm:text-sm text-xs">
                   {t("meet-on-one-of-points")}
                 </h2>
@@ -635,13 +685,60 @@ export default async function Page({
                           street={startPoint.title}
                         />
                       </div>
-                      
                     </TabsContent>
                   );
                 })}
               </Tabs>
             </Card>
           )}
+        {(bokunResponse.status == "CONFIRMED" || bokunResponse.status == "ARRIVED") && bokunResponse.cancellationPolicy && (
+          <Card className="w-full flex flex-col gap-4 p-4!">
+            <div className="w-full flex flex-col gap-1">
+              <h1 className="sm:text-base text-sm font-bold">
+                {t("cancellation-and-refunds")}
+              </h1>
+            </div>
+            <div className="w-full flex flex-col gap-2">
+              {bokunResponse.cancellationPolicy.penaltyRules.length == 0 && (
+                <>
+                  <p className="inline-flex gap-1 w-full items-center justify-start sm:text-base text-sm">
+                    <RefreshCwIcon className="text-blue-500 w-4 h-4 shrink-0" />
+                    {t("refund-not-available")}
+                  </p>
+                  <Separator className="mb-1" />
+                  <CancelBookingDialog refundPercentage={0} productConfirmationCode={bokunResponse.productConfirmationCode} total_price={bokunResponse.totalPrice}/>
+                  <p className="text-muted-foreground text-sm -mt-1">
+                    {t("cancellation-available")}
+                  </p>
+                </>
+              )}
+              {bokunResponse.cancellationPolicy.penaltyRules.length > 0 && (
+                <>
+                  <p className="inline-flex gap-1 w-full items-center justify-start sm:text-base text-sm">
+                    <RefreshCwIcon className="text-blue-500 w-4 h-4 shrink-0" />
+                    {t("standard-refund-title")}
+                  </p>
+                  <ul className="list-decimal list-inside pl-2 marker:text-muted-foreground/50 sm:text-sm text-xs flex flex-col items-start gap-2">
+                    <li> {t("standard-refund-p1")}</li>
+                    <li> {t("standard-refund-p2")}</li>
+                    <li> {t("standard-refund-p3")}</li>
+                  </ul>
+                  <Separator className="mb-1" />
+                 <CancelBookingDialog refundPercentage={refundPercentage} productConfirmationCode={bokunResponse.productConfirmationCode} total_price={bokunResponse.totalPrice}/>
+                  <p className="text-muted-foreground text-sm -mt-1">
+                    {refundPercentage > 0 ? t("cancellation-desc", {
+                      hours: differenceInHours(
+                        new Date(bokunResponse.date),
+                        new Date()
+                      ),
+                      refund: refundPercentage,
+                    }) : t("not-refundable-anymore",{hours:t("less-than-24")})}
+                  </p>
+                </>
+              )}
+            </div>
+          </Card>
+        )}
       </div>
     </main>
   );
