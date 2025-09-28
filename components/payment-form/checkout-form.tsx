@@ -89,6 +89,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import { FeeType } from "@/schemas/price.schema";
 
 const elementStyle: Appearance = {
   variables: {
@@ -341,11 +342,14 @@ export const CheckoutForm = ({
     boolean[]
   >(new Array(activities.length).fill(false));
 
+  const [fees,setFees] = useState<FeeType[][]>([]);
+
   const router = useRouter();
   useEffect(() => {
     const getAmount = async () => {
       setPriceLoading(true);
       const amount = await calculateAmount(cart);
+      setFees(amount.fees);
       for (const activity of cart.filter((item) => item.type == "activity")) {
         const shopping = await startShoppingCart(
           cartId,
@@ -424,6 +428,7 @@ export const CheckoutForm = ({
     const clientAddress = addressData.address;
     setLoadingMessage("loading_create_res");
     const { success, client_secret, payment_id, order_id } = await buyCart({
+      fees,
       cart,
       clientName,
       clientEmail,
@@ -706,6 +711,7 @@ export const CheckoutForm = ({
         const clientAddress = addressData.address;
         setLoadingMessage("loading_create_res");
         const { success, client_secret, payment_id, order_id } = await buyCart({
+          fees,
           cart,
           clientName,
           clientEmail,
@@ -801,6 +807,7 @@ export const CheckoutForm = ({
       }
     });
   }, [
+    fees,
     stripe,
     _amount,
     addressData,

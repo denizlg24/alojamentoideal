@@ -70,6 +70,7 @@ import {
 import { cn, localeMap } from "@/lib/utils";
 import { CountrySelect } from "@/components/orders/country-select";
 import { Guest } from "@/models/GuestData";
+import { FeeType } from "@/schemas/price.schema";
 
 const elementStyle: Appearance = {
   variables: {
@@ -236,6 +237,7 @@ export const RoomCheckoutForm = ({
   const [step, setStep] = useState<"client_info" | "questions" | "paying">(
     "client_info"
   );
+  const [fees,setFees] = useState<FeeType[][]>([]);
 
   const router = useRouter();
   useEffect(() => {
@@ -243,6 +245,7 @@ export const RoomCheckoutForm = ({
       setPriceLoading(true);
       const amount = await calculateAmount([property]);
       setAmount(amount.total);
+      setFees(amount.fees);
       setPriceLoading(false);
     };
     if (!property) {
@@ -292,6 +295,7 @@ export const RoomCheckoutForm = ({
       transaction,
       order_id,
     } = await purchaseAccommodation({
+      amount:{total:_amount,fees:fees[0]},
       property,
       clientName,
       clientEmail,
@@ -487,6 +491,7 @@ export const RoomCheckoutForm = ({
           transaction,
           order_id,
         } = await purchaseAccommodation({
+          amount:{total:_amount,fees:fees[0]},
           property,
           clientName,
           clientEmail,
@@ -553,6 +558,7 @@ export const RoomCheckoutForm = ({
     router,
     needCompanySwitch,
     guest_data,
+    fees
   ]);
 
   //questions

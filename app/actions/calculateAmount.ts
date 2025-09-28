@@ -76,5 +76,6 @@ export const calculateAmount = async (cart: CartItem[]) => {
             total += price.price.total;
         }
     }
+    console.log(fees);
     return {total:total * 100,fees };
 }

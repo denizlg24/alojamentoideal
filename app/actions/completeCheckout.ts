@@ -15,8 +15,9 @@ import { FullExperienceType } from "@/utils/bokun-requests";
 import { bokunRequest } from "@/utils/bokun-server";
 import GuestDataModel, { Guest } from "@/models/GuestData";
 import { ok } from "assert";
+import { FeeType } from "@/schemas/price.schema";
 
-export async function buyCart({ guest_data, cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName, mainContactDetails, activityBookings }: {
+export async function buyCart({ fees,guest_data, cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName, mainContactDetails, activityBookings }: {
     cart: CartItem[], clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
         line1: string;
         line2: string | null;
@@ -26,7 +27,7 @@ export async function buyCart({ guest_data, cart, clientName, clientEmail, clien
         country: string;
     }, clientTax?: string, isCompany: boolean, companyName?: string, mainContactDetails?: { questionId: string, values: string[] }[],
     activityBookings?: { activityId: number, answers?: { questionId: string, values: string[] }[], pickupAnswers?: { questionId: string, values: string[] }[], rateId: number, startTimeId: number | undefined, date: string, pickup: boolean, pickupPlaceId: string | undefined, passengers: { pricingCategoryId: number, groupSize: number, passengerDetails: { questionId: string, values: string[] }[], answers: { questionId: string, values: string[] }[] }[] }[],
-    guest_data?: Guest[][]
+    guest_data?: Guest[][],fees:FeeType[][]
 }) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
@@ -62,7 +63,7 @@ export async function buyCart({ guest_data, cart, clientName, clientEmail, clien
                     note: clientNotes,
                     guests: (property as AccommodationItem).adults + (property as AccommodationItem).children,
                     pets: (property as AccommodationItem).pets,
-                    fees: property_amount.fees,
+                    fees: fees[indx],
                 },
                 undefined,
                 undefined
