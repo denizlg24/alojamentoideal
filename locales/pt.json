@@ -1129,7 +1129,11 @@
     "activity-refund-id": "Reembolso da atividade {id}",
     "success-cancel": "Você cancelou com sucesso sua atividade {code}.",
     "success-refund": "Emitimos um reembolso de {amount}€. \nOs fundos podem levar até 5 dias úteis para aparecer na sua conta.",
-    "view-activity-page": "Ver atividade"
+    "view-activity-page": "Ver atividade",
+    "reservation-cancellation": "Cancelamento da reserva {order_id} ",
+    "view-reservation": "Ver página da reserva.",
+    "your-activity-cancelled": "Você cancelou a sua reserva.",
+    "your-new-invoice-is-ready": "A sua nova fatura está pronta."
   },
   "toast": {
     "email-sent": "Email enviado com sucesso!",

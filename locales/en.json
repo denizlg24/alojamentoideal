@@ -1129,7 +1129,11 @@
     "activity-cancellation": "Activity Cancellation Request",
     "activity-cancellation-id": "Activity Cancellation Request - {id}",
     "activity-refund-id": "Refund for Activity {id}",
-    "success-refund": "We have issued a refund of {amount}€. The funds may take up to 5 business day to show up on your account."
+    "success-refund": "We have issued a refund of {amount}€. The funds may take up to 5 business day to show up on your account.",
+    "your-new-invoice-is-ready": "Your new invoice is ready.",
+    "your-activity-cancelled": "You have cancelled your reservation.",
+    "view-reservation": "View reservation page.",
+    "reservation-cancellation": "Reservation {order_id} cancellation"
   },
   "toast": {
     "email-sent": "Email sent successfully!",
