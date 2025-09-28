@@ -369,7 +369,7 @@ export const CheckoutForm = ({
       );
       setMainContactDetails(response.questions.mainContactDetails);
       setActivityBookings(response.questions.activityBookings);
-      setAmount(amount + ((selectedOption?.amount ?? 0) * 100 || 0));
+      setAmount(amount.total + ((selectedOption?.amount ?? 0) * 100 || 0));
       setPriceLoading(false);
     };
     if (cart.length == 0 && !cartLoading) {

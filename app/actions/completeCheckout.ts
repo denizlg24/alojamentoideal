@@ -44,7 +44,7 @@ export async function buyCart({ guest_data, cart, clientName, clientEmail, clien
             ok(guest_data);
             const guests_data = guest_data[indx];
             const property_amount = await calculateAmount([property]);
-            amounts.push(property_amount);
+            amounts.push(property_amount.total);
             const reservation = await hostifyRequest<{ reservation: ReservationType }>(
                 `reservations`,
                 "POST",
@@ -56,13 +56,13 @@ export async function buyCart({ guest_data, cart, clientName, clientEmail, clien
                     name: clientName,
                     email: clientEmail,
                     phone: clientPhone,
-                    total_price: property_amount / 100,
+                    total_price: property_amount.total / 100,
                     source: "alojamentoideal.pt",
                     status: "pending",
                     note: clientNotes,
                     guests: (property as AccommodationItem).adults + (property as AccommodationItem).children,
                     pets: (property as AccommodationItem).pets,
-                    fees: (property as AccommodationItem).fees,
+                    fees: property_amount.fees,
                 },
                 undefined,
                 undefined
@@ -75,7 +75,7 @@ export async function buyCart({ guest_data, cart, clientName, clientEmail, clien
                 undefined,
                 {
                     reservation_id: reservation.reservation.id,
-                    amount: property_amount / 100,
+                    amount: property_amount.total / 100,
                     currency: "EUR",
                     charge_date: format(new Date(), "yyyy-MM-dd"),
                     is_completed: 0,

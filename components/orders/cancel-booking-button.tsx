@@ -1,5 +1,6 @@
 "use client";
 
+import { clientCancelReservation } from "@/app/actions/cancelReservation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-//import { usePathname } from "@/i18n/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -17,26 +18,30 @@ import { useState, useRef } from "react";
 
 export const CancelBookingButton = ({
   refundPercentage,
-  //productConfirmationCode,
+  reservation_id,
+  productConfirmationCode,
+  order_id
 }: {
   refundPercentage: number;
- // productConfirmationCode: string;
+  reservation_id:number;
+ productConfirmationCode: string;
+ order_id:string;
 }) => {
   const t = useTranslations("propertyCard");
   const [loading, setLoading] = useState(false);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
-  //const pathname = usePathname();
+  const pathname = usePathname();
   const [error, setError] = useState("");
   const cancel = async () => {
     setError("");
     setLoading(true);
-   
-    //if (response) {
-    //  closeBtnRef.current?.click();
-    //  window.location.href = pathname;
-    //} else {
-    //  setError(t("error-canceling"));
-    //}
+    const response = await clientCancelReservation(reservation_id,productConfirmationCode,refundPercentage,order_id);
+    if (response) {
+      closeBtnRef.current?.click();
+      window.location.href = pathname;
+    } else {
+      setError(t("error-canceling"));
+    }
     setLoading(false);
   };
   return (

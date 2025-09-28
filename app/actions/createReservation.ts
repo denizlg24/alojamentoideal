@@ -11,6 +11,7 @@ import { verifySession } from "@/utils/verifySession";
 import { generateUniqueId } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
 import GuestDataModel, { Guest } from "@/models/GuestData";
+import { connectDB } from "@/lib/mongodb";
 
 export async function purchaseAccommodation({ property, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName,guest_data }: {
     property: AccommodationItem, clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
@@ -26,6 +27,7 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
         throw new Error('Unauthorized');
     }
     try {
+        await connectDB();
         const amount = await calculateAmount([property]);
         const reservation = await hostifyRequest<{ reservation: ReservationType }>(
             `reservations`,
@@ -38,13 +40,13 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
                 name: clientName,
                 email: clientEmail,
                 phone: clientPhone,
-                total_price: amount/100,
+                total_price: amount.total /100,
                 source: "alojamentoideal.pt",
                 status: "pending",
                 note: clientNotes,
                 guests: property.adults + property.children,
                 pets: property.pets,
-                fees: property.fees,
+                fees: amount.fees,
             },
             undefined,
             undefined
@@ -52,7 +54,7 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
 
 
         const { success, client_secret, id } = await fetchClientSecret(
-            {alojamentoIdeal:amount, detours:0},
+            {alojamentoIdeal:amount.total, detours:0},
             clientName,
             clientEmail,
             clientPhone,
@@ -67,7 +69,7 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
             undefined,
             {
                 reservation_id: reservation.reservation.id,
-                amount: amount/100,
+                amount: amount.total/100,
                 currency: "EUR",
                 charge_date: format(new Date(), "yyyy-MM-dd"),
                 is_completed: 0,

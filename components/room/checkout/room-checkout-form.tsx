@@ -242,7 +242,7 @@ export const RoomCheckoutForm = ({
     const getAmount = async () => {
       setPriceLoading(true);
       const amount = await calculateAmount([property]);
-      setAmount(amount);
+      setAmount(amount.total);
       setPriceLoading(false);
     };
     if (!property) {

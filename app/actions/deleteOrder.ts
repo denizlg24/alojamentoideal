@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
+import { connectDB } from "@/lib/mongodb";
 import { ChatModel, MessageModel } from "@/models/Chat";
 import GuestDataModel from "@/models/GuestData";
 import OrderModel from "@/models/Order";
@@ -17,6 +18,7 @@ export async function deleteOrder(order_id: string) {
         throw new Error("Unauthorized")
     }
     try {
+        await connectDB();
         const foundOrder = await OrderModel.findOneAndDelete({ orderId: order_id });
         if (!foundOrder) {
             return false;

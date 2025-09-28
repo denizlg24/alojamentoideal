@@ -1164,25 +1164,32 @@ export const PropertyInfoCard = ({
           </Dialog>
         </div>
         <Separator className="col-span-full my-4" />
-        <Card className="w-full flex flex-col gap-4 p-4! col-span-full">
-          <div className="w-full flex flex-col gap-1">
-            <h1 className="sm:text-base text-sm font-bold">
-              {t("cancellation-and-refunds")}
-            </h1>
-          </div>
-          <p className="inline-flex gap-1 w-full items-center justify-start sm:text-base text-sm">
-            <RefreshCwIcon className="text-blue-500 w-4 h-4 shrink-0" />
-            {t("standard-refund-title-house")}
-          </p>
-          <ul className="list-decimal list-inside pl-2 marker:text-muted-foreground/50 sm:text-sm text-xs flex flex-col items-start gap-2">
-            <li> {t("house-standard-refund-p1")}</li>
-            <li> {t("house-standard-refund-p2")}</li>
-            <li> {t("house-standard-refund-p3")}</li>
-          </ul>
-          <Separator className="mb-1" />
-          <CancelBookingButton refundPercentage={refund} />
-          <p className="text-muted-foreground text-sm -mt-1">{message}</p>
-        </Card>
+        {reservation.status == "accepted" && (
+          <Card className="w-full flex flex-col gap-4 p-4! col-span-full">
+            <div className="w-full flex flex-col gap-1">
+              <h1 className="sm:text-base text-sm font-bold">
+                {t("cancellation-and-refunds")}
+              </h1>
+            </div>
+            <p className="inline-flex gap-1 w-full items-center justify-start sm:text-base text-sm">
+              <RefreshCwIcon className="text-blue-500 w-4 h-4 shrink-0" />
+              {t("standard-refund-title-house")}
+            </p>
+            <ul className="list-decimal list-inside pl-2 marker:text-muted-foreground/50 sm:text-sm text-xs flex flex-col items-start gap-2">
+              <li> {t("house-standard-refund-p1")}</li>
+              <li> {t("house-standard-refund-p2")}</li>
+              <li> {t("house-standard-refund-p3")}</li>
+            </ul>
+            <Separator className="mb-1" />
+            <CancelBookingButton
+              refundPercentage={refund}
+              reservation_id={reservation.id}
+              productConfirmationCode={reservation.confirmation_code}
+              order_id={order.orderId}
+            />
+            <p className="text-muted-foreground text-sm -mt-1">{message}</p>
+          </Card>
+        )}
       </div>
     </div>
   );
