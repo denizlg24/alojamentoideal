@@ -8,6 +8,8 @@ import { syncAutomatedMessages } from "@/app/actions/syncAutomatedMessages";
 import { getChatId } from "@/app/actions/getChatId";
 import { PropertyInfoCard } from "@/components/orders/property-info-card";
 import { AccommodationItem } from "@/hooks/cart-context";
+import { ReservationFee } from "@/utils/hostify-appartment-types";
+import { OrderDocument } from "@/models/Order";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -33,15 +35,12 @@ export async function generateMetadata() {
 }
 
 const getReservationInfo = async (rId: string) => {
-  const info = await hostifyRequest<{ reservation: ReservationType }>(
-    `reservations/${rId}`,
-    "GET",
-    undefined,
-    undefined,
-    undefined
-  );
+  const info = await hostifyRequest<{
+    reservation: ReservationType;
+    fees: ReservationFee[];
+  }>(`reservations/${rId}?fees=1`, "GET", undefined, undefined, undefined);
   if (info.reservation) {
-    return info.reservation;
+    return { ...info.reservation, fees: info.fees };
   } else {
     return undefined;
   }
@@ -131,6 +130,7 @@ export default async function Page({
           {t("confirmation-code")}: {reservationInfo.confirmation_code}
         </h1>
         <PropertyInfoCard
+          order={order as OrderDocument}
           property={property}
           listing={listingInfo}
           chat_id={chat_id}

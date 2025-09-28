@@ -1,0 +1,141 @@
+[
+  [
+    {
+      "property_fee_id": 5821,
+
+      "fee_id": 59,
+
+      "fee_name": "Accommodation",
+
+      "fee_type": "accommodation",
+
+      "valid_from": 1,
+
+      "valid_to": null,
+
+      "condition_type": "online",
+
+      "valid_whole_stay": 1,
+
+      "cap_length": null,
+
+      "cap_type": null,
+
+      "fee_charge_type": "Per Night",
+
+      "charge_type_label": "72.33 / night",
+
+      "is_base_price": true,
+
+      "quantity": 3,
+
+      "exclusive_percent": 0,
+
+      "inclusive_percent": 0.06,
+
+      "exclusive_tax": 0,
+
+      "inclusive_tax": 12.28,
+
+      "amount": 72.33,
+
+      "total_tax": 12.283199999999999,
+
+      "total_net": 204.72,
+
+      "total": 217
+    },
+
+    {
+      "property_fee_id": 11312,
+
+      "fee_id": 20,
+
+      "fee_name": "Towel charge",
+
+      "fee_type": "fee",
+
+      "valid_from": 1,
+
+      "valid_to": null,
+
+      "condition_type": "online",
+
+      "valid_whole_stay": 1,
+
+      "cap_length": null,
+
+      "cap_type": null,
+
+      "fee_charge_type": "Per Stay",
+
+      "charge_type_label": "",
+
+      "is_base_price": false,
+
+      "quantity": 1,
+
+      "exclusive_percent": 0,
+
+      "inclusive_percent": 0.06,
+
+      "exclusive_tax": 0,
+
+      "inclusive_tax": 1.42,
+
+      "amount": 25,
+
+      "total_tax": 1.4147999999999998,
+
+      "total_net": 23.58,
+
+      "total": 24.99
+    },
+
+    {
+      "property_fee_id": 5790,
+
+      "fee_id": 1,
+
+      "fee_name": "City Tax",
+
+      "fee_type": "tax",
+
+      "valid_from": 1,
+
+      "valid_to": null,
+
+      "condition_type": "online",
+
+      "valid_whole_stay": 1,
+
+      "cap_length": null,
+
+      "cap_type": null,
+
+      "fee_charge_type": "Per Adult / Night",
+
+      "charge_type_label": "3.00 / adult / night",
+
+      "is_base_price": false,
+
+      "quantity": 3,
+
+      "exclusive_percent": 0,
+
+      "inclusive_percent": 0,
+
+      "exclusive_tax": 0,
+
+      "inclusive_tax": 0,
+
+      "amount": 3,
+
+      "total_tax": 0,
+
+      "total_net": 9,
+
+      "total": 9
+    }
+  ]
+]

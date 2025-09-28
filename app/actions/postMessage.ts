@@ -10,6 +10,7 @@ import { getTranslations } from "next-intl/server";
 import env from "@/utils/env";
 import { sendMail } from "./sendMail";
 import { format } from "date-fns";
+import { connectDB } from "@/lib/mongodb";
 
 export async function postMessage({
     chatId,
@@ -32,6 +33,8 @@ export async function postMessage({
             throw new Error("Unauthorized")
         }
     }
+
+    await connectDB();
 
     const chat = await ChatModel.findOne({ chat_id: chatId }).lean();
     if (!chat) {

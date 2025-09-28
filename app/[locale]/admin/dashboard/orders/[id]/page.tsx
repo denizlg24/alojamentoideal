@@ -142,8 +142,7 @@ export default async function Home({
       );
 
       const orderItem = order.items
-        .filter((item) => item.type == "accommodation")
-        .find((item) => item.property_id == listingInfo.listing.id);
+        .filter((item) => item.type == "accommodation")[order.reservationIds.indexOf(reservationInfo.reservation.id.toString())]
       return {
         listing: listingInfo.listing,
         reservation: reservationInfo.reservation,
@@ -655,7 +654,6 @@ export default async function Home({
                       !reservation.orderItem.invoice && (
                         <AttachInvoiceButton
                           orderId={order.orderId}
-                          item={reservation.orderItem!}
                           clientName={order.name}
                           clientAddress={
                             charge?.billing_details.address ?? undefined
@@ -663,6 +661,7 @@ export default async function Home({
                           booking_code={
                             reservation.reservation.confirmation_code
                           }
+                          booking_id={reservation.reservation.id}
                           orderIndx={order.items.findIndex(
                             (item) => item == reservation.orderItem
                           )}

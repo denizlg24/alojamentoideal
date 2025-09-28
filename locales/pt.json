@@ -529,7 +529,34 @@
     "add-guest-info": "Adicionar hóspede.",
     "children": "Criança",
     "infant": "Bebé",
-    "guests-for": "Hóspedes para {title} de {startDate}-{endDate}"
+    "guests-for": "Hóspedes para {title} de {startDate}-{endDate}",
+    "are-you-sure": "Tem a certeza?",
+    "cancel-reservation": "Cancelar atividade",
+    "cancel-reservation-no-refund": "Cancelar atividade (Não Reembolsável)",
+    "cancel-reservation-variable": "Cancelar reserva ({variable})",
+    "cancellation-and-refunds": "Cancelamento e Reembolsos",
+    "cancellation-available": "Embora a experiência não seja reembolsável, você ainda pode cancelá -la.",
+    "cancellation-desc": "Como restam {hours} horas até ao início da sua atividade, você recebe um reembolso de {refund}%.",
+    "cancelling": "Cancelando ...",
+    "cancelling-is-irreversible": "Cancelar uma atividade é uma ação irreversível. \nTem certeza de que deseja cancelar esta atividade?",
+    "close": "Fechar",
+    "error-canceling": "Houve um erro de processamento de sua solicitação.",
+    "full-refund": "Reembolso total",
+    "less-than-24": "menos de 24",
+    "no-refund": "Não reembolsável",
+    "not-refundable-anymore": "Como restam {hours} horas até o início da sua atividade, você não será reembolsado.",
+    "refund-not-available": "O reembolso não está disponível para esta atividade.",
+    "partial-refund": "50% Reembolsados",
+    "standard-refund-p1": "Você receberá um reembolso total se cancelar pelo menos 48 horas antes do início da atividade.",
+    "standard-refund-p2": "Cobraremos 50% da atividade total se cancelada entre 48 e 24 horas antes do início da atividade.",
+    "standard-refund-p3": "Nenhum reembolso é fornecido se a atividade for cancelada com menos de 24 horas de antecedência.",
+    "standard-refund-title": "Esta atividade segue a nossa política de reembolso padrão.",
+    "cancel-reservation-house": "Cancelar reserva",
+    "cancelling-is-irreversible-house": "Cancelar uma reserva é uma ação irreversível. \nTem certeza de que deseja cancelar esta reserva?",
+    "house-standard-refund-p1": "Cancelar dentro de 48 horas após a reserva e pelo menos 14 dias antes do check-in para receber um reembolso total, incluindo impostos.",
+    "house-standard-refund-p2": "Cancelar 14 ou mais dias antes do check-in (mas fora das primeiras 48 horas) ou entre 7 e 14 dias antes do check-in para receber um reembolso de 50%, incluindo impostos.",
+    "house-standard-refund-p3": "Os cancelamentos feitos menos de 7 dias antes do check-in não são reembolsáveis.",
+    "standard-refund-title-house": "Esta acomodação segue a nossa política de reembolso padrão."
   },
   "orderSearch": {
     "placeholder": "Procurar pelo número de reserva ou ID da encomenda...",
@@ -1096,7 +1123,17 @@
     "admin-new-order": "Novo pedido criado.",
     "order-admin-number": "Novo pedido criado alojamento ideal - {order_id}",
     "order-items": "Itens de pedido.",
-    "view-order": "Ver pedido"
+    "view-order": "Ver pedido",
+    "activity-cancellation": "Pedido de cancelamento de atividade",
+    "activity-cancellation-id": "Pedido de cancelamento de atividade - {id}",
+    "activity-refund-id": "Reembolso da atividade {id}",
+    "success-cancel": "Você cancelou com sucesso sua atividade {code}.",
+    "success-refund": "Emitimos um reembolso de {amount}€. \nOs fundos podem levar até 5 dias úteis para aparecer na sua conta.",
+    "view-activity-page": "Ver atividade",
+    "reservation-cancellation": "Cancelamento da reserva {order_id} ",
+    "view-reservation": "Ver página da reserva.",
+    "your-activity-cancelled": "Você cancelou a sua reserva.",
+    "your-new-invoice-is-ready": "A sua nova fatura está pronta."
   },
   "toast": {
     "email-sent": "Email enviado com sucesso!",
@@ -1383,7 +1420,8 @@
     "min-booking": "Precisamos de pelo menos {count} pessoas para reservar essa atividade agora.",
     "no-more-room": "Esta atividade não tem espaço suficiente.",
     "total": "Total",
-    "this-activity-is-no-longer-available": "Esta atividade não está mais disponível"
+    "this-activity-is-no-longer-available": "Esta atividade não está mais disponível",
+    "remove-from-cart": "Retirar do carrinho."
   },
   "chat-email": {
     "new-admin-message": "Nova mensagem de convidado da reserva {order_id}",
@@ -1391,5 +1429,15 @@
     "reservation-number": "Código de confirmação {order_id}",
     "view-your-note": "Ver reserva.",
     "you-got-a-new-message": "Você tem uma nova mensagem."
+  },
+  "refund": {
+    "day": "dia",
+    "days": "dias",
+    "hour": "hora",
+    "hours": "horas",
+    "timeToBooking": "Como faltam {days} {daysLabel} para a sua reserva e você fez a reserva {timeAgo}, você tem direito a um reembolso {refund}%.",
+    "days-ago": "{days} atrás",
+    "days-hours": "{days} e {hours} atrás",
+    "hours-ago": "{hours} atrás"
   }
 }

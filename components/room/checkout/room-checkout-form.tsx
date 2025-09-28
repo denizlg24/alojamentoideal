@@ -70,6 +70,7 @@ import {
 import { cn, localeMap } from "@/lib/utils";
 import { CountrySelect } from "@/components/orders/country-select";
 import { Guest } from "@/models/GuestData";
+import { FeeType } from "@/schemas/price.schema";
 
 const elementStyle: Appearance = {
   variables: {
@@ -203,7 +204,7 @@ export const RoomCheckoutForm = ({
       changePIndx(0);
       return;
     }
-    if (guest_data[pIndx + 1].first_name){
+    if (guest_data[pIndx + 1].first_name) {
       addGuestForm.reset({
         ...guest_data[pIndx + 1],
         birthday: parse(
@@ -216,7 +217,7 @@ export const RoomCheckoutForm = ({
     } else {
       addGuestForm.reset();
     }
-     
+
     changePIndx((prev) => prev + 1);
 
     /*setGuestData((prev) => {
@@ -236,13 +237,15 @@ export const RoomCheckoutForm = ({
   const [step, setStep] = useState<"client_info" | "questions" | "paying">(
     "client_info"
   );
+  const [fees,setFees] = useState<FeeType[][]>([]);
 
   const router = useRouter();
   useEffect(() => {
     const getAmount = async () => {
       setPriceLoading(true);
       const amount = await calculateAmount([property]);
-      setAmount(amount);
+      setAmount(amount.total);
+      setFees(amount.fees);
       setPriceLoading(false);
     };
     if (!property) {
@@ -292,6 +295,7 @@ export const RoomCheckoutForm = ({
       transaction,
       order_id,
     } = await purchaseAccommodation({
+      amount:{total:_amount,fees:fees[0]},
       property,
       clientName,
       clientEmail,
@@ -487,6 +491,7 @@ export const RoomCheckoutForm = ({
           transaction,
           order_id,
         } = await purchaseAccommodation({
+          amount:{total:_amount,fees:fees[0]},
           property,
           clientName,
           clientEmail,
@@ -553,6 +558,7 @@ export const RoomCheckoutForm = ({
     router,
     needCompanySwitch,
     guest_data,
+    fees
   ]);
 
   //questions
@@ -904,6 +910,10 @@ export const RoomCheckoutForm = ({
                                         </DialogHeader>
                                         <Calendar
                                           mode="single"
+                                          className="mx-auto"
+                                          defaultMonth={
+                                            field.value ?? undefined
+                                          }
                                           showOutsideDays={false}
                                           locale={
                                             localeMap[
@@ -960,6 +970,7 @@ export const RoomCheckoutForm = ({
                                       align="start"
                                     >
                                       <Calendar
+                                        defaultMonth={field.value ?? undefined}
                                         mode="single"
                                         showOutsideDays={false}
                                         locale={

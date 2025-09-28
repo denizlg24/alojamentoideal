@@ -35,7 +35,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { checkVAT, countries } from "jsvat";
 import { ArrowRight, CalendarIcon, Edit3, Loader2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 //import { FaApplePay } from "react-icons/fa6";
@@ -62,7 +62,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format, parse } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, localeMap } from "@/lib/utils";
 import {
   createBookingRequest,
   getShoppingCartQuestion,
@@ -149,7 +149,7 @@ export const TourCheckoutForm = ({
 }) => {
   const displayT = useTranslations("tourDisplay");
   const t = useTranslations("checkout_form");
-
+  const locale = useLocale();
   const stripe = useStripe();
   const elements = useElements();
   elements?.update({ appearance: elementStyle });
@@ -835,6 +835,9 @@ export const TourCheckoutForm = ({
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0">
                             <Calendar
+                              locale={
+                                localeMap[locale as keyof typeof localeMap]
+                              }
                               captionLayout="dropdown"
                               showOutsideDays={false}
                               mode="single"
@@ -1181,6 +1184,11 @@ export const TourCheckoutForm = ({
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
                               <Calendar
+                                        locale={
+                                          localeMap[
+                                            locale as keyof typeof localeMap
+                                          ]
+                                        }
                                 defaultMonth={
                                   question.answers
                                     ? parse(
@@ -1326,14 +1334,14 @@ export const TourCheckoutForm = ({
                                 className={cn(
                                   "grow flex-1",
                                   (!question.answers ||
-                                    ((question.answers[0] ?? "") == "")) &&
+                                    (question.answers[0] ?? "") == "") &&
                                     question.required &&
                                     "border border-destructive"
                                 )}
                               >
-                                <SelectValue/>
+                                <SelectValue />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className={"z-99"}>
                                 {Array.from({ length: 24 }).map((_, indx) => {
                                   return (
                                     <SelectItem
@@ -1394,14 +1402,14 @@ export const TourCheckoutForm = ({
                                 className={cn(
                                   "grow flex-1",
                                   (!question.answers ||
-                                    ((question.answers[0] ?? "") == "")) &&
+                                    (question.answers[0] ?? "") == "") &&
                                     question.required &&
                                     "border border-destructive"
                                 )}
                               >
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className={"z-99"}>
                                 {Array.from({ length: 60 }).map((_, indx) => {
                                   return (
                                     <SelectItem
@@ -1641,6 +1649,9 @@ export const TourCheckoutForm = ({
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
                               <Calendar
+                                locale={
+                                  localeMap[locale as keyof typeof localeMap]
+                                }
                                 defaultMonth={
                                   question.answers
                                     ? parse(
@@ -1976,6 +1987,11 @@ export const TourCheckoutForm = ({
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0">
                                       <Calendar
+                                                locale={
+                                                  localeMap[
+                                                    locale as keyof typeof localeMap
+                                                  ]
+                                                }
                                         defaultMonth={
                                           question.answers
                                             ? parse(
@@ -2370,6 +2386,11 @@ export const TourCheckoutForm = ({
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0">
                                       <Calendar
+                                                locale={
+                                                  localeMap[
+                                                    locale as keyof typeof localeMap
+                                                  ]
+                                                }
                                         defaultMonth={
                                           question.answers
                                             ? parse(

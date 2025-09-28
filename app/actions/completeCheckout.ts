@@ -15,8 +15,9 @@ import { FullExperienceType } from "@/utils/bokun-requests";
 import { bokunRequest } from "@/utils/bokun-server";
 import GuestDataModel, { Guest } from "@/models/GuestData";
 import { ok } from "assert";
+import { FeeType } from "@/schemas/price.schema";
 
-export async function buyCart({ guest_data, cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName, mainContactDetails, activityBookings }: {
+export async function buyCart({ fees,guest_data, cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName, mainContactDetails, activityBookings }: {
     cart: CartItem[], clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
         line1: string;
         line2: string | null;
@@ -26,7 +27,7 @@ export async function buyCart({ guest_data, cart, clientName, clientEmail, clien
         country: string;
     }, clientTax?: string, isCompany: boolean, companyName?: string, mainContactDetails?: { questionId: string, values: string[] }[],
     activityBookings?: { activityId: number, answers?: { questionId: string, values: string[] }[], pickupAnswers?: { questionId: string, values: string[] }[], rateId: number, startTimeId: number | undefined, date: string, pickup: boolean, pickupPlaceId: string | undefined, passengers: { pricingCategoryId: number, groupSize: number, passengerDetails: { questionId: string, values: string[] }[], answers: { questionId: string, values: string[] }[] }[] }[],
-    guest_data?: Guest[][]
+    guest_data?: Guest[][],fees:FeeType[][]
 }) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
@@ -44,7 +45,7 @@ export async function buyCart({ guest_data, cart, clientName, clientEmail, clien
             ok(guest_data);
             const guests_data = guest_data[indx];
             const property_amount = await calculateAmount([property]);
-            amounts.push(property_amount);
+            amounts.push(property_amount.total);
             const reservation = await hostifyRequest<{ reservation: ReservationType }>(
                 `reservations`,
                 "POST",
@@ -56,13 +57,13 @@ export async function buyCart({ guest_data, cart, clientName, clientEmail, clien
                     name: clientName,
                     email: clientEmail,
                     phone: clientPhone,
-                    total_price: property_amount / 100,
+                    total_price: property_amount.total / 100,
                     source: "alojamentoideal.pt",
                     status: "pending",
                     note: clientNotes,
                     guests: (property as AccommodationItem).adults + (property as AccommodationItem).children,
                     pets: (property as AccommodationItem).pets,
-                    fees: (property as AccommodationItem).fees,
+                    fees: fees[indx],
                 },
                 undefined,
                 undefined
@@ -75,7 +76,7 @@ export async function buyCart({ guest_data, cart, clientName, clientEmail, clien
                 undefined,
                 {
                     reservation_id: reservation.reservation.id,
-                    amount: property_amount / 100,
+                    amount: property_amount.total / 100,
                     currency: "EUR",
                     charge_date: format(new Date(), "yyyy-MM-dd"),
                     is_completed: 0,

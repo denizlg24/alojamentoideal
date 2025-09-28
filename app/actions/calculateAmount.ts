@@ -1,7 +1,7 @@
 "use server";
 
 import { CartItem } from "@/hooks/cart-context";
-import { PriceType } from "@/schemas/price.schema";
+import { FeeType, PriceType } from "@/schemas/price.schema";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { verifySession } from "@/utils/verifySession";
 import { format } from "date-fns";
@@ -11,6 +11,7 @@ export const calculateAmount = async (cart: CartItem[]) => {
         throw new Error('Unauthorized');
     }
     let total = 0;
+    const fees:FeeType[][] = []
     for (const cartItem of cart) {
         if (cartItem.type == "accommodation") {
             const to = new Date(cartItem.end_date);
@@ -66,6 +67,7 @@ export const calculateAmount = async (cart: CartItem[]) => {
                 total_tax: fee.total_net * fee.inclusive_percent,
               };
             });
+            fees.push(price.price.fees);
             for (const percentage of Object.keys(taxPercentages)) {
               finalPrice +=
                 taxPercentages[Number(percentage)] * (1 + Number(percentage));
@@ -74,5 +76,6 @@ export const calculateAmount = async (cart: CartItem[]) => {
             total += price.price.total;
         }
     }
-    return total * 100;
+    console.log(fees);
+    return {total:total * 100,fees };
 }

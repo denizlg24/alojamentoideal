@@ -2,7 +2,6 @@
 
 import { hostifyRequest } from "@/utils/hostify-request";
 import { fetchClientSecret } from "./stripe";
-import { calculateAmount } from "./calculateAmount";
 import { ReservationType } from "@/schemas/reservation.schema";
 import { AccommodationItem } from "@/hooks/cart-context";
 import { format } from "date-fns";
@@ -11,8 +10,10 @@ import { verifySession } from "@/utils/verifySession";
 import { generateUniqueId } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
 import GuestDataModel, { Guest } from "@/models/GuestData";
+import { connectDB } from "@/lib/mongodb";
+import { FeeType } from "@/schemas/price.schema";
 
-export async function purchaseAccommodation({ property, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName,guest_data }: {
+export async function purchaseAccommodation({ amount,property, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName,guest_data }: {
     property: AccommodationItem, clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
         line1: string;
         line2: string | null;
@@ -20,13 +21,14 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
         state: string;
         postal_code: string;
         country: string;
-    }, clientTax?: string, isCompany: boolean, companyName?: string, guest_data:Guest[]
+    }, clientTax?: string, isCompany: boolean, companyName?: string, guest_data:Guest[],amount:{total:number,fees:FeeType[]}
 }) {
     if (!(await verifySession())) {
         throw new Error('Unauthorized');
     }
     try {
-        const amount = await calculateAmount([property]);
+        await connectDB();
+
         const reservation = await hostifyRequest<{ reservation: ReservationType }>(
             `reservations`,
             "POST",
@@ -38,13 +40,13 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
                 name: clientName,
                 email: clientEmail,
                 phone: clientPhone,
-                total_price: amount/100,
+                total_price: amount.total /100,
                 source: "alojamentoideal.pt",
                 status: "pending",
                 note: clientNotes,
                 guests: property.adults + property.children,
                 pets: property.pets,
-                fees: property.fees,
+                fees: amount.fees,
             },
             undefined,
             undefined
@@ -52,7 +54,7 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
 
 
         const { success, client_secret, id } = await fetchClientSecret(
-            {alojamentoIdeal:amount, detours:0},
+            {alojamentoIdeal:amount.total, detours:0},
             clientName,
             clientEmail,
             clientPhone,
@@ -67,7 +69,7 @@ export async function purchaseAccommodation({ property, clientName, clientEmail,
             undefined,
             {
                 reservation_id: reservation.reservation.id,
-                amount: amount/100,
+                amount: amount.total/100,
                 currency: "EUR",
                 charge_date: format(new Date(), "yyyy-MM-dd"),
                 is_completed: 0,

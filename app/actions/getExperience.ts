@@ -16,6 +16,7 @@ import env from "@/utils/env";
 import { sendMail } from "./sendMail";
 import { getHtml } from "./getHtml";
 import { getTranslations } from "next-intl/server";
+import { connectDB } from "@/lib/mongodb";
 
 export async function getExperience(id: number) {
   if (!(await verifySession())) {
@@ -360,6 +361,7 @@ export async function cancelActivityBooking({
   if (!(await verifySession()))
     throw new Error("Unauthorized");
   try {
+    await connectDB();
     const foundOrder = await OrderModel.findOne({ activityBookingIds: productConfirmationCode })
     if (!foundOrder) {
       return false;
