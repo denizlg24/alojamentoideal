@@ -1249,6 +1249,9 @@ export const CheckoutForm = ({
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
                               <Calendar
+                                locale={
+                                  localeMap[locale as keyof typeof localeMap]
+                                }
                                 defaultMonth={
                                   question.answers
                                     ? parse(
@@ -1610,6 +1613,9 @@ export const CheckoutForm = ({
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0">
                                 <Calendar
+                                  locale={
+                                    localeMap[locale as keyof typeof localeMap]
+                                  }
                                   defaultMonth={
                                     question.answers
                                       ? parse(
@@ -1716,7 +1722,13 @@ export const CheckoutForm = ({
                             </Label>
                             <div className="flex flex-row items-center gap-1 w-full">
                               <Select
-                              value={question.answers ? ((question.answers[0] ?? '') == '') ? '' : question.answers[0].split(":")[0] : ''}
+                                value={
+                                  question.answers
+                                    ? (question.answers[0] ?? "") == ""
+                                      ? ""
+                                      : question.answers[0].split(":")[0]
+                                    : ""
+                                }
                                 onValueChange={(val) => {
                                   setActivityBookings((prev) =>
                                     prev.map((activity, indx) =>
@@ -1730,7 +1742,17 @@ export const CheckoutForm = ({
                                                   question.questionId
                                                     ? {
                                                         ...q,
-                                                        answers: q.answers && q.answers[0] ? [`${val}:${q.answers[0]?.split(":")[1] ?? "00"}`] : [`${val}:00`],
+                                                        answers:
+                                                          q.answers &&
+                                                          q.answers[0]
+                                                            ? [
+                                                                `${val}:${
+                                                                  q.answers[0]?.split(
+                                                                    ":"
+                                                                  )[1] ?? "00"
+                                                                }`,
+                                                              ]
+                                                            : [`${val}:00`],
                                                       }
                                                     : q
                                               ),
@@ -1740,21 +1762,27 @@ export const CheckoutForm = ({
                                   );
                                 }}
                               >
-                                <SelectTrigger className={cn("grow flex-1",  (!question.answers ||
-                                    ((question.answers[0] ?? "") == "")) &&
-                                    question.required && "border border-destructive")}>
+                                <SelectTrigger
+                                  className={cn(
+                                    "grow flex-1",
+                                    (!question.answers ||
+                                      (question.answers[0] ?? "") == "") &&
+                                      question.required &&
+                                      "border border-destructive"
+                                  )}
+                                >
                                   <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className={"z-99"}>
                                   {Array.from({ length: 24 }).map((_, indx) => {
                                     return (
                                       <SelectItem
                                         key={indx}
-                                        value={(indx).toLocaleString(undefined, {
+                                        value={indx.toLocaleString(undefined, {
                                           minimumIntegerDigits: 2,
                                         })}
                                       >
-                                        {(indx).toLocaleString(undefined, {
+                                        {indx.toLocaleString(undefined, {
                                           minimumIntegerDigits: 2,
                                         })}
                                       </SelectItem>
@@ -1762,8 +1790,17 @@ export const CheckoutForm = ({
                                   })}
                                 </SelectContent>
                               </Select>
-                              <p className="text-sm font-semibold shrink-0">:</p>
-                              <Select value={question.answers ? ((question.answers[0] ?? '') == '') ? '' : question.answers[0].split(":")[1] ?? '' : ''}
+                              <p className="text-sm font-semibold shrink-0">
+                                :
+                              </p>
+                              <Select
+                                value={
+                                  question.answers
+                                    ? (question.answers[0] ?? "") == ""
+                                      ? ""
+                                      : question.answers[0].split(":")[1] ?? ""
+                                    : ""
+                                }
                                 onValueChange={(val) => {
                                   setActivityBookings((prev) =>
                                     prev.map((activity, indx) =>
@@ -1777,7 +1814,17 @@ export const CheckoutForm = ({
                                                   question.questionId
                                                     ? {
                                                         ...q,
-                                                        answers: q.answers && q.answers[0] ? [`${q.answers[0]?.split(":")[0] ?? "00"}:${val}`] : [`00:${val}`],
+                                                        answers:
+                                                          q.answers &&
+                                                          q.answers[0]
+                                                            ? [
+                                                                `${
+                                                                  q.answers[0]?.split(
+                                                                    ":"
+                                                                  )[0] ?? "00"
+                                                                }:${val}`,
+                                                              ]
+                                                            : [`00:${val}`],
                                                       }
                                                     : q
                                               ),
@@ -1785,13 +1832,20 @@ export const CheckoutForm = ({
                                         : activity
                                     )
                                   );
-                                }}>
-                                <SelectTrigger className={cn("grow flex-1",  (!question.answers ||
-                                    ((question.answers[0] ?? "") == "")) &&
-                                    question.required && "border border-destructive")}>
+                                }}
+                              >
+                                <SelectTrigger
+                                  className={cn(
+                                    "grow flex-1",
+                                    (!question.answers ||
+                                      (question.answers[0] ?? "") == "") &&
+                                      question.required &&
+                                      "border border-destructive"
+                                  )}
+                                >
                                   <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className={"z-99"}>
                                   {Array.from({ length: 60 }).map((_, indx) => {
                                     return (
                                       <SelectItem
@@ -2042,6 +2096,11 @@ export const CheckoutForm = ({
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
                                   <Calendar
+                                    locale={
+                                      localeMap[
+                                        locale as keyof typeof localeMap
+                                      ]
+                                    }
                                     defaultMonth={
                                       question.answers
                                         ? parse(
@@ -2392,6 +2451,11 @@ export const CheckoutForm = ({
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0">
                                           <Calendar
+                                            locale={
+                                              localeMap[
+                                                locale as keyof typeof localeMap
+                                              ]
+                                            }
                                             defaultMonth={
                                               question.answers
                                                 ? parse(
@@ -2799,6 +2863,11 @@ export const CheckoutForm = ({
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0">
                                           <Calendar
+                                            locale={
+                                              localeMap[
+                                                locale as keyof typeof localeMap
+                                              ]
+                                            }
                                             defaultMonth={
                                               question.answers
                                                 ? parse(
@@ -3228,6 +3297,10 @@ export const CheckoutForm = ({
                                           </DialogDescription>
                                         </DialogHeader>
                                         <Calendar
+                                          defaultMonth={
+                                            field.value ?? undefined
+                                          }
+                                          className="mx-auto"
                                           mode="single"
                                           showOutsideDays={false}
                                           locale={
@@ -3286,6 +3359,7 @@ export const CheckoutForm = ({
                                     >
                                       <Calendar
                                         mode="single"
+                                        defaultMonth={field.value ?? undefined}
                                         showOutsideDays={false}
                                         locale={
                                           localeMap[

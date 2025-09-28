@@ -1,5 +1,5 @@
 "use client";
-import { format } from "date-fns";
+import { differenceInDays, differenceInHours, format } from "date-fns";
 import { Separator } from "../ui/separator";
 import {
   CalendarIcon,
@@ -13,6 +13,7 @@ import {
   MapPinned,
   MessageCircle,
   PlusCircle,
+  RefreshCwIcon,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Link } from "@/i18n/navigation";
@@ -69,16 +70,92 @@ import { updateGuestData } from "@/app/actions/updateGuestData";
 import { useEffect, useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
 import { AccommodationItem } from "@/hooks/cart-context";
+import { OrderDocument } from "@/models/Order";
+import { CancelBookingButton } from "./cancel-booking-button";
+import { ReservationFee } from "@/utils/hostify-appartment-types";
+
+export function getRefundPercentage(
+  bookingDate: Date,
+  checkInDate: Date,
+  cancelDate: Date
+): number {
+  const hoursSinceBooking = differenceInHours(cancelDate, bookingDate);
+  const daysBeforeCheckIn = differenceInDays(checkInDate, cancelDate);
+
+  if (hoursSinceBooking <= 48 && daysBeforeCheckIn >= 14) {
+    return 100;
+  }
+
+  if (
+    (daysBeforeCheckIn >= 14 && hoursSinceBooking > 48) ||
+    (daysBeforeCheckIn >= 7 && daysBeforeCheckIn < 14)
+  ) {
+    return 50;
+  }
+
+  return 0;
+}
+
+function formatHoursToDays(
+  hours: number,
+  t: ReturnType<typeof useTranslations>
+): string {
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
+
+  const dayLabel = days === 1 ? t("refund.day") : t("refund.days");
+  const hourLabel = remainingHours === 1 ? t("refund.hour") : t("refund.hours");
+
+  if (days > 0 && remainingHours > 0) {
+    return t("refund.days-hours", {
+      days: `${days} ${dayLabel}`,
+      hours: `${remainingHours} ${hourLabel}`,
+    });
+  } else if (days > 0) {
+    return t("refund.days-ago", { days: `${days} ${dayLabel}` });
+  } else {
+    return t("refund.hours-ago", { hours: `${remainingHours} ${hourLabel}` });
+  }
+}
+
+export function useRefundHelpers() {
+  const t = useTranslations();
+
+  function getTimeString(
+    bookingDate: Date,
+    checkInDate: Date,
+    cancelDate: Date
+  ): string {
+    const hoursSinceBooking = differenceInHours(cancelDate, bookingDate);
+    const daysBeforeCheckIn = differenceInDays(checkInDate, cancelDate);
+
+    const refund = getRefundPercentage(bookingDate, checkInDate, cancelDate);
+
+    const daysLabel =
+      daysBeforeCheckIn === 1 ? t("refund.day") : t("refund.days");
+
+    return t("refund.timeToBooking", {
+      days: daysBeforeCheckIn,
+      daysLabel,
+      timeAgo: formatHoursToDays(hoursSinceBooking, t),
+      refund,
+    });
+  }
+
+  return { getRefundPercentage, getTimeString };
+}
 
 export const PropertyInfoCard = ({
+  order,
   listing,
   property,
   reservation,
   chat_id,
 }: {
+  order: OrderDocument;
   listing: FullListingType;
   property: AccommodationItem | undefined;
-  reservation: ReservationType;
+  reservation: ReservationType & { fees: ReservationFee[] };
   chat_id: string;
 }) => {
   const locale = useLocale();
@@ -196,6 +273,18 @@ export const PropertyInfoCard = ({
   }
 
   const isMobile = useIsMobile();
+  const { getRefundPercentage, getTimeString } = useRefundHelpers();
+  const refund = getRefundPercentage(
+    order.createdAt,
+    new Date(reservation.checkIn),
+    new Date()
+  );
+
+  const message = getTimeString(
+    order.createdAt,
+    new Date(reservation.checkIn),
+    new Date()
+  );
 
   const getReservationStatus = (
     reservation: ReservationType | undefined,
@@ -892,7 +981,8 @@ export const PropertyInfoCard = ({
             <CarouselContent>
               {listing?.photos.map((photo, index) => (
                 <CarouselItem key={index}>
-                  <Image unoptimized 
+                  <Image
+                    unoptimized
                     src={photo.original_file}
                     blurDataURL={
                       photo.has_thumb ? photo.thumbnail_file : undefined
@@ -1073,6 +1163,26 @@ export const PropertyInfoCard = ({
             </DialogContent>
           </Dialog>
         </div>
+        <Separator className="col-span-full my-4" />
+        <Card className="w-full flex flex-col gap-4 p-4! col-span-full">
+          <div className="w-full flex flex-col gap-1">
+            <h1 className="sm:text-base text-sm font-bold">
+              {t("cancellation-and-refunds")}
+            </h1>
+          </div>
+          <p className="inline-flex gap-1 w-full items-center justify-start sm:text-base text-sm">
+            <RefreshCwIcon className="text-blue-500 w-4 h-4 shrink-0" />
+            {t("standard-refund-title-house")}
+          </p>
+          <ul className="list-decimal list-inside pl-2 marker:text-muted-foreground/50 sm:text-sm text-xs flex flex-col items-start gap-2">
+            <li> {t("house-standard-refund-p1")}</li>
+            <li> {t("house-standard-refund-p2")}</li>
+            <li> {t("house-standard-refund-p3")}</li>
+          </ul>
+          <Separator className="mb-1" />
+          <CancelBookingButton refundPercentage={refund} />
+          <p className="text-muted-foreground text-sm -mt-1">{message}</p>
+        </Card>
       </div>
     </div>
   );

@@ -203,7 +203,7 @@ export const RoomCheckoutForm = ({
       changePIndx(0);
       return;
     }
-    if (guest_data[pIndx + 1].first_name){
+    if (guest_data[pIndx + 1].first_name) {
       addGuestForm.reset({
         ...guest_data[pIndx + 1],
         birthday: parse(
@@ -216,7 +216,7 @@ export const RoomCheckoutForm = ({
     } else {
       addGuestForm.reset();
     }
-     
+
     changePIndx((prev) => prev + 1);
 
     /*setGuestData((prev) => {
@@ -904,6 +904,10 @@ export const RoomCheckoutForm = ({
                                         </DialogHeader>
                                         <Calendar
                                           mode="single"
+                                          className="mx-auto"
+                                          defaultMonth={
+                                            field.value ?? undefined
+                                          }
                                           showOutsideDays={false}
                                           locale={
                                             localeMap[
@@ -960,6 +964,7 @@ export const RoomCheckoutForm = ({
                                       align="start"
                                     >
                                       <Calendar
+                                        defaultMonth={field.value ?? undefined}
                                         mode="single"
                                         showOutsideDays={false}
                                         locale={

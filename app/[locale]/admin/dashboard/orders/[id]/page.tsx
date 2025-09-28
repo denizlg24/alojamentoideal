@@ -655,7 +655,6 @@ export default async function Home({
                       !reservation.orderItem.invoice && (
                         <AttachInvoiceButton
                           orderId={order.orderId}
-                          item={reservation.orderItem!}
                           clientName={order.name}
                           clientAddress={
                             charge?.billing_details.address ?? undefined
@@ -663,6 +662,7 @@ export default async function Home({
                           booking_code={
                             reservation.reservation.confirmation_code
                           }
+                          booking_id={reservation.reservation.id}
                           orderIndx={order.items.findIndex(
                             (item) => item == reservation.orderItem
                           )}

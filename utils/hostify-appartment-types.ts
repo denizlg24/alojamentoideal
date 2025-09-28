@@ -59,3 +59,39 @@ export const listingTypeMap: Record<number, string> = {
     2: "listingTypeMap.private",
     3: "listingTypeMap.shared",
 }
+
+interface FeeInfo {
+    name: string;
+    type: string;
+  }
+  
+  interface FeeChargeType {
+    name: string;
+  }
+  
+  export interface ReservationFee {
+    id: number;
+    fee_id: number;
+    description: string | null;
+    condition_type: string;
+    quantity: number;
+    amount_net: number;
+    amount_tax: number;
+    amount_gross: number;
+    amount_net_total: number;
+    amount_tax_total: number;
+    amount_gross_total: number;
+    amount_incl_total: number;
+    valid_from: string | null;
+    valid_to: string | null;
+    start_date: string;
+    end_date: string;
+    cap_type: string | null;
+    cap_length: number | null;
+    inclusive_tax: number;
+    exclusive_tax: number;
+    created_at: string;
+    updated_at: string;
+    fee: FeeInfo;
+    feeChargeType: FeeChargeType;
+  }

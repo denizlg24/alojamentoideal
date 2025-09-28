@@ -238,7 +238,7 @@ export const Header = () => {
                           setOpen(false);
                         }}
                         className="font-medium flex flex-row items-center gap-2"
-                        href="/rooms"
+                        href="/tours"
                       >
                         <Image unoptimized 
                           width={128}

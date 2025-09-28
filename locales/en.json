@@ -550,7 +550,13 @@
     "not-refundable-anymore": "Since there are {hours} hours left untill your activity starts, you will not be refunded.",
     "less-than-24": "less than 24",
     "error-canceling": "There was an error processing your request.",
-    "cancelling": "Cancelling..."
+    "cancelling": "Cancelling...",
+    "standard-refund-title-house": "This accommodation follows our standard refund policy.",
+    "house-standard-refund-p1": "Cancel within 48 hours of booking and at least 14 days before check-in to receive a full refund, including taxes.",
+    "house-standard-refund-p2": "Cancel 14 or more days before check-in (but outside the first 48 hours) or between 7 and 14 days before check-in to receive a 50% refund, including taxes.",
+    "house-standard-refund-p3": "Cancellations made less than 7 days before check-in are non-refundable.",
+    "cancelling-is-irreversible-house": "Cancelling a reservation is an irreversible action. Are you sure you want to cancel this reservation?",
+    "cancel-reservation-house": "Cancel Reservation"
   },
   "orderSearch": {
     "placeholder": "Search for reservation number or order id...",
@@ -1419,5 +1425,15 @@
     "reservation-number": "Confirmation code {order_id}",
     "new-message": "New message from host for booking {order_id}",
     "new-admin-message": "New guest message from booking {order_id}"
+  },
+  "refund": {
+    "timeToBooking": "Since there are {days} {daysLabel} to your booking and you made the reservation {timeAgo}, you are entitled to a {refund}% refund.",
+    "day": "day",
+    "days": "days",
+    "hour": "hour",
+    "hours": "hours",
+    "days-hours": "{days} and {hours} ago",
+    "days-ago": "{days} ago",
+    "hours-ago": "{hours} ago"
   }
 }

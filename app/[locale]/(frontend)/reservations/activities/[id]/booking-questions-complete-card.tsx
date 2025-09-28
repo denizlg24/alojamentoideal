@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePathname } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
+import { cn, localeMap } from "@/lib/utils";
 import {
   ActivityBookingQuestionsDto,
   categoriesMap,
@@ -38,7 +38,7 @@ import { DialogClose } from "@radix-ui/react-dialog";
 import { PopoverClose } from "@radix-ui/react-popover";
 import { format, parse } from "date-fns";
 import { CalendarIcon, Loader2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
 export const CompleteBookingQuestion = ({
@@ -60,6 +60,7 @@ export const CompleteBookingQuestion = ({
 }) => {
   const displayT = useTranslations("tourDisplay");
   const t = useTranslations("checkout_form");
+  const locale = useLocale();
   const pathname = usePathname();
   const [pickupQuestions, setPickupQuestions] = useState(
     initialPickupQuestions
@@ -114,7 +115,11 @@ export const CompleteBookingQuestion = ({
     let invalidFound = false;
 
     for (const question of bookingQuestions ?? []) {
-      if ((question.answers?.[0] && !isValid(question.answers?.[0] ?? "", question.dataFormat)) || (!question.answers?.[0] && question.required)) {
+      if (
+        (question.answers?.[0] &&
+          !isValid(question.answers?.[0] ?? "", question.dataFormat)) ||
+        (!question.answers?.[0] && question.required)
+      ) {
         invalidFound = true;
         break;
       }
@@ -122,7 +127,11 @@ export const CompleteBookingQuestion = ({
 
     if (!invalidFound) {
       for (const question of pickupQuestions ?? []) {
-        if ((question.answers?.[0] && !isValid(question.answers?.[0] ?? "", question.dataFormat)) || (!question.answers?.[0] && question.required)) {
+        if (
+          (question.answers?.[0] &&
+            !isValid(question.answers?.[0] ?? "", question.dataFormat)) ||
+          (!question.answers?.[0] && question.required)
+        ) {
           invalidFound = true;
           break;
         }
@@ -132,7 +141,11 @@ export const CompleteBookingQuestion = ({
     if (!invalidFound) {
       for (const [, passenger] of (passengers ?? []).entries()) {
         for (const question of passenger.passengerDetails ?? []) {
-          if ((question.answers?.[0] && !isValid(question.answers?.[0] ?? "", question.dataFormat)) || (!question.answers?.[0] && question.required)) {
+          if (
+            (question.answers?.[0] &&
+              !isValid(question.answers?.[0] ?? "", question.dataFormat)) ||
+            (!question.answers?.[0] && question.required)
+          ) {
             invalidFound = true;
             break;
           }
@@ -144,7 +157,11 @@ export const CompleteBookingQuestion = ({
     if (!invalidFound) {
       for (const [, passenger] of (passengers ?? []).entries()) {
         for (const question of passenger.questions ?? []) {
-          if ((question.answers?.[0] && !isValid(question.answers?.[0] ?? "", question.dataFormat)) || (!question.answers?.[0] && question.required)) {
+          if (
+            (question.answers?.[0] &&
+              !isValid(question.answers?.[0] ?? "", question.dataFormat)) ||
+            (!question.answers?.[0] && question.required)
+          ) {
             invalidFound = true;
             break;
           }
@@ -370,6 +387,7 @@ export const CompleteBookingQuestion = ({
                     </PopoverTrigger>
                     <PopoverContent align="start" className="w-auto p-0 z-99!">
                       <Calendar
+                        locale={localeMap[locale as keyof typeof localeMap]}
                         defaultMonth={
                           question.answers
                             ? parse(
@@ -615,6 +633,7 @@ export const CompleteBookingQuestion = ({
                         className="w-auto p-0 z-99!"
                       >
                         <Calendar
+                          locale={localeMap[locale as keyof typeof localeMap]}
                           defaultMonth={
                             question.answers
                               ? parse(
@@ -687,27 +706,48 @@ export const CompleteBookingQuestion = ({
                     <Label className="text-sm font-normal">
                       {question.label}
                       {question.required && (
-                        <span className="text-xs text-destructive">
-                          *
-                        </span>
+                        <span className="text-xs text-destructive">*</span>
                       )}
                     </Label>
                     <div className="flex flex-row items-center gap-1 w-full">
                       <Select
-                      value={question.answers ? ((question.answers[0] ?? '') == '') ? '' : question.answers[0].split(":")[0] : ''}
+                        value={
+                          question.answers
+                            ? (question.answers[0] ?? "") == ""
+                              ? ""
+                              : question.answers[0].split(":")[0]
+                            : ""
+                        }
                         onValueChange={(val) => {
                           setPickupQuestions((prev) =>
                             prev?.map((_q) =>
                               _q.questionId == question.questionId
-                                ? { ..._q, answers: _q.answers && _q.answers[0] ? [`${val}:${_q.answers[0]?.split(":")[1] ?? "00"}`] : [`${val}:00`], }
+                                ? {
+                                    ..._q,
+                                    answers:
+                                      _q.answers && _q.answers[0]
+                                        ? [
+                                            `${val}:${
+                                              _q.answers[0]?.split(":")[1] ??
+                                              "00"
+                                            }`,
+                                          ]
+                                        : [`${val}:00`],
+                                  }
                                 : _q
                             )
                           );
                         }}
                       >
-                        <SelectTrigger className={cn("grow flex-1",  (!question.answers ||
-                            ((question.answers[0] ?? "") == "")) &&
-                            question.required && "border border-destructive")}>
+                        <SelectTrigger
+                          className={cn(
+                            "grow flex-1",
+                            (!question.answers ||
+                              (question.answers[0] ?? "") == "") &&
+                              question.required &&
+                              "border border-destructive"
+                          )}
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="z-99">
@@ -715,11 +755,11 @@ export const CompleteBookingQuestion = ({
                             return (
                               <SelectItem
                                 key={indx}
-                                value={(indx).toLocaleString(undefined, {
+                                value={indx.toLocaleString(undefined, {
                                   minimumIntegerDigits: 2,
                                 })}
                               >
-                                {(indx).toLocaleString(undefined, {
+                                {indx.toLocaleString(undefined, {
                                   minimumIntegerDigits: 2,
                                 })}
                               </SelectItem>
@@ -728,19 +768,44 @@ export const CompleteBookingQuestion = ({
                         </SelectContent>
                       </Select>
                       <p className="text-sm font-semibold shrink-0">:</p>
-                      <Select value={question.answers ? ((question.answers[0] ?? '') == '') ? '' : question.answers[0].split(":")[1] ?? '' : ''}
+                      <Select
+                        value={
+                          question.answers
+                            ? (question.answers[0] ?? "") == ""
+                              ? ""
+                              : question.answers[0].split(":")[1] ?? ""
+                            : ""
+                        }
                         onValueChange={(val) => {
                           setPickupQuestions((prev) =>
                             prev?.map((_q) =>
                               _q.questionId == question.questionId
-                                ? { ..._q, answers: _q.answers && _q.answers[0] ? [`${_q.answers[0]?.split(":")[0] ?? "00"}:${val}`] : [`00:${val}`], }
+                                ? {
+                                    ..._q,
+                                    answers:
+                                      _q.answers && _q.answers[0]
+                                        ? [
+                                            `${
+                                              _q.answers[0]?.split(":")[0] ??
+                                              "00"
+                                            }:${val}`,
+                                          ]
+                                        : [`00:${val}`],
+                                  }
                                 : _q
                             )
                           );
-                        }}>
-                        <SelectTrigger className={cn("grow flex-1",  (!question.answers ||
-                            ((question.answers[0] ?? "") == "")) &&
-                            question.required && "border border-destructive")}>
+                        }}
+                      >
+                        <SelectTrigger
+                          className={cn(
+                            "grow flex-1",
+                            (!question.answers ||
+                              (question.answers[0] ?? "") == "") &&
+                              question.required &&
+                              "border border-destructive"
+                          )}
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="z-99">
@@ -1015,6 +1080,11 @@ export const CompleteBookingQuestion = ({
                                   className="w-auto p-0 z-99!"
                                 >
                                   <Calendar
+                                    locale={
+                                      localeMap[
+                                        locale as keyof typeof localeMap
+                                      ]
+                                    }
                                     defaultMonth={
                                       question.answers
                                         ? parse(
@@ -1351,6 +1421,11 @@ export const CompleteBookingQuestion = ({
                                   className="w-auto p-0 z-99!"
                                 >
                                   <Calendar
+                                    locale={
+                                      localeMap[
+                                        locale as keyof typeof localeMap
+                                      ]
+                                    }
                                     defaultMonth={
                                       question.answers
                                         ? parse(
@@ -1532,7 +1607,9 @@ export const CompleteBookingQuestion = ({
           )}
         </Button>
         <DialogClose asChild>
-          <Button ref={closeBtnRef} variant={"secondary"}>{t("cancel")}</Button>
+          <Button ref={closeBtnRef} variant={"secondary"}>
+            {t("cancel")}
+          </Button>
         </DialogClose>
       </div>
       {error && (

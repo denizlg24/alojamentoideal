@@ -207,9 +207,10 @@ const issueInvoices = async ({ reservationIds, reservationReferences, items, use
     const t = await getTranslations("order-email");
     for (let index = 0; index < reservationIds.length; index++) {
         const reservationCode = reservationReferences[index];
+        const reservation_id = reservationIds[index];
         const orderItem = items.filter((item) => item.type == 'accommodation')[index];
         const order_index = items.findIndex((item) => item == orderItem);
-        const itemInvoice = await createHouseInvoice({ item: orderItem, clientName: userInfo.isCompany ? (userInfo.companyName || userInfo.name) : userInfo.name, clientTax: userInfo.tax_number, booking_code: reservationCode, clientAddress: charge.billing_details.address ?? undefined })
+        const itemInvoice = await createHouseInvoice({reservationId:reservation_id, clientName: userInfo.isCompany ? (userInfo.companyName || userInfo.name) : userInfo.name, clientTax: userInfo.tax_number, booking_code: reservationCode, clientAddress: charge.billing_details.address ?? undefined })
         if (itemInvoice.url && itemInvoice.id) {
             const nights =
                 (new Date(orderItem.end_date!).getTime() -

@@ -2,27 +2,26 @@
 import { attachInvoice } from "@/app/actions/attachInvoice";
 import { createHouseInvoice } from "@/app/actions/createHouseInvoice";
 import { Button } from "@/components/ui/button";
-import { AccommodationItem } from "@/hooks/cart-context";
 import { Address } from "@stripe/stripe-js";
 import { Loader2, NotepadText } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export const AttachInvoiceButton = ({
-  item,
   clientName,
   clientAddress,
   clientTax,
   booking_code,
   orderId,
+  booking_id,
   orderIndx,
 }: {
-  item: AccommodationItem;
   clientName: string;
   clientAddress?: Address;
   clientTax?: string;
   orderId: string;
   booking_code: string;
+  booking_id:number;
   orderIndx: number;
 }) => {
   const [loading, setLoading] = useState(false);
@@ -32,11 +31,11 @@ export const AttachInvoiceButton = ({
       onClick={async () => {
         setLoading(true);
         const invoice_url = await createHouseInvoice({
-          item,
           clientName,
           clientAddress,
           clientTax: clientTax ?? "",
           booking_code,
+          reservationId:booking_id
         });
         if (orderIndx >= 0 && invoice_url) {
           const success = await attachInvoice({
