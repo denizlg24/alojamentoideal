@@ -23,6 +23,7 @@ export async function callHostkitAPI<T = unknown>({
     const baseUrl = "https://app.hostkit.pt/api";
     const params = new URLSearchParams({
         APIKEY: apiKey,
+        uid:'331',
         ...Object.fromEntries(Object.entries(query).map(([k, v]) => [k, String(v)])),
     });
     const url = `${baseUrl}/${endpoint}?${params.toString()}`;

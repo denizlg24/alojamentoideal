@@ -106,13 +106,12 @@ export async function clientCancelReservation(reservation_id: number, reservatio
             return success.success;
         }
         if (refund_amount == 50) {
-
             const paymentIntent = await stripe.paymentIntents.retrieve(foundOrder.payment_id);
             const charge = await stripe.charges.retrieve(paymentIntent.latest_charge as string);
             if (item && item.invoice_id) {
+                const newInvoice = await createRefundHouseInvoice({ reservationId: reservation_id, clientName: foundOrder.isCompany ? (foundOrder.companyName || foundOrder.name) : foundOrder.name, clientTax: foundOrder.tax_number, booking_code: reservation_code, clientAddress: charge.billing_details.address ?? undefined, refund_amount: 50 })
                 const credit_note_sent = await issueCreditNote({ clientEmail: foundOrder.email, invoice_id: item.invoice_id, item, reservationCode: reservation_code });
                 console.log(`Credit note sent: ${credit_note_sent}`);
-                const newInvoice = await createRefundHouseInvoice({ reservationId: reservation_id, clientName: foundOrder.isCompany ? (foundOrder.companyName || foundOrder.name) : foundOrder.name, clientTax: foundOrder.tax_number, booking_code: reservation_code, clientAddress: charge.billing_details.address ?? undefined, refund_amount: 50 })
                 if (newInvoice.url && newInvoice.id) {
                     //send email
                     const attached = await attachInvoice({ orderId: foundOrder.orderId, invoice_url: newInvoice, index: foundOrder.items.indexOf(item) });

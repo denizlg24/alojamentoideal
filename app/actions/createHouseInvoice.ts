@@ -245,10 +245,10 @@ export async function createRefundHouseInvoice({ clientName, clientAddress, clie
         if (address) newInvoiceQuery.address = encodeURI(address);
         if (cp) newInvoiceQuery.cp = cp;
         if (city) newInvoiceQuery.city = encodeURI(city);
-        if (rcode) newInvoiceQuery.rcode = rcode;
         if (payment_method) newInvoiceQuery.payment_method = payment_method;
         if (invoicing_nif) newInvoiceQuery.invoicing_nif = invoicing_nif;
         if (series) newInvoiceQuery.series = series;
+        newInvoiceQuery.comment=`Parcial charge for reservation ${rcode}`;
 
         const newInvoice = await callHostkitAPI<{ status: 'success' | unknown, id?: string }>({
             listingId: info.reservation.listing_id.toString(), endpoint: "addInvoice", query: newInvoiceQuery

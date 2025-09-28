@@ -142,8 +142,7 @@ export default async function Home({
       );
 
       const orderItem = order.items
-        .filter((item) => item.type == "accommodation")
-        .find((item) => item.property_id == listingInfo.listing.id);
+        .filter((item) => item.type == "accommodation")[order.reservationIds.indexOf(reservationInfo.reservation.id.toString())]
       return {
         listing: listingInfo.listing,
         reservation: reservationInfo.reservation,
