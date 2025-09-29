@@ -340,7 +340,7 @@ export default async function Page({
         )}
         {!hasEmptyAnswer && bookingQuestions.success && (
           <div className="w-full p-2 shadow border rounded-sm bg-muted flex flex-col gap-2">
-            <div className="flex flex-row items-center justify-between">
+            <div className="flex min-[420px]:flex-row flex-col items-center justify-between">
               <div className="flex flex-row items-center gap-2 justify-start">
                 <h1 className="sm:text-sm text-xs font-semibold">
                   {t("information-complete")}

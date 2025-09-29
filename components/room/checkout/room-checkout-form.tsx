@@ -85,7 +85,7 @@ const elementStyle: Appearance = {
     fontSize3Xs: "14px",
     colorTextPlaceholder: "#9ca3af",
     colorDanger: "#ef4444",
-    colorPrimary: "#5a002c",
+    colorPrimary: "#694334",
   },
 };
 

@@ -36,8 +36,10 @@ export const ContactSearchBar = ({
 
   return (
     <div
-      onBlur={() => {
-        setCanOpen(false);
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          setCanOpen(false);
+        }
       }}
       onFocus={() => {
         setCanOpen(true);
@@ -100,7 +102,7 @@ export const ContactSearchBar = ({
                     className="w-fit! justify-self-end mt-auto! h-fit! rounded! p-1.5!"
                     asChild
                   >
-                    <Link href={`/help/${res.slug}`}>
+                    <Link href={`/help/${res.slug}`} onClick={(e) => {e.stopPropagation()}}>
                       {readMore} <SquareArrowOutUpRight />
                     </Link>
                   </Button>

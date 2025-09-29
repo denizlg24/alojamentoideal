@@ -141,8 +141,11 @@ export default async function Home({
         "GET"
       );
 
-      const orderItem = order.items
-        .filter((item) => item.type == "accommodation")[order.reservationIds.indexOf(reservationInfo.reservation.id.toString())]
+      const orderItem = order.items.filter(
+        (item) => item.type == "accommodation"
+      )[
+        order.reservationIds.indexOf(reservationInfo.reservation.id.toString())
+      ];
       return {
         listing: listingInfo.listing,
         reservation: reservationInfo.reservation,
@@ -627,15 +630,13 @@ export default async function Home({
                                       )}
                                 </p>
                                 <p className="">
-                                {fee.total_net}€{" "}
-                                    {fee.inclusive_percent &&
-                                    fee.inclusive_percent > 0
-                                      ? "+ " +
-                                        (fee.inclusive_percent * 100).toFixed(
-                                          0
-                                        ) +
-                                        "% IVA"
-                                      : ""}
+                                  {fee.total_net}€{" "}
+                                  {fee.inclusive_percent &&
+                                  fee.inclusive_percent > 0
+                                    ? "+ " +
+                                      (fee.inclusive_percent * 100).toFixed(0) +
+                                      "% IVA"
+                                    : ""}
                                 </p>
                               </div>
                             );
@@ -689,6 +690,64 @@ export default async function Home({
                   </div>
                 );
               })}
+            </CardContent>
+          </Card>
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle>Associated Activities</CardTitle>
+            </CardHeader>
+            <CardContent className="gap-4">
+              {order.items
+                .filter((item) => item.type == "activity")
+                .map((item) => {
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex flex-col gap-0 w-full items-start"
+                    >
+                      <div className="border-muted border-dotted flex flex-row items-start gap-2 w-full mt-0.5">
+                        <div className="w-[15%] md:block hidden shrink-0 h-auto aspect-video relative overflow-hidden rounded">
+                          <Image
+                            unoptimized
+                            src={item.photo}
+                            alt="photo"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="grow flex min-[550px]:flex-row flex-col justify-between gap-1 text-sm">
+                          <div className="min-[550px]:w-fit min-[550px]:flex-1 flex flex-col gap-1 items-start">
+                            <p className="font-bold truncate">{item.name}</p>
+                            <div className="col-span-1 flex flex-col w-full h-fit!">
+                              <p className="text-sm font-medium">
+                                Activity date
+                              </p>
+                              <p className="text-xs font-normal">
+                                {format(
+                                  new Date(item.selectedDate),
+                                  "EEE, MMM dd",
+                                  {
+                                    locale:
+                                      localeMap[
+                                        locale as keyof typeof localeMap
+                                      ],
+                                  }
+                                )}
+                              </p>
+                            </div>
+                            <p className="font-semibold truncate">
+                              Guests:{" "}
+                              {Object.values(item.guests).reduce(
+                                (prev, curr) => prev + curr,
+                                0
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
             </CardContent>
           </Card>
         </div>
