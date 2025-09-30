@@ -12,7 +12,7 @@ export const ListingsSkeleton = () => {
       <div className="w-full fixed z-85 bg-background h-fit p-4 shadow">
         <FloatingFilter className="max-w-7xl" />
       </div>
-      <div className="w-full max-w-7xl md:mt-30 sm:mt-40 mt-62">
+      <div className="w-full max-w-7xl md:mt-30 sm:mt-40 mt-52">
         <div className="grid grid-cols-3 items-start w-full gap-6">
           <div className="grid xl:grid-cols-3 min-[500px]:grid-cols-2 grid-cols-1 gap-4 md:col-span-2 col-span-3">
             <div className="flex flex-col col-span-full w-full gap-1">

@@ -34,6 +34,8 @@ import { IssueNoteButton } from "./issueNoteButton";
 import { getGuestData } from "@/app/actions/getGuestData";
 import { callHostkitAPI } from "@/app/actions/callHostkitApi";
 import { IGuestDataDocument } from "@/models/GuestData";
+import { bokunRequest } from "@/utils/bokun-server";
+import { FullExperienceType, PickupPlaceDto } from "@/utils/bokun-requests";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -699,7 +701,110 @@ export default async function Home({
             <CardContent className="gap-4">
               {order.items
                 .filter((item) => item.type == "activity")
-                .map((item) => {
+                .map(async (item) => {
+                  const bokunResponse = await bokunRequest<{
+                    activity: Omit<FullExperienceType, "meetingType"> & {
+                      meetingType:
+                        | "MEET_ON_LOCATION"
+                        | "PICK_UP"
+                        | "MEET_ON_LOCATION_OR_PICK_UP";
+                      startPoints: {
+                        labels?: string[];
+                        address: {
+                          geoPoint: { latitude: number; longitude: number };
+                        };
+                        title: string;
+                        id: number;
+                      }[];
+                    };
+                    bookingId: number;
+                    parentBookingId: number;
+                    answers: {
+                      answer: string;
+                      group: string;
+                      id: number;
+                      question: string;
+                      type: string;
+                    }[];
+                    productConfirmationCode: string;
+                    bookedPricingCategories: {
+                      id: number;
+                      title: string;
+                      ticketCategory:
+                        | "ADULT"
+                        | "CHILD"
+                        | "TEENAGER"
+                        | "INFANT"
+                        | "SENIOR"
+                        | "STUDENT"
+                        | "MILITARY"
+                        | "OTHER";
+                      ageQualified: boolean;
+                      minAge?: number;
+                      maxAge?: number;
+                      fullTitle: string;
+                    }[];
+                    bookingAnswers: {
+                      questionId: string;
+                      values: string[];
+                      label: string;
+                    }[];
+                    pickupAnswers: {
+                      questionId: string;
+                      values: string[];
+                      label: string;
+                    }[];
+                    cancelNote?: string;
+                    cancellationDate?: string;
+                    cancelledBy?: string;
+                    confirmationCode: string;
+                    date: string;
+                    flexible: boolean;
+                    id: number;
+                    pickup: boolean;
+                    pickupPlace?: PickupPlaceDto;
+                    pickupPlaceDescription?: string;
+                    pickupPlaceRoomNumber?: string;
+                    pickupTime?: string;
+                    startTime?: string;
+                    startTimeId?: number;
+                    cancellationPolicy?: {
+                      id: number;
+                      title: string;
+                      penaltyRules: {
+                        id: number;
+                        cutoffHours: number;
+                        charge: number;
+                        chargeType: "percentage" | "amount";
+                        percentage: number;
+                      }[];
+                    };
+                    quantityByPricingCategory: { [categoryId: number]: number };
+                    status:
+                      | "CART"
+                      | "REQUESTED"
+                      | "RESERVED"
+                      | "CONFIRMED"
+                      | "TIMEOUT"
+                      | "ABORTED"
+                      | "CANCELLED"
+                      | "ERROR"
+                      | "ARRIVED"
+                      | "NO_SHOW"
+                      | "REJECTED";
+                    totalParticipants: number;
+                    totalPrice: number;
+                  }>({
+                    method: "GET",
+                    path: `/booking.json/activity-booking/${order.activityBookingIds![
+                      order.items
+                        .filter((item) => item.type == "activity")
+                        .indexOf(item)
+                    ]}`,
+                  });
+                  if(!bokunResponse.success){
+                    return;
+                  }
                   return (
                     <div
                       key={item.id}
@@ -715,12 +820,19 @@ export default async function Home({
                             className="object-cover"
                           />
                         </div>
-                        <div className="grow flex min-[550px]:flex-row flex-col justify-between gap-1 text-sm">
-                          <div className="min-[550px]:w-fit min-[550px]:flex-1 flex flex-col gap-1 items-start">
+                        <div className="grow flex flex-col gap-1 text-sm">
+                          <div className="min-[550px]:w-fit min-[550px]:flex-1 flex flex-col gap-0 items-start">
                             <p className="font-bold truncate">{item.name}</p>
                             <div className="col-span-1 flex flex-col w-full h-fit!">
                               <p className="text-sm font-medium">
-                                Activity date
+                                Code:{" "}
+                                {
+                                  order.activityBookingIds![
+                                    order.items
+                                      .filter((item) => item.type == "activity")
+                                      .indexOf(item)
+                                  ]
+                                }
                               </p>
                               <p className="text-xs font-normal">
                                 {format(
@@ -742,6 +854,87 @@ export default async function Home({
                                 0
                               )}
                             </p>
+                          </div>
+                          <div className="w-full flex flex-row gap-2 items-center flex-wrap">
+                            <Button className="grow h-fit! p-2! py-1!">
+                              Ticket
+                            </Button>
+                            <Button
+                              className="grow h-fit! p-2! py-1!"
+                              variant={"outline"}
+                            >
+                              Invoice
+                            </Button>
+                            {(() => {
+                              switch (bokunResponse.status) {
+                                case "CART":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
+                                      {t("in-cart")}
+                                    </div>
+                                  );
+                                case "REQUESTED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
+                                      {t("requested")}
+                                    </div>
+                                  );
+                                case "RESERVED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
+                                      {t("reserved")}
+                                    </div>
+                                  );
+                                case "CONFIRMED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-green-100 text-green-800">
+                                      {t("confirmed")}
+                                    </div>
+                                  );
+                                case "TIMEOUT":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
+                                      {t("timed-out")}
+                                    </div>
+                                  );
+                                case "ABORTED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      {t("aborted")}
+                                    </div>
+                                  );
+                                case "CANCELLED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      {t("canceled")}
+                                    </div>
+                                  );
+                                case "ERROR":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      {t("error")}
+                                    </div>
+                                  );
+                                case "ARRIVED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-blue-100 text-blue-700">
+                                      {t("arrived")}
+                                    </div>
+                                  );
+                                case "NO_SHOW":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      {t("no-show")}
+                                    </div>
+                                  );
+                                case "REJECTED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      {t("rejected")}
+                                    </div>
+                                  );
+                              }
+                            })()}
                           </div>
                         </div>
                       </div>

@@ -9,6 +9,7 @@ import { getTranslations } from "next-intl/server";
 import { format } from "date-fns";
 import env from "@/utils/env";
 import { sendMail } from "./sendMail";
+import { getAdminEmails } from "@/utils/getAdminEmail";
 
 
 
@@ -158,11 +159,15 @@ export async function registerOrder(data: RegisterOrderInput) {
             },
             { '{{order_url}}': `${env.SITE_URL}/admin/dashboard/orders/${order.orderId}` }
             ])
-            await sendMail({
-                email: env.ADMIN_EMAIL,
-                html: adminOrderHtml,
-                subject: t('order-admin-number', { order_id: order.orderId }),
-            });
+            const adminEmail = await getAdminEmails();
+            for(const mail of adminEmail){
+                await sendMail({
+                    email: mail,
+                    html: adminOrderHtml,
+                    subject: t('order-admin-number', { order_id: order.orderId }),
+                });
+            }
+           
         return { success: true, orderId: order.orderId };
     } catch (error) {
         console.error('Failed to register order:', error);

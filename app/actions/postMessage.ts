@@ -11,6 +11,7 @@ import env from "@/utils/env";
 import { sendMail } from "./sendMail";
 import { format } from "date-fns";
 import { connectDB } from "@/lib/mongodb";
+import { getAdminEmails } from "@/utils/getAdminEmail";
 
 export async function postMessage({
     chatId,
@@ -64,7 +65,7 @@ export async function postMessage({
         const res = await getOrderByReservationId(chat.reservation_id);
         if(typeof res.order != 'boolean'){
             const t = await getTranslations("chat-email");
-            const adminEmail = env.ADMIN_EMAIL;
+           
             const orderHtml = await getHtml('emails/invoice-sent-email.html',
                 [{ "{{products_html}}":`${res.order.name} wrote on ${format(new Date(),'dd/MM/yyyy hh:mm')}:\n ${message}` },
                 { "{{your-invoice-is-ready}}": t('you-got-a-new-message') },
@@ -72,12 +73,15 @@ export async function postMessage({
                 { "{{order-number}}": t('reservation-number', { order_id: chat.booking_reference }) },
                 { '{{invoice_url}}': `${env.SITE_URL}/admin/dashboard/orders/${res.order.orderId}` }
                 ])
-
-            await sendMail({
-                email: adminEmail,
-                html: orderHtml,
-                subject: t('new-admin-message', { order_id: chat.booking_reference }),
-            });
+                const adminEmail = await getAdminEmails();
+                for(const mail of adminEmail){
+                    await sendMail({
+                        email: mail,
+                        html: orderHtml,
+                        subject: t('new-admin-message', { order_id: chat.booking_reference }),
+                    });
+                }
+           
         }
     }
 
