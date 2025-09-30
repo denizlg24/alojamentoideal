@@ -1,15 +1,20 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { FaFilePdf } from "react-icons/fa6";
 
 export const TicketButton = ({
   base64,
   title,
+  className,
+  variant
 }: {
   base64: string;
   title: string;
+  className?:string;
+  variant?:"link" | "default" | "destructive" | "outline" | "secondary" | "ghost";
 }) => {
   const url = useMemo(() => {
     const blob = new Blob(
@@ -28,8 +33,8 @@ export const TicketButton = ({
         link.click();
         link.remove();
       }}
-      className="w-fit p-0! h-fit!"
-      variant={"link"}
+      className={cn("w-fit p-0! h-fit!",className)}
+      variant={variant ?? "link"}
     >
       <FaFilePdf /> {title}
     </Button>

@@ -36,6 +36,7 @@ import { callHostkitAPI } from "@/app/actions/callHostkitApi";
 import { IGuestDataDocument } from "@/models/GuestData";
 import { bokunRequest } from "@/utils/bokun-server";
 import { FullExperienceType, PickupPlaceDto } from "@/utils/bokun-requests";
+import { TicketButton } from "@/app/[locale]/(frontend)/reservations/activities/[id]/ticket-button";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -796,13 +797,36 @@ export default async function Home({
                     totalPrice: number;
                   }>({
                     method: "GET",
-                    path: `/booking.json/activity-booking/${order.activityBookingIds![
-                      order.items
-                        .filter((item) => item.type == "activity")
-                        .indexOf(item)
-                    ]}`,
+                    path: `/booking.json/activity-booking/${
+                      order.activityBookingIds![
+                        order.items
+                          .filter((item) => item.type == "activity")
+                          .indexOf(item)
+                      ]
+                    }`,
                   });
-                  if(!bokunResponse.success){
+                  if (!bokunResponse.success) {
+                    return;
+                  }
+                  const ticketResponse = await bokunRequest<{ data: string }>({
+                    method: "GET",
+                    path: `/booking.json/activity-booking/${
+                      order.activityBookingIds![
+                        order.items
+                          .filter((item) => item.type == "activity")
+                          .indexOf(item)
+                      ]
+                    }/ticket`,
+                  });
+                  if (!ticketResponse.success) {
+                    return;
+                  }
+
+                  const invoiceResponse = await bokunRequest<{ data: string }>({
+                    method: "GET",
+                    path: `/booking.json/${bokunResponse.parentBookingId}/summary`,
+                  });
+                  if (!invoiceResponse.success) {
                     return;
                   }
                   return (
@@ -856,81 +880,84 @@ export default async function Home({
                             </p>
                           </div>
                           <div className="w-full flex flex-row gap-2 items-center flex-wrap">
-                            <Button className="grow h-fit! p-2! py-1!">
-                              Ticket
-                            </Button>
-                            <Button
+                            <TicketButton
+                              variant="default"
                               className="grow h-fit! p-2! py-1!"
-                              variant={"outline"}
-                            >
-                              Invoice
-                            </Button>
+                              title="Ticket"
+                              base64={ticketResponse.data}
+                            />
+                            <TicketButton
+                              variant="outline"
+                              className="grow h-fit! p-2! py-1!"
+                              title="Invoice"
+                              base64={invoiceResponse.data}
+                            />
                             {(() => {
                               switch (bokunResponse.status) {
                                 case "CART":
                                   return (
-                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
-                                      {t("in-cart")}
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
+                                      In-cart
                                     </div>
                                   );
                                 case "REQUESTED":
                                   return (
-                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
-                                      {t("requested")}
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
+                                      Requested
                                     </div>
                                   );
                                 case "RESERVED":
                                   return (
-                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
-                                      {t("reserved")}
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
+                                      Reserved
                                     </div>
                                   );
                                 case "CONFIRMED":
                                   return (
-                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-green-100 text-green-800">
-                                      {t("confirmed")}
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-green-100 text-green-800">
+                                      Confirmed
                                     </div>
                                   );
                                 case "TIMEOUT":
                                   return (
-                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
-                                      {t("timed-out")}
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
+                                      Timed out
                                     </div>
                                   );
                                 case "ABORTED":
                                   return (
-                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
-                                      {t("aborted")}
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      Aborted
                                     </div>
                                   );
                                 case "CANCELLED":
                                   return (
-                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
-                                      {t("canceled")}
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      Canceled
                                     </div>
                                   );
                                 case "ERROR":
                                   return (
-                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
-                                      {t("error")}
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      Error
                                     </div>
                                   );
                                 case "ARRIVED":
                                   return (
-                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-blue-100 text-blue-700">
-                                      {t("arrived")}
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-blue-100 text-blue-700">
+                                      Arrived
                                     </div>
                                   );
                                 case "NO_SHOW":
                                   return (
-                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
-                                      {t("no-show")}
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      No show
                                     </div>
                                   );
                                 case "REJECTED":
                                   return (
-                                    <div className="grow px-3 py-1.5 text-xs font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
-                                      {t("rejected")}
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      Rejected
                                     </div>
                                   );
                               }
