@@ -385,6 +385,7 @@ export interface ExperienceRateTierDto {
 }
 
 export interface ExperienceRateExtraConfigDto {
+    activityExtraId: number;
     id: number;
     extra: { id: number, externalId: string };
     selectionType: 'OPTIONAL' | 'PRESELECTED';

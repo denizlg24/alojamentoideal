@@ -1439,5 +1439,10 @@
     "days-hours": "{days} and {hours} ago",
     "days-ago": "{days} ago",
     "hours-ago": "{hours} ago"
+  },
+  "extras":{
+    "extras":"Extras",
+    "included-in-price":"(Included in price)",
+    "priced-separately":"(Priced separately)"
   }
 }
