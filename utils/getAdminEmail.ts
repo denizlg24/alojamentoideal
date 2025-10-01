@@ -6,7 +6,7 @@ import AdminModel from "@/models/Admin";
 export async function getAdminEmails(){
     try {
         await connectDB();
-        const admins = await AdminModel.find().lean();
+        const admins = await AdminModel.find({emailVerified:true}).lean();
         return admins.map((admin) => admin.email);
     } catch (error) {
         console.log("Error getting admin emails: ",error);
