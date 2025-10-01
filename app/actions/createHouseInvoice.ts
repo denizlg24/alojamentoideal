@@ -27,7 +27,7 @@ export async function createHouseInvoice({ clientName, clientAddress, clientTax,
 
     const fees = info.fees;
 
-    const customer_id = clientTax == '' ? '999999990' : clientTax;
+    const customer_id = clientTax ? (clientTax == '' ? '999999990' : clientTax) : '999999990';
     const name = clientName;
     const country = clientAddress?.country ? alpha2ToAlpha3(clientAddress.country) : undefined;
     const address = clientAddress?.line1 + (clientAddress?.line2 ? ` ${clientAddress.line2}` : "");
@@ -221,7 +221,7 @@ export async function createRefundHouseInvoice({ clientName, clientAddress, clie
 
     const fees = info.fees;
 
-    const customer_id = clientTax == '' ? '999999990' : clientTax;
+    const customer_id = clientTax ? (clientTax == '' ? '999999990' : clientTax) : '999999990';
     const name = clientName;
     const country = clientAddress?.country ? alpha2ToAlpha3(clientAddress.country) : undefined;
     const address = clientAddress?.line1 + (clientAddress?.line2 ? ` ${clientAddress.line2}` : "");
