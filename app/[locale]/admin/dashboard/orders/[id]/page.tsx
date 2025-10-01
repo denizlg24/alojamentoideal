@@ -456,13 +456,13 @@ export default async function Home({
                   <p className="font-semibold">{t("status")}</p>
                   <div className="flex flex-row items-center gap-2">
                     <p className="truncate">
-                      {t(
-                        (charge?.amount_refunded ?? 0) > 0
-                          ? "refunded"
-                          : charge?.status ?? "unknown-status"
-                      )}
-                      {charge?.status === "failed" &&
-                        " " + charge?.failure_message}
+                    {t(
+                      (charge?.amount_refunded ?? 0) > 0
+                        ? charge?.amount_refunded == charge?.amount ? "refunded" : "partial-refund"
+                        : charge?.status ?? "unknown-status"
+                    ,{refund:`(${(charge?.amount_refunded ?? 0)/100}€)`})}
+                    {charge?.status === "failed" &&
+                      " " + charge?.failure_message}
                     </p>
                     {renderStatusIcon({
                       status:
