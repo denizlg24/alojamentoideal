@@ -14,7 +14,6 @@
 
 ## 🚀 Features
 
-- 🔍 Advanced search with filters (price, amenities, location)
 - 🗺️ Interactive map integration
 - 📄 Dynamic listings with detail pages
 - 📱 Fully responsive design
