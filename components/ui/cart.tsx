@@ -138,7 +138,7 @@ export const Cart = () => {
                           })}
                         </p>
                         <p className="text-xs">
-                          <span className="font-semibold">{t("total")}:</span>
+                          <span className="font-semibold">{t("total")} </span>
                           {cartItem.price} €
                         </p>
                       </div>

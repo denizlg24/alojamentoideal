@@ -305,9 +305,9 @@ export const OrderInfo = ({
                   <p className="truncate">
                     {t(
                       (charge?.amount_refunded ?? 0) > 0
-                        ? "refunded"
+                        ? charge?.amount_refunded == charge?.amount ? "refunded" : "partial-refund"
                         : charge?.status ?? "unknown-status"
-                    )}
+                    ,{refund:`(${(charge?.amount_refunded ?? 0)/100}€)`})}
                     {charge?.status === "failed" &&
                       " " + charge?.failure_message}
                   </p>

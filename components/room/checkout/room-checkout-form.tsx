@@ -284,7 +284,7 @@ export const RoomCheckoutForm = ({
     const clientEmail = data.email;
     const clientPhone = addressData?.phone ?? "";
     const clientNotes = data.note;
-    const clientTax = data.vat;
+    const clientTax = data.vat ? data.vat.length > 2 ? data.vat : undefined : undefined;
     const clientAddress = addressData.address;
     setLoadingMessage("loading_create_res");
     const {
@@ -480,7 +480,7 @@ export const RoomCheckoutForm = ({
         const clientEmail = clientInfo.getValues("email");
         const clientPhone = addressData?.phone ?? "";
         const clientNotes = clientInfo.getValues("note");
-        const clientTax = clientInfo.getValues("vat");
+        const clientTax =  clientInfo.getValues("vat") ?  clientInfo.getValues("vat")!.length > 2 ?  clientInfo.getValues("vat") : undefined : undefined;
         const clientAddress = addressData.address;
         setLoadingMessage("loading_create_res");
         const {

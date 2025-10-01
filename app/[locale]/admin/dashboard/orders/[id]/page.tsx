@@ -196,12 +196,23 @@ export default async function Home({
         break;
     }
     if (charge.amount_refunded > 0) {
-      status = (
-        <div className="flex flex-row items-center justify-start gap-1">
-          <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-          <p>Refunded ({charge.amount_refunded / 100}€)</p>
-        </div>
-      );
+      
+      if(charge.amount_refunded == charge.amount){
+        status = (
+          <div className="flex flex-row items-center justify-start gap-1">
+            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+            <p>Refunded ({charge.amount_refunded / 100}€)</p>
+          </div>
+        );
+      }
+      else {
+        status = (
+          <div className="flex flex-row items-center justify-start gap-1">
+            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+            <p>Part Refunded ({charge.amount_refunded / 100}€)</p>
+          </div>
+        );
+      }
     }
     return status;
   };

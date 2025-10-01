@@ -119,7 +119,7 @@
     "homes": "Alojamientos",
     "tours": "Experiencias",
     "about": "Sobre Nosotros",
-    "contact": "Contacto",
+    "contact": "Ayuda",
     "porto-exp": "Experiencias en la ciudad de Oporto",
     "douro-exp": "Rutas del vino por el valle del Duero",
     "arouca-exp": "Pasarelas de Arouca y Paiva",
@@ -280,7 +280,7 @@
     "clear": "Vaciar carrito",
     "empty": "Tu carrito está vacío.",
     "nights_guests": "{nights} noches - {guests} huéspedes",
-    "total": "Total: ",
+    "total": "Total:",
     "checkout": "Pagar - {total} €",
     "group-of": "Grupo de {count}"
   },
@@ -419,7 +419,8 @@
     "succeeded": "Completado",
     "failed": "Fallido",
     "unknown-status": "Charge missing",
-    "activities": "Actividades"
+    "activities": "Actividades",
+    "partial-refund": "Parte reembolsado {refund}"
   },
   "propertyCard": {
     "trip_details": "Detalles del viaje",
@@ -1177,7 +1178,7 @@
       "q1": "¿Qué hago si tengo un problema durante mi estancia?",
       "a1": "Puede contactar directamente con el anfitrión o con nuestro equipo de soporte 24/7 en caso de urgencias.",
       "q2": "¿Cómo puedo contactar con Alojamiento Ideal?",
-      "a2": "A través de correo electrónico, teléfono o chat en línea. Los detalles están en la página 'Contacto'."
+      "a2": "A través de correo electrónico, teléfono o chat en línea. Los detalles están en la página 'Ayuda'."
     }
   },
   "login-register": {

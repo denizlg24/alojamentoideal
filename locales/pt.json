@@ -280,7 +280,7 @@
     "clear": "Esvaziar carrinho",
     "empty": "O seu carrinho está vazio.",
     "nights_guests": "{nights} noites - {guests} hóspedes",
-    "total": "Total: ",
+    "total": "Total:",
     "checkout": "Finalizar compra - {total} €",
     "group-of": "Grupo de {count}"
   },
@@ -419,7 +419,8 @@
     "succeeded": "Concluído",
     "failed": "Falhou",
     "unknown-status": "Charge missing",
-    "activities": "Atividades"
+    "activities": "Atividades",
+    "partial-refund": "Parte reembolsada {refund}"
   },
   "propertyCard": {
     "trip_details": "Detalhes da viagem",
@@ -1177,7 +1178,7 @@
       "q1": "O que faço se tiver um problema durante a estadia?",
       "a1": "Pode contactar diretamente o anfitrião ou recorrer à nossa equipa de apoio 24/7 para situações urgentes.",
       "q2": "Como posso contactar o Alojamento Ideal?",
-      "a2": "Através de email, telefone ou chat online. Os contactos estão disponíveis na página 'Contactos'."
+      "a2": "Através de email, telefone ou chat online. Os contactos estão disponíveis na página 'Ajuda'."
     }
   },
   "login-register": {

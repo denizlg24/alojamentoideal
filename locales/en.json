@@ -280,7 +280,7 @@
     "clear": "Clear Cart",
     "empty": "Your Cart is empty.",
     "nights_guests": "{nights} nights - {guests} guests",
-    "total": "Total: ",
+    "total": "Total:",
     "checkout": "Checkout - {total} €",
     "group-of": "Group of {count}"
   },
@@ -416,6 +416,7 @@
     "confirmation-code": "Confirmation code",
     "print": "Print order summary",
     "refunded": "Refunded",
+    "partial-refund": "Part refunded {refund}",
     "succeeded": "Succeeded",
     "failed": "Failed",
     "unknown-status": "Charge missing",
@@ -1152,7 +1153,7 @@
     "cancellation": {
       "title": "Cancellation & Refunds",
       "q1": "What is the cancellation policy?",
-      "a1": "• Cancel within 48 hours of booking and at least 14 days before check-in → Full refund\n• Cancel 14 or more days before check-in (outside first 48h) → 50% refund\n• Cancel between 7–14 days before check-in → 50% refund\n• Cancel less than 7 days before check-in → Non-refundable, except for proportional tax refund",
+      "a1": "• Cancel within 48 hours of booking and at least 14 days before check-in → Full refund\n• Cancel 14 or more days before check-in (outside first 48h) → 50% \n• Cancel between 7–14 days before check-in → 50% refund\n• Cancel less than 7 days before check-in → Non-refundable, except for proportional tax refund",
       "q2": "How long does it take to receive a refund?",
       "a2": "Refunds are processed immediately after cancellation but may take 5–10 business days to appear on your payment method."
     },
@@ -1177,7 +1178,7 @@
       "q1": "What if I have an issue during my stay?",
       "a1": "You can contact your host directly or reach our 24/7 support team for urgent assistance.",
       "q2": "How do I contact Alojamento Ideal?",
-      "a2": "Via email, phone, or live chat. Details are available on the 'Contact Us' page."
+      "a2": "Via email, phone, or live chat. Details are available on the 'Help' page."
     }
   },
   "login-register": {
