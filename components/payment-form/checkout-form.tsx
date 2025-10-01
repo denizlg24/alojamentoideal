@@ -3577,7 +3577,7 @@ export const CheckoutForm = ({
                     </div>
                     <div className="flex flex-col gap-0 items-start grow">
                       <p className="font-semibold">
-                        {clientInfo.getValues("vat")}
+                      {(clientInfo.getValues("vat") ?? "").length > 2 ? clientInfo.getValues("vat") : ""}
                       </p>
                       <p className="text-sm text-muted-foreground max-w-[200px]">
                         {`${addressData.address.line1}${
