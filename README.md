@@ -8,7 +8,7 @@
 
 ## 📸 Preview
 
-![Preview Screenshot](link-to-your-screenshot.png) <!-- Replace with actual image link if available -->
+![Preview Screenshot](https://prnt.sc/Y7VfXTq55PJY) <!-- Replace with actual image link if available -->
 
 ---
 
