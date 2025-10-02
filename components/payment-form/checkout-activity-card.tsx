@@ -283,7 +283,7 @@ export const CheckoutActivityCard = ({
         )}
 
         <Separator />
-        {activityInfo.rate?.extraConfigs?.length && (
+        {(activityInfo.rate?.extraConfigs?.length ?? 0) > 0 && (
           <>
             <div className="flex flex-row items-center flex-wrap gap-1">
               <p className="sm:text-sm text-xs font-semibold flex flex-row items-center gap-1 justify-start text-left">

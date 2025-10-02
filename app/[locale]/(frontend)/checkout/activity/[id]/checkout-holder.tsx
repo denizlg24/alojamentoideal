@@ -235,7 +235,7 @@ export const CheckoutHolder = ({
               </div>
             )}
           </div>
-          {selectedRate.extraConfigs?.length && (
+          {(selectedRate.extraConfigs?.length ?? 0) > 0 && (
             <>
               <Separator className="my-4" />
               <p className="sm:text-base text-sm font-semibold flex flex-row items-center gap-1 justify-start text-left">
@@ -258,7 +258,6 @@ export const CheckoutHolder = ({
               
             </>
           )}
-
           <Separator className="my-4" />
           <p className="sm:text-base text-sm font-semibold flex flex-row items-center gap-1 justify-start text-left">
             <RotateCcw className="text-blue-400 w-4 h-4 shrink-0" />
