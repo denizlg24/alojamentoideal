@@ -123,7 +123,7 @@ export async function POST(req: Request) {
                             const accItems = foundOrder.items.filter((item) => item.type == 'accommodation');
                             for (let index = 0; index < foundOrder.reservationIds.length; index++) {
                                 const id = foundOrder.reservationIds[index];
-                                const reference = foundOrder.reservationIds[index];
+                                const reference = foundOrder.reservationReferences[index];
                                 if(reservation_successes[id]){
                                     succeeded_reservation_ids.push(id);
                                     succeeded_reservation_references.push(reference);
