@@ -3072,8 +3072,8 @@ export const CheckoutForm = ({
                     </CarouselContent>
                     {activityBookings[step].passengers.length > 1 && (
                       <div className="absolute top-0 right-0">
-                        <CarouselPrevious className="border-none p-0 right-0 top-4 shadow-none w-fit h-fit" />
-                        <CarouselNext className="border-none p-0 right-2 top-4 shadow-none w-fit h-fit" />
+                        <CarouselPrevious type="button" className="border-none p-0 right-0 top-4 shadow-none w-fit h-fit" />
+                        <CarouselNext type="button" className="border-none p-0 right-2 top-4 shadow-none w-fit h-fit" />
                       </div>
                     )}
                   </Carousel>
