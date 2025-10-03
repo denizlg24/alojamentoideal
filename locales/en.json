@@ -1136,7 +1136,10 @@
     "view-reservation": "View reservation page.",
     "reservation-cancellation": "Reservation {order_id} cancellation",
     "success-refund-reservation-failed": "Unfortunately there was a problem creating your reservation. Because of this and since your payment went through, we have refunded {amount}€ to your account. The funds may take up to 10 days to show up. This could have happened for many reasons such as the period selected being booked by someone else while you were completing the checkout proccess or a techinal server error. We are deeply sorry.",
-    "reservation-refund-id": "Refund for failed reservation {order_id}"
+    "reservation-refund-id": "Refund for failed reservation {order_id}",
+    "view-bokun-order": "View bokun order",
+    "new-order": "New Activity Order",
+    "order-title-bokun": "What's in the order?"
   },
   "toast": {
     "email-sent": "Email sent successfully!",

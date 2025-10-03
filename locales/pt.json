@@ -1136,7 +1136,10 @@
     "your-activity-cancelled": "Você cancelou a sua reserva.",
     "your-new-invoice-is-ready": "A sua nova fatura está pronta.",
     "reservation-refund-id": "Reembolso por falha na reserva {order_id}",
-    "success-refund-reservation-failed": "Infelizmente, ocorreu um problema ao criar a sua reserva. Por este motivo, e como o seu pagamento foi efetuado, reembolsamos {valor}€ na sua conta. O valor pode demorar até 10 dias a aparecer. Isto pode ter ocorrido por diversos motivos, como o período selecionado ter sido reservado por outra pessoa enquanto estava a terminar o processo de compra ou um erro técnico no servidor. Pedimos desculpa."
+    "success-refund-reservation-failed": "Infelizmente, ocorreu um problema ao criar a sua reserva. Por este motivo, e como o seu pagamento foi efetuado, reembolsamos {valor}€ na sua conta. O valor pode demorar até 10 dias a aparecer. Isto pode ter ocorrido por diversos motivos, como o período selecionado ter sido reservado por outra pessoa enquanto estava a terminar o processo de compra ou um erro técnico no servidor. Pedimos desculpa.",
+    "new-order": "New Activity Order",
+    "view-bokun-order": "View bokun order",
+    "order-title-bokun": "What's in the order?"
   },
   "toast": {
     "email-sent": "Email enviado com sucesso!",

@@ -15,8 +15,8 @@ export async function bokunRequest<T = unknown>({
     path,
     body,
 }: BokunRequestOptions): Promise<{ success: true } & T | { success: false; status: number; message: string; }> {
-    const accessKey = env.BOKUN_ACCESS_KEY;
-    const secretKey = env.BOKUN_SECRET_KEY;
+    const accessKey = env.BOKUN_ENVIRONMENT == 'ENV' ? env.BOKUN_ACCESS_KEY : env.BOKUN_ACCESS_KEY_PROD ;
+    const secretKey =  env.BOKUN_ENVIRONMENT == 'ENV' ? env.BOKUN_SECRET_KEY : env.BOKUN_SECRET_KEY_PROD ;
 
     if (!accessKey || !secretKey) {
         throw new Error("Missing BOKUN_ACCESS_KEY or BOKUN_SECRET_KEY in env");

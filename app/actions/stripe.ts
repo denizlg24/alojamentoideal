@@ -45,9 +45,9 @@ export async function fetchClientSecret(amount: { alojamentoIdeal: number, detou
             },
             ...(amount.detours > 0
                 ? amount.alojamentoIdeal > 0 ? {
-                    transfer_data: { destination: env.DETOURS_STRIPE_ID!, amount: amount.detours },
+                    transfer_data: { destination: env.BOKUN_ENVIRONMENT == 'DEV' ? env.DETOURS_STRIPE_ID : env.DETOURS_STRIPE_ID_PROD, amount: amount.detours },
                 } : {
-                    transfer_data: { destination: env.DETOURS_STRIPE_ID! },
+                    transfer_data: { destination: env.BOKUN_ENVIRONMENT == 'DEV' ? env.DETOURS_STRIPE_ID : env.DETOURS_STRIPE_ID_PROD },
                 }
                 : {}),
             setup_future_usage: "off_session"

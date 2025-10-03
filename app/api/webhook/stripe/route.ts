@@ -2,7 +2,7 @@ import { attachInvoice } from "@/app/actions/attachInvoice";
 import { createHouseInvoice } from "@/app/actions/createHouseInvoice";
 import { getHtml } from "@/app/actions/getHtml";
 import { sendMail } from "@/app/actions/sendMail";
-import { CartItem } from "@/hooks/cart-context";
+import { CartItem, TourItem } from "@/hooks/cart-context";
 import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
 import OrderModel from "@/models/Order";
@@ -101,7 +101,7 @@ export async function POST(req: Request) {
                             const booking_confirm_response = await confirmActivities({ charge, activityBookingReferences: foundOrder.activityBookingReferences, order_id: foundOrder.orderId });
                             console.log(booking_confirm_response);
                         }
-                        const filteredBookingItems = foundOrder.items.filter((item) => item.type == 'activity');
+                        const filteredActivities = foundOrder.items.filter((item) => item.type == 'activity');
                         const accItems = foundOrder.items.filter((item) => item.type == 'accommodation');
                         const filteredAccommodationItems: CartItem[] = [];
                         const filteredReservationReferences: string[] = [];
@@ -112,7 +112,7 @@ export async function POST(req: Request) {
                                 filteredReservationReferences.push(foundOrder.reservationReferences[index]);
                             }
                         }
-                        const order_email_html = await buildOrderEmail({ plainItems: [...filteredBookingItems,...filteredAccommodationItems], order_id: foundOrder.orderId,reservationReferences:filteredReservationReferences,activityBookingIds:foundOrder.activityBookingIds });
+                        const order_email_html = await buildOrderEmail({ plainItems: [...filteredActivities,...filteredAccommodationItems], order_id: foundOrder.orderId,reservationReferences:filteredReservationReferences,activityBookingIds:foundOrder.activityBookingIds });
                         const order_attachments = await buildAttachments({ activityBookingIds: foundOrder.activityBookingIds ?? [], activityBookingReferences: foundOrder.activityBookingReferences ?? [] })
                         await sendOrderEmail({ email: foundOrder.email, orderHtml: order_email_html, attachments: order_attachments, order_id: foundOrder.orderId });
 
@@ -131,6 +131,12 @@ export async function POST(req: Request) {
                                 }
                             }
                             await issueInvoices({ reservationIds: succeeded_reservation_ids, reservationReferences: succeeded_reservation_references, items: succeeded_order_items, userInfo: { email: foundOrder.email, name: foundOrder.name, companyName: foundOrder.companyName, tax_number: foundOrder.tax_number, isCompany: foundOrder.isCompany }, charge,order_id:foundOrder.orderId })
+                        }
+                        if(foundOrder && foundOrder.activityBookingReferences && foundOrder.activityBookingIds){
+                            const detoursHtml = await buildDetoursEmail({plainItems:filteredActivities,activityBookingIds:foundOrder.activityBookingIds,order_id:foundOrder.activityBookingReferences[0]})
+                            for(const email of env.DETOURS_CONTACTS.split('&&')){
+                               await sendOrderEmail({email,orderHtml:detoursHtml,order_id:foundOrder.activityBookingReferences[0],attachments:[]});
+                            }
                         }
                     }
 
@@ -315,6 +321,36 @@ const issueInvoices = async ({ reservationIds, reservationReferences, items, use
         }
     }
     return true;
+}
+
+const buildDetoursEmail = async({plainItems,activityBookingIds,order_id}:{plainItems:TourItem[],activityBookingIds:string[],order_id:string}) => {
+    const t = await getTranslations("order-email");
+    const total = plainItems.reduce((prev, i) => {
+        return prev + (i.price ?? 0);
+    }, 0);
+    let products_html = "";
+    let b = 0;
+    for(const i of plainItems){
+        const productHtml = await getHtml('emails/order-product.html', [{ '{{product_name}}': i.name }, {
+            '{{product_description}}': t("tour-date", {
+                startDate: format(i.selectedDate, "MMMM dd, yyyy")
+            })
+        }, { '{{product_quantity}}': t("reservation", { number: activityBookingIds![b] }) }, { "{{product_price}}": `${i.price ?? 0}€` }, { "{{product_photo}}": i.photo }])
+        products_html += productHtml;
+        b++;
+    }
+    const orderHtml = await getHtml('emails/order-confirmed-email.html',
+        [{ "{{products_html}}": products_html },
+        { "{{your-order-is-in}}": t('new-order') },
+        { "{{view-your-order}}": t('view-bokun-order') },
+        { "{{order-title}}": t('order-title-bokun') },
+        { "{{order-number}}": t('order-number', { order_id: order_id }) },
+        { "{{order-total}}": 'Total:' },
+        { "{{total_price}}": `${total}€` },
+        { '{{order_url}}': `${env.BOKUN_ENVIRONMENT == 'DEV' ? env.BOKUN_PREFIX : env.BOKUN_PREFIX_PROD}/sales/${order_id.split('-')[1]}` }
+        ])
+    return orderHtml;
+  
 }
 
 const buildOrderEmail = async ({ plainItems, order_id,reservationReferences,activityBookingIds }: { plainItems: CartItem[], order_id: string;reservationReferences:string[],activityBookingIds?:string[] }) => {
