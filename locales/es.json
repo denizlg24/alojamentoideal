@@ -1134,7 +1134,9 @@
     "reservation-cancellation": "Cancelación de la Reserva {order_id} ",
     "view-reservation": "Ver página da reserva.",
     "your-activity-cancelled": "Ha cancelado su reserva.",
-    "your-new-invoice-is-ready": "Tu nueva factura está lista."
+    "your-new-invoice-is-ready": "Tu nueva factura está lista.",
+    "reservation-refund-id": "Reembolso por reserva fallida {order_id}",
+    "success-refund-reservation-failed": "Lamentablemente, hubo un problema al crear su reserva. Debido a esto y dado que su pago se realizó, hemos reembolsado {amount}€ a su cuenta. El dinero puede tardar hasta 10 días en aparecer. Esto podría deberse a diversas razones, como que otra persona haya reservado el período seleccionado mientras usted completaba el proceso de compra o a un error técnico del servidor. Lo lamentamos profundamente."
   },
   "toast": {
     "email-sent": "¡Correo enviado con éxito!",

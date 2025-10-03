@@ -1134,7 +1134,9 @@
     "your-new-invoice-is-ready": "Your new invoice is ready.",
     "your-activity-cancelled": "You have cancelled your reservation.",
     "view-reservation": "View reservation page.",
-    "reservation-cancellation": "Reservation {order_id} cancellation"
+    "reservation-cancellation": "Reservation {order_id} cancellation",
+    "success-refund-reservation-failed": "Unfortunately there was a problem creating your reservation. Because of this and since your payment went through, we have refunded {amount}€ to your account. The funds may take up to 10 days to show up. This could have happened for many reasons such as the period selected being booked by someone else while you were completing the checkout proccess or a techinal server error. We are deeply sorry.",
+    "reservation-refund-id": "Refund for failed reservation {order_id}"
   },
   "toast": {
     "email-sent": "Email sent successfully!",
@@ -1441,9 +1443,9 @@
     "days-ago": "{days} ago",
     "hours-ago": "{hours} ago"
   },
-  "extras":{
-    "extras":"Extras",
-    "included-in-price":"(Included in price)",
-    "priced-separately":"(Priced separately)"
+  "extras": {
+    "extras": "Extras",
+    "included-in-price": "(Included in price)",
+    "priced-separately": "(Priced separately)"
   }
 }
