@@ -89,7 +89,7 @@ export const ActivityPreviewCard = ({
           height={600}
           className={cn(
             "w-full h-auto aspect-[1/0.75] rounded-t-lg object-cover",
-            isLoadingThumbnail ? "hidden" : ""
+            isLoadingThumbnail ? "opacity-0" : ""
           )}
           onLoad={() => {
             setIsLoadingThumbnail(false);
