@@ -2,7 +2,7 @@ import { attachInvoice } from "@/app/actions/attachInvoice";
 import { createHouseInvoice } from "@/app/actions/createHouseInvoice";
 import { getHtml } from "@/app/actions/getHtml";
 import { sendMail } from "@/app/actions/sendMail";
-import {AccommodationItem, CartItem } from "@/hooks/cart-context";
+import { CartItem } from "@/hooks/cart-context";
 import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
 import OrderModel from "@/models/Order";
