@@ -157,6 +157,9 @@ export async function issueCreditNote({ clientEmail, invoice_id, item, reservati
     const invoice = await callHostkitAPI<{ invoice_url: string, series: string, }[]>({
         listingId: item.property_id.toString(), endpoint: "getReservationInvoices", query: { rcode: reservationCode }
     })
+    if(!invoice || !invoice[0]){
+        return false;
+    }
     const creditNote = await callHostkitAPI<{ status: 'success' | unknown, id?: string }>({
         listingId: item.property_id.toString(), endpoint: "addCreditNote", query: { refid: invoice_id, refseries: invoice[0].series }
     })
