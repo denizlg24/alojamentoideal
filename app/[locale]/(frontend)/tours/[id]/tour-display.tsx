@@ -707,8 +707,9 @@ export const TourDisplay = ({
                   <div className="flex flex-row items-center justify-between w-fit gap-2 mt-2">
                     <Button
                       variant={"secondary"}
-                      disabled={guests[experienceAvailability[0].rates[0]
-                        .pricingCategoryIds[0]] == 0}
+                      disabled={!guests || !guests[experienceAvailability[0].rates[0]
+                        .pricingCategoryIds[0]] || guests[experienceAvailability[0].rates[0]
+                        .pricingCategoryIds[0]] == 0 }
                       onClick={() => {
                         setGuests((prev) => {
                           const key =
@@ -778,7 +779,7 @@ export const TourDisplay = ({
 
                         <div className="flex flex-row items-center justify-between w-fit gap-2 mt-2">
                           <Button
-                            disabled={guests[id] == 0}
+                            disabled={!guests || !guests[id] || guests[id] == 0}
                             variant={"secondary"}
                             onClick={() => {
                               setGuests((prev) => {
