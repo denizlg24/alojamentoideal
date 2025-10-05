@@ -1,13 +1,14 @@
 "use server";
 
 import { connectDB } from "@/lib/mongodb";
+import { UnauthorizedError } from "@/lib/utils";
 import GuestDataModel, { Guest } from "@/models/GuestData";
 import { verifySession } from "@/utils/verifySession";
 
 export async function updateGuestData({ booking_code, guest_data }: { booking_code: string, guest_data: Guest[] }) {
     try {
         if (!(await verifySession())) {
-            throw new Error("Unauthorized");
+            throw new UnauthorizedError();
         }
         await connectDB();
         const updated = await GuestDataModel.findOneAndUpdate({ booking_code }, { guest_data, synced: false, succeeded: false }, { new: true }).lean();

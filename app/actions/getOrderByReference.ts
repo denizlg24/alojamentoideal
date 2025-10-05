@@ -1,12 +1,13 @@
 "use server";
 
 import { connectDB } from "@/lib/mongodb";
+import { UnauthorizedError } from "@/lib/utils";
 import OrderModel from "@/models/Order";
 import { verifySession } from "@/utils/verifySession";
 
 export async function getOrderByReference(reference: string) {
     if (!(await verifySession())) {
-        throw new Error('Unauthorized');
+        throw new UnauthorizedError();
     }
     try {
         await connectDB();
@@ -32,7 +33,7 @@ export async function getOrderByReference(reference: string) {
 
 export async function getOrderByReservationId(reservation_id: string) {
     if (!(await verifySession())) {
-        throw new Error('Unauthorized');
+        throw new UnauthorizedError();
     }
     try {
         await connectDB();

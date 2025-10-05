@@ -3,6 +3,7 @@
 import { verifySession } from '@/utils/verifySession';
 import { stripe } from '../../lib/stripe'
 import env from '@/utils/env';
+import { UnauthorizedError } from '@/lib/utils';
 
 export async function fetchClientSecret(amount: { alojamentoIdeal: number, detours: number }, client_name: string, client_email: string, client_phone_number: string, notes: string | undefined, reservationIds: number[], clientAddress: {
     line1: string;
@@ -13,7 +14,7 @@ export async function fetchClientSecret(amount: { alojamentoIdeal: number, detou
     country: string;
 }, activityBookings?: string[]) {
     if (!(await verifySession())) {
-        throw new Error('Unauthorized');
+        throw new UnauthorizedError();
     }
 
     const commaSeparatedReservationIds = reservationIds.join(", ");

@@ -1,5 +1,6 @@
 "use server";
 import { connectDB } from "@/lib/mongodb";
+import { UnauthorizedError } from "@/lib/utils";
 import { ChatModel, MessageModel } from "@/models/Chat";
 import { verifySession } from "@/utils/verifySession";
 
@@ -19,7 +20,7 @@ export async function syncAutomatedMessages(reservationId: string, guest_id: str
     guest_id: number;
 }[]) {
     if (!(await verifySession())) {
-        throw new Error("Unauthorized")
+        throw new UnauthorizedError();
     }
     await connectDB();
     const foundChat = await ChatModel.findOne({ reservation_id: reservationId });

@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/mongodb";
+import { UnauthorizedError } from "@/lib/utils";
 import { ChatModel, MessageModel } from "@/models/Chat";
 import GuestDataModel from "@/models/GuestData";
 import OrderModel from "@/models/Order";
@@ -10,7 +11,7 @@ import { verifySession } from "@/utils/verifySession";
 
 export async function deleteOrder(order_id: string) {
     if (!(await verifySession())) {
-        throw new Error("Unauthorized");
+        throw new UnauthorizedError();
     }
 
     const session = await auth();

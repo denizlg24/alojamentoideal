@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
-import { generateUniqueId } from "@/lib/utils";
+import { generateUniqueId, UnauthorizedError } from "@/lib/utils";
 import { ChatModel, MessageModel } from "@/models/Chat";
 import { verifySession } from "@/utils/verifySession";
 import { getOrderByReservationId } from "./getOrderByReference";
@@ -25,13 +25,13 @@ export async function postMessage({
     optimisticMessageId?: string;
 }) {
     if (!(await verifySession())) {
-        throw new Error("Unauthorized");
+        throw new UnauthorizedError();
     }
 
     if (sender == "admin") {
         const session = await auth();
         if (!session) {
-            throw new Error("Unauthorized")
+            throw new UnauthorizedError();
         }
     }
 

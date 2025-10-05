@@ -7,6 +7,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export class UnauthorizedError extends Error {
+  constructor() {
+    super("Unauthorized");
+  }
+}
+
 export function parseTimeToSeconds(input: string): number | null {
   const normalized = input.trim().toLowerCase().replace(/\s+/g, "");
 

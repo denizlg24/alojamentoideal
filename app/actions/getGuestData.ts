@@ -1,13 +1,14 @@
 "use server";
 
 import { connectDB } from "@/lib/mongodb";
+import { UnauthorizedError } from "@/lib/utils";
 import GuestDataModel from "@/models/GuestData";
 import { verifySession } from "@/utils/verifySession";
 
 export async function getGuestData(booking_code: string, listing_id: string) {
     try {
         if (!(await verifySession())) {
-            throw new Error("Unauthorized");
+            throw new UnauthorizedError();
         }
         await connectDB();
         const foundGuestData = await GuestDataModel.findOne({ booking_code }).lean();

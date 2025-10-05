@@ -1,7 +1,7 @@
 "use server";
 import { CartItem } from "@/hooks/cart-context";
 import { connectDB } from "@/lib/mongodb";
-import { generateReservationID } from "@/lib/utils";
+import { generateReservationID, UnauthorizedError } from "@/lib/utils";
 import OrderModel from "@/models/Order";
 import { verifySession } from "@/utils/verifySession";
 import { getHtml } from "./getHtml";
@@ -34,7 +34,7 @@ type RegisterOrderInput = {
 
 export async function registerOrder(data: RegisterOrderInput) {
     if (!(await verifySession())) {
-        throw new Error('Unauthorized');
+        throw new UnauthorizedError();
     }
     try {
         await connectDB();

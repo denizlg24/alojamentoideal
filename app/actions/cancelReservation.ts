@@ -14,14 +14,15 @@ import { getTranslations } from "next-intl/server";
 import { getHtml } from "./getHtml";
 import env from "@/utils/env";
 import { sendMail } from "./sendMail";
+import { UnauthorizedError } from "@/lib/utils";
 
 export async function cancelReservation(reservation_id: string, transaction_id: string) {
     if (!(await verifySession())) {
-        throw new Error("Unauthorized")
+        throw new UnauthorizedError();
     }
     const session = await auth();
     if (!session) {
-        throw new Error("Unauthorized")
+        throw new UnauthorizedError();
     }
     await connectDB();
     await hostifyRequest<{ success: boolean }>(
@@ -52,7 +53,7 @@ export async function cancelReservation(reservation_id: string, transaction_id: 
 
 export async function clientCancelReservation(reservation_id: number, reservation_code: string, refund_amount: number, order_id: string) {
     if (!(await verifySession())) {
-        throw new Error("Unauthorized")
+        throw new UnauthorizedError();
     }
     try {
         await connectDB();

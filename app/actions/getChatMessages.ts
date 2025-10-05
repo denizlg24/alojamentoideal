@@ -2,18 +2,19 @@
 
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/mongodb";
+import { UnauthorizedError } from "@/lib/utils";
 import { ChatModel, MessageModel } from "@/models/Chat";
 import { verifySession } from "@/utils/verifySession";
 
 export async function getChatMessages(chat_id: string, admin = false, since?: Date) {
     try {
         if (!verifySession()) {
-            throw new Error("Unauthorized");
+            throw new UnauthorizedError();
         }
         if (admin) {
             const session = await auth();
             if (!session) {
-                throw new Error("Unauthorized");
+                throw new UnauthorizedError();
             }
             await connectDB();
             await MessageModel.updateMany({ chat_id }, { read: true });

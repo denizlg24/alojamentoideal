@@ -6,7 +6,7 @@ import { ActivityBookingQuestionsDto, ActivityPlacesDto, FullExperienceType, Pic
 import { verifySession } from "@/utils/verifySession";
 import { format, isSameDay } from "date-fns";
 import { GetActivityAvailability } from "./getExperienceAvailability";
-import { generateReservationID } from "@/lib/utils";
+import { generateReservationID, UnauthorizedError } from "@/lib/utils";
 import { fetchClientSecret } from "./stripe";
 import { registerOrder } from "./createOrder";
 import { bokunRequest } from "@/utils/bokun-server";
@@ -20,7 +20,7 @@ import { connectDB } from "@/lib/mongodb";
 
 export async function getExperience(id: number) {
   if (!(await verifySession())) {
-    throw new Error("Unauthorized");
+    throw new UnauthorizedError();
   }
   const response = await bokunRequest<FullExperienceType>({
     method: "GET",
@@ -157,7 +157,7 @@ export async function startShoppingCart(cartId: string, experienceId: number,
   rateId: number, selectedStartTimeId: number | undefined, selectedDate: string, guests: { [categoryId: number]: number }, pickupPlaceId?: string
 ) {
   if (!(await verifySession())) {
-    throw new Error("Unauthorized");
+    throw new UnauthorizedError();
   }
   const response = await bokunRequest<{ totalPrice: number }>({
     method: "POST",
@@ -193,7 +193,7 @@ export async function removeActivity(cartId: string, experienceId: number) {
 
 export async function getShoppingCartQuestion(cartId: string) {
   if (!(await verifySession())) {
-    throw new Error("Unauthorized");
+    throw new UnauthorizedError();
   }
   const response = await bokunRequest<{ options: { type: 'AGENT_AFFILIATE' | 'AGENT_CUSTOMER' | 'AGENT_RESELLER' | 'CUSTOMER_FULL_PAYMENT' | 'CUSTOMER_PARTIAL_PAYMENT' | 'CUSTOMER_NO_PAYMENT', questions: QuestionSpecificationDto[], amount: number }[], questions: { activityBookings: ActivityBookingQuestionsDto[], mainContactDetails: QuestionSpecificationDto[] } }>({
     method: "GET",
@@ -219,7 +219,7 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
   clientNotes?: string, clientTax?: string, companyName?: string
 }) {
   if (!(await verifySession())) {
-    throw new Error("Unauthorized");
+    throw new UnauthorizedError();
   }
   const randomOrderId = generateReservationID();
   const response = await bokunRequest<{
@@ -359,7 +359,7 @@ export async function cancelActivityBooking({
   productConfirmationCode, totalPrice, refund_amount
 }: { productConfirmationCode: string, totalPrice: number, refund_amount: number }) {
   if (!(await verifySession()))
-    throw new Error("Unauthorized");
+    throw new UnauthorizedError();
   try {
     await connectDB();
     const foundOrder = await OrderModel.findOne({ activityBookingIds: productConfirmationCode })
