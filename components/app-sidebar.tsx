@@ -16,8 +16,7 @@ import { signOutUser } from "@/app/actions/signOut";
 import { LocaleSwitcherSelect } from "./ui/locale-switcher-select";
 import { useLocale } from "next-intl";
 import { Separator } from "./ui/separator";
-import { useTranslations } from "use-intl";
-
+import { useTranslations } from "next-intl";
 export function AppSidebar() {
   const locale = useLocale();
   const t = useTranslations("admin-sidebar");
