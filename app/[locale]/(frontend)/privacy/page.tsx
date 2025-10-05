@@ -142,7 +142,7 @@ export default function Home({
           <li className="">
             <p className="lg:text-lg md:text-base sm:text-sm text-xs">
               <strong>{t("website")}</strong>{" "}
-              {t("refers-to-alojamento-ideal-accessible-from")}m{" "}
+              {t("refers-to-alojamento-ideal-accessible-from")}{" "}
               <a
                 href="https://www.alojamentoideal.pt"
                 rel={"external nofollow noopener"}
