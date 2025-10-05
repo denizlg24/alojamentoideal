@@ -1,7 +1,7 @@
 "use server";
 import { CartItem } from "@/hooks/cart-context";
 import { connectDB } from "@/lib/mongodb";
-import { generateReservationID } from "@/lib/utils";
+import { generateReservationID, UnauthorizedError } from "@/lib/utils";
 import OrderModel from "@/models/Order";
 import { verifySession } from "@/utils/verifySession";
 import { getHtml } from "./getHtml";
@@ -9,6 +9,7 @@ import { getTranslations } from "next-intl/server";
 import { format } from "date-fns";
 import env from "@/utils/env";
 import { sendMail } from "./sendMail";
+import { getAdminEmails } from "@/utils/getAdminEmail";
 
 
 
@@ -33,7 +34,7 @@ type RegisterOrderInput = {
 
 export async function registerOrder(data: RegisterOrderInput) {
     if (!(await verifySession())) {
-        throw new Error('Unauthorized');
+        throw new UnauthorizedError();
     }
     try {
         await connectDB();
@@ -158,11 +159,15 @@ export async function registerOrder(data: RegisterOrderInput) {
             },
             { '{{order_url}}': `${env.SITE_URL}/admin/dashboard/orders/${order.orderId}` }
             ])
-            await sendMail({
-                email: env.ADMIN_EMAIL,
-                html: adminOrderHtml,
-                subject: t('order-admin-number', { order_id: order.orderId }),
-            });
+            const adminEmail = await getAdminEmails();
+            for(const mail of adminEmail){
+                await sendMail({
+                    email: mail,
+                    html: adminOrderHtml,
+                    subject: t('order-admin-number', { order_id: order.orderId }),
+                });
+            }
+           
         return { success: true, orderId: order.orderId };
     } catch (error) {
         console.error('Failed to register order:', error);

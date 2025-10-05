@@ -7,7 +7,7 @@ import { AccommodationItem } from "@/hooks/cart-context";
 import { format } from "date-fns";
 import { registerOrder } from "./createOrder";
 import { verifySession } from "@/utils/verifySession";
-import { generateUniqueId } from "@/lib/utils";
+import { generateUniqueId, UnauthorizedError } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
 import GuestDataModel, { Guest } from "@/models/GuestData";
 import { connectDB } from "@/lib/mongodb";
@@ -24,7 +24,7 @@ export async function purchaseAccommodation({ amount,property, clientName, clien
     }, clientTax?: string, isCompany: boolean, companyName?: string, guest_data:Guest[],amount:{total:number,fees:FeeType[]}
 }) {
     if (!(await verifySession())) {
-        throw new Error('Unauthorized');
+        throw new UnauthorizedError();
     }
     try {
         await connectDB();

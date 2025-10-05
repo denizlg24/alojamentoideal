@@ -2,7 +2,7 @@ import { attachInvoice } from "@/app/actions/attachInvoice";
 import { createHouseInvoice } from "@/app/actions/createHouseInvoice";
 import { getHtml } from "@/app/actions/getHtml";
 import { sendMail } from "@/app/actions/sendMail";
-import {CartItem } from "@/hooks/cart-context";
+import { CartItem, TourItem } from "@/hooks/cart-context";
 import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
 import OrderModel from "@/models/Order";
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     let event: Stripe.Event;
     try {
-        if (!sig || !webhookSecret) return new Response(`Webhook error.`, { status: 400 });;
+        if (!sig || !webhookSecret) return new Response(`Webhook error.`, { status: 400 });
         event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
     } catch {
         return new Response(`Webhook error.`, { status: 400 });
@@ -75,8 +75,25 @@ export async function POST(req: Request) {
                         await OrderModel.findOneAndUpdate({ payment_id }, { payment_method_id });
                     }
 
-                    const reservation_update_response = await confirmReservations({ reservationIds: foundOrder.reservationIds, transaction_ids: foundOrder.transaction_id, payment_id })
-                    console.log(reservation_update_response);
+                    const {reservation_successes,refunds} = await confirmReservations({ reservationIds: foundOrder.reservationIds, transaction_ids: foundOrder.transaction_id, payment_id })
+                    for(const reservation_id of Object.keys(reservation_successes)){
+                        const succeeded = reservation_successes[reservation_id];
+                        if(!succeeded){
+                            const refund = refunds[reservation_id];
+                            if(refund){
+                                const email = foundOrder.email;
+                                const t = await getTranslations("order-email")
+                                const refundHtml = await getHtml('emails/invoice-sent-email.html',
+                                    [{ "{{products_html}}": t("success-refund-reservation-failed", { amount: refund.amount / 100 }) },
+                                    { "{{your-invoice-is-ready}}": t('reservation-cancellation',{order_id:reservation_id}) },
+                                    { "{{view-your-invoice}}": t('view-reservation') },
+                                    { "{{order-number}}": t('order-number', { order_id: foundOrder.orderId }) },
+                                    { '{{invoice_url}}': `${env.SITE_URL}/reservations/${reservation_id}` }
+                                    ])
+                                await sendMail({ email, html: refundHtml, subject: t("reservation-refund-id", { order_id:reservation_id }) })
+                            }
+                        }
+                    }
                     //implement reservation not confirmed;
 
                     if (charge.paid && charge.status === "succeeded") {
@@ -84,13 +101,42 @@ export async function POST(req: Request) {
                             const booking_confirm_response = await confirmActivities({ charge, activityBookingReferences: foundOrder.activityBookingReferences, order_id: foundOrder.orderId });
                             console.log(booking_confirm_response);
                         }
-
-                        const order_email_html = await buildOrderEmail({ plainItems: foundOrder.items, order_id: foundOrder.orderId,reservationReferences:foundOrder.reservationReferences,activityBookingIds:foundOrder.activityBookingIds });
+                        const filteredActivities = foundOrder.items.filter((item) => item.type == 'activity');
+                        const accItems = foundOrder.items.filter((item) => item.type == 'accommodation');
+                        const filteredAccommodationItems: CartItem[] = [];
+                        const filteredReservationReferences: string[] = [];
+                        for (let index = 0; index < foundOrder.reservationIds.length; index++) {
+                            const id = foundOrder.reservationIds[index];
+                            if(reservation_successes[id]){
+                                filteredAccommodationItems.push(accItems[index]);
+                                filteredReservationReferences.push(foundOrder.reservationReferences[index]);
+                            }
+                        }
+                        const order_email_html = await buildOrderEmail({ plainItems: [...filteredActivities,...filteredAccommodationItems], order_id: foundOrder.orderId,reservationReferences:filteredReservationReferences,activityBookingIds:foundOrder.activityBookingIds });
                         const order_attachments = await buildAttachments({ activityBookingIds: foundOrder.activityBookingIds ?? [], activityBookingReferences: foundOrder.activityBookingReferences ?? [] })
                         await sendOrderEmail({ email: foundOrder.email, orderHtml: order_email_html, attachments: order_attachments, order_id: foundOrder.orderId });
 
                         if (foundOrder && foundOrder.reservationIds.length > 0) {
-                            await issueInvoices({ reservationIds: foundOrder.reservationIds, reservationReferences: foundOrder.reservationReferences, items: foundOrder.items, userInfo: { email: foundOrder.email, name: foundOrder.name, companyName: foundOrder.companyName, tax_number: foundOrder.tax_number, isCompany: foundOrder.isCompany }, charge,order_id:foundOrder.orderId })
+                            const succeeded_reservation_ids : string[] = [];
+                            const succeeded_reservation_references : string[] = [];
+                            const succeeded_order_items: CartItem[] = [];
+                            const accItems = foundOrder.items.filter((item) => item.type == 'accommodation');
+                            for (let index = 0; index < foundOrder.reservationIds.length; index++) {
+                                const id = foundOrder.reservationIds[index];
+                                const reference = foundOrder.reservationReferences[index];
+                                if(reservation_successes[id]){
+                                    succeeded_reservation_ids.push(id);
+                                    succeeded_reservation_references.push(reference);
+                                    succeeded_order_items.push(accItems[index]);
+                                }
+                            }
+                            await issueInvoices({ reservationIds: succeeded_reservation_ids, reservationReferences: succeeded_reservation_references, items: succeeded_order_items, userInfo: { email: foundOrder.email, name: foundOrder.name, companyName: foundOrder.companyName, tax_number: foundOrder.tax_number, isCompany: foundOrder.isCompany }, charge,order_id:foundOrder.orderId })
+                        }
+                        if(foundOrder && foundOrder.activityBookingReferences && foundOrder.activityBookingIds){
+                            const detoursHtml = await buildDetoursEmail({plainItems:filteredActivities,activityBookingIds:foundOrder.activityBookingIds,order_id:foundOrder.activityBookingReferences[0]})
+                            for(const email of env.DETOURS_CONTACTS.split('&&')){
+                               await sendOrderEmail({email,orderHtml:detoursHtml,order_id:foundOrder.activityBookingReferences[0],attachments:[]});
+                            }
                         }
                     }
 
@@ -130,6 +176,7 @@ export async function POST(req: Request) {
 
 const confirmReservations = async ({ reservationIds, transaction_ids, payment_id }: { reservationIds: string[], transaction_ids: string[], payment_id: string }) => {
     const reservation_successes: Record<string, boolean> = {};
+    const refunds : Record<string,Stripe.Response<Stripe.Refund>> = {};
     for (let index = 0; index < reservationIds.length; index++) {
         const reservation_id = reservationIds[index];
         const transaction_id = transaction_ids[index];
@@ -159,11 +206,39 @@ const confirmReservations = async ({ reservationIds, transaction_ids, payment_id
         ])
         if (!reservation_request.success) {
             reservation_successes[reservation_id] = false;
+            const transaction = await hostifyRequest<{ success: boolean, transaction: { amount: number } }>(
+                `transactions/${transaction_id}`,
+                "GET",
+            );
+            if(!transaction.success){
+                continue;
+            }
+            const refund_amount = transaction.transaction.amount;
+            if(refund_amount > 0){
+                const refund = await stripe.refunds.create({
+                    payment_intent:payment_id,
+                    amount: refund_amount*100
+                });
+                if(refund){
+                    refunds[reservation_id] = refund;
+                    await hostifyRequest<{ success: boolean }>(
+                        `reservations/${reservation_id}`,
+                        "PUT",
+                        undefined,
+                        {
+                            status: "denied",
+                        },
+                        undefined,
+                        undefined
+                    );
+                }
+             
+            }
             continue;
         }
         reservation_successes[reservation_id] = true;
     }
-    return reservation_successes;
+    return {reservation_successes,refunds};
 }
 
 const confirmActivities = async ({ charge, activityBookingReferences, order_id }: { charge: Stripe.Charge, activityBookingReferences: string[], order_id: string }) => {
@@ -246,6 +321,36 @@ const issueInvoices = async ({ reservationIds, reservationReferences, items, use
         }
     }
     return true;
+}
+
+const buildDetoursEmail = async({plainItems,activityBookingIds,order_id}:{plainItems:TourItem[],activityBookingIds:string[],order_id:string}) => {
+    const t = await getTranslations("order-email");
+    const total = plainItems.reduce((prev, i) => {
+        return prev + (i.price ?? 0);
+    }, 0);
+    let products_html = "";
+    let b = 0;
+    for(const i of plainItems){
+        const productHtml = await getHtml('emails/order-product.html', [{ '{{product_name}}': i.name }, {
+            '{{product_description}}': t("tour-date", {
+                startDate: format(i.selectedDate, "MMMM dd, yyyy")
+            })
+        }, { '{{product_quantity}}': t("reservation", { number: activityBookingIds![b] }) }, { "{{product_price}}": `${i.price ?? 0}€` }, { "{{product_photo}}": i.photo }])
+        products_html += productHtml;
+        b++;
+    }
+    const orderHtml = await getHtml('emails/order-confirmed-email.html',
+        [{ "{{products_html}}": products_html },
+        { "{{your-order-is-in}}": t('new-order') },
+        { "{{view-your-order}}": t('view-bokun-order') },
+        { "{{order-title}}": t('order-title-bokun') },
+        { "{{order-number}}": t('order-number', { order_id: order_id }) },
+        { "{{order-total}}": 'Total:' },
+        { "{{total_price}}": `${total}€` },
+        { '{{order_url}}': `${env.BOKUN_ENVIRONMENT == 'DEV' ? env.BOKUN_PREFIX : env.BOKUN_PREFIX_PROD}/sales/${order_id.split('-')[1]}` }
+        ])
+    return orderHtml;
+  
 }
 
 const buildOrderEmail = async ({ plainItems, order_id,reservationReferences,activityBookingIds }: { plainItems: CartItem[], order_id: string;reservationReferences:string[],activityBookingIds?:string[] }) => {

@@ -93,6 +93,7 @@ export default async function Page({
   setRequestLocale(locale);
   const displayT = await getTranslations("tourDisplay");
   const t = await getTranslations("propertyCard");
+  const extrasT = await getTranslations("extras");
   const bokunResponse = await bokunRequest<{
     activity: Omit<FullExperienceType, "meetingType"> & {
       meetingType:
@@ -115,7 +116,7 @@ export default async function Page({
       question: string;
       type: string;
     }[];
-    productConfirmationCode:string;
+    productConfirmationCode: string;
     bookedPricingCategories: {
       id: number;
       title: string;
@@ -175,6 +176,7 @@ export default async function Page({
       | "REJECTED";
     totalParticipants: number;
     totalPrice: number;
+    extras:{title:string,extra:{id:number}}[]
   }>({ method: "GET", path: `/booking.json/activity-booking/${id}` });
   if (!bokunResponse.success) {
     notFound();
@@ -274,6 +276,7 @@ export default async function Page({
     new Date(bokunResponse.date),
     new Date()
   );
+
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full px-4 max-w-7xl mx-auto pt-12 flex flex-col gap-4">
@@ -293,7 +296,11 @@ export default async function Page({
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
-                  disabled={bokunResponse.status != "CONFIRMED" && bokunResponse.status != "ARRIVED" && bokunResponse.status != "RESERVED"}
+                    disabled={
+                      bokunResponse.status != "CONFIRMED" &&
+                      bokunResponse.status != "ARRIVED" &&
+                      bokunResponse.status != "RESERVED"
+                    }
                     className="h-fit p-0! sm:text-sm text-xs"
                     variant={"link"}
                   >
@@ -340,7 +347,7 @@ export default async function Page({
         )}
         {!hasEmptyAnswer && bookingQuestions.success && (
           <div className="w-full p-2 shadow border rounded-sm bg-muted flex flex-col gap-2">
-            <div className="flex flex-row items-center justify-between">
+            <div className="flex min-[420px]:flex-row flex-col items-center justify-between">
               <div className="flex flex-row items-center gap-2 justify-start">
                 <h1 className="sm:text-sm text-xs font-semibold">
                   {t("information-complete")}
@@ -350,7 +357,11 @@ export default async function Page({
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
-                  disabled={bokunResponse.status != "CONFIRMED" && bokunResponse.status != "ARRIVED" && bokunResponse.status != "RESERVED"}
+                    disabled={
+                      bokunResponse.status != "CONFIRMED" &&
+                      bokunResponse.status != "ARRIVED" &&
+                      bokunResponse.status != "RESERVED"
+                    }
                     className="h-fit p-0! sm:text-sm text-xs"
                     variant={"link"}
                   >
@@ -615,6 +626,22 @@ export default async function Page({
             </div>
           </CardHeader>
         </Card>
+        {bokunResponse.extras.length > 0 && (
+          <Card className="w-full flex flex-col gap-2 p-4!">
+            <div className="w-full flex flex-col gap-1">
+                <h1 className="sm:text-base text-sm font-bold flex flex-row items-center gap-1">
+                  <PlusCircle className="w-4 h-4 shrink-0 text-primary"/>
+                  {extrasT("extras")}
+                </h1>
+              </div>
+              <ul className="list-disc marker:text-gray-400 pl-5 text-sm">
+              {bokunResponse.extras
+                .map((extra) => {
+                  return <li className="text-sm" key={extra.extra.id}>{extra.title}</li>;
+                })}
+                </ul>
+          </Card>
+        )}
         {bokunResponse.activity.meetingType != "MEET_ON_LOCATION" &&
           bokunResponse.pickup &&
           bookingQuestions.success && (
@@ -691,54 +718,72 @@ export default async function Page({
               </Tabs>
             </Card>
           )}
-        {(bokunResponse.status == "CONFIRMED" || bokunResponse.status == "ARRIVED") && bokunResponse.cancellationPolicy && (
-          <Card className="w-full flex flex-col gap-4 p-4!">
-            <div className="w-full flex flex-col gap-1">
-              <h1 className="sm:text-base text-sm font-bold">
-                {t("cancellation-and-refunds")}
-              </h1>
-            </div>
-            <div className="w-full flex flex-col gap-2">
-              {bokunResponse.cancellationPolicy.penaltyRules.length == 0 && (
-                <>
-                  <p className="inline-flex gap-1 w-full items-center justify-start sm:text-base text-sm">
-                    <RefreshCwIcon className="text-blue-500 w-4 h-4 shrink-0" />
-                    {t("refund-not-available")}
-                  </p>
-                  <Separator className="mb-1" />
-                  <CancelBookingDialog refundPercentage={0} productConfirmationCode={bokunResponse.productConfirmationCode} total_price={bokunResponse.totalPrice}/>
-                  <p className="text-muted-foreground text-sm -mt-1">
-                    {t("cancellation-available")}
-                  </p>
-                </>
-              )}
-              {bokunResponse.cancellationPolicy.penaltyRules.length > 0 && (
-                <>
-                  <p className="inline-flex gap-1 w-full items-center justify-start sm:text-base text-sm">
-                    <RefreshCwIcon className="text-blue-500 w-4 h-4 shrink-0" />
-                    {t("standard-refund-title")}
-                  </p>
-                  <ul className="list-decimal list-inside pl-2 marker:text-muted-foreground/50 sm:text-sm text-xs flex flex-col items-start gap-2">
-                    <li> {t("standard-refund-p1")}</li>
-                    <li> {t("standard-refund-p2")}</li>
-                    <li> {t("standard-refund-p3")}</li>
-                  </ul>
-                  <Separator className="mb-1" />
-                 <CancelBookingDialog refundPercentage={refundPercentage} productConfirmationCode={bokunResponse.productConfirmationCode} total_price={bokunResponse.totalPrice}/>
-                  <p className="text-muted-foreground text-sm -mt-1">
-                    {refundPercentage > 0 ? t("cancellation-desc", {
-                      hours: differenceInHours(
-                        new Date(bokunResponse.date),
-                        new Date()
-                      ),
-                      refund: refundPercentage,
-                    }) : t("not-refundable-anymore",{hours:t("less-than-24")})}
-                  </p>
-                </>
-              )}
-            </div>
-          </Card>
-        )}
+        {(bokunResponse.status == "CONFIRMED" ||
+          bokunResponse.status == "ARRIVED") &&
+          bokunResponse.cancellationPolicy && (
+            <Card className="w-full flex flex-col gap-4 p-4!">
+              <div className="w-full flex flex-col gap-1">
+                <h1 className="sm:text-base text-sm font-bold">
+                  {t("cancellation-and-refunds")}
+                </h1>
+              </div>
+              <div className="w-full flex flex-col gap-2">
+                {bokunResponse.cancellationPolicy.penaltyRules.length == 0 && (
+                  <>
+                    <p className="inline-flex gap-1 w-full items-center justify-start sm:text-base text-sm">
+                      <RefreshCwIcon className="text-blue-500 w-4 h-4 shrink-0" />
+                      {t("refund-not-available")}
+                    </p>
+                    <Separator className="mb-1" />
+                    <CancelBookingDialog
+                      refundPercentage={0}
+                      productConfirmationCode={
+                        bokunResponse.productConfirmationCode
+                      }
+                      total_price={bokunResponse.totalPrice}
+                    />
+                    <p className="text-muted-foreground text-sm -mt-1">
+                      {t("cancellation-available")}
+                    </p>
+                  </>
+                )}
+                {bokunResponse.cancellationPolicy.penaltyRules.length > 0 && (
+                  <>
+                    <p className="inline-flex gap-1 w-full items-center justify-start sm:text-base text-sm">
+                      <RefreshCwIcon className="text-blue-500 w-4 h-4 shrink-0" />
+                      {t("standard-refund-title")}
+                    </p>
+                    <ul className="list-decimal list-inside pl-2 marker:text-muted-foreground/50 sm:text-sm text-xs flex flex-col items-start gap-2">
+                      <li> {t("standard-refund-p1")}</li>
+                      <li> {t("standard-refund-p2")}</li>
+                      <li> {t("standard-refund-p3")}</li>
+                    </ul>
+                    <Separator className="mb-1" />
+                    <CancelBookingDialog
+                      refundPercentage={refundPercentage}
+                      productConfirmationCode={
+                        bokunResponse.productConfirmationCode
+                      }
+                      total_price={bokunResponse.totalPrice}
+                    />
+                    <p className="text-muted-foreground text-sm -mt-1">
+                      {refundPercentage > 0
+                        ? t("cancellation-desc", {
+                            hours: differenceInHours(
+                              new Date(bokunResponse.date),
+                              new Date()
+                            ),
+                            refund: refundPercentage,
+                          })
+                        : t("not-refundable-anymore", {
+                            hours: t("less-than-24"),
+                          })}
+                    </p>
+                  </>
+                )}
+              </div>
+            </Card>
+          )}
       </div>
     </main>
   );

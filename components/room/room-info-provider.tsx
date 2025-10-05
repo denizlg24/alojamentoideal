@@ -243,6 +243,7 @@ export const RoomInfoProvider = ({
       price.price.total = Number(finalPrice.toFixed(2));
       updateStayPrice(price.price);
     } catch {
+      setListingError("period-not-available");
       updateStayPrice(undefined);
     } finally {
       setPriceLoading(false);

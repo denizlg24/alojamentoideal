@@ -2,7 +2,8 @@
 import { Link, usePathname } from "@/i18n/navigation";
 import { Separator } from "@radix-ui/react-separator";
 import { useTranslations } from "next-intl";
-
+import Image from "next/image";
+import livroReclamacoes from "@/public/logo_livro_de_reclamações.png";
 export const Footer = () => {
   const t = useTranslations("header");
   const pathname = usePathname();
@@ -31,10 +32,15 @@ export const Footer = () => {
         </div>
       </div>
       <Separator className="mt-6 mb-6 w-full h-[1px] bg-accent-foreground/25 max-w-7xl" />
-      <div className="w-full max-w-7xl text-sm flex sm:flex-row flex-col gap-2 sm:items-center">
-        <p>&copy; {new Date().getFullYear()} Alojamento Ideal</p>
-        <div className="w-[2px] h-[2px] bg-accent-foreground rounded-full sm:block hidden"></div>
-        <Link href={"/privacy"}>{t("privacy")}</Link>
+      <div className="w-full max-w-7xl text-sm flex flex-col gap-2">
+        <div className="w-full max-w-7xl text-sm flex sm:flex-row flex-col gap-2 sm:items-center">
+          <p>&copy; {new Date().getFullYear()} Alojamento Ideal</p>
+          <div className="w-[2px] h-[2px] bg-accent-foreground rounded-full sm:block hidden"></div>
+          <Link href={"/privacy"}>{t("privacy")}</Link>
+        </div>
+        <a href="https://www.livroreclamacoes.pt">
+          <Image src={livroReclamacoes} alt="Livro de reclamações" className="w-full object-cover aspect-[400/156] max-w-[135px]"/>
+        </a>
       </div>
     </footer>
   );

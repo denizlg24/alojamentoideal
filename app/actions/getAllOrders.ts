@@ -6,14 +6,15 @@ import OrderModel from "@/models/Order";
 import { verifySession } from "@/utils/verifySession";
 import { getPaymentStatus } from "./getPaymentStatus";
 import { getPaymentIntent } from "./getPaymentIntent";
+import { UnauthorizedError } from "@/lib/utils";
 
 export async function getAllOrders() {
     if (!(await verifySession())) {
-        throw new Error("Unauthorized")
+        throw new UnauthorizedError();
     }
     const session = await auth();
     if (!session) {
-        throw new Error("Unauthorized")
+        throw new UnauthorizedError();
     }
     await connectDB();
     const [orders, total] = await Promise.all([

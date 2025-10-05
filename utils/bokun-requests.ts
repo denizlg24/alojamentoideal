@@ -385,6 +385,7 @@ export interface ExperienceRateTierDto {
 }
 
 export interface ExperienceRateExtraConfigDto {
+    activityExtraId: number;
     id: number;
     extra: { id: number, externalId: string };
     selectionType: 'OPTIONAL' | 'PRESELECTED';
@@ -786,6 +787,8 @@ export const categoriesMap: { [key: number]: { title: string, min?: number, max?
     1053743: { title: 'adult', min: 18, max: 80 },
     1053745: { title: 'child', min: 6, max: 18 },
     23726: { title: 'child', min: 6, max: 18 },
+    1060572:{ title: 'adult', min: 18, max: 80 },
+    1060574:{ title: 'child', min: 6, max: 18 },
     //tests
     931209: { title: 'adult', min: 6, max: 80 },
     913896: { title: 'adult', min: 11, max: 65 },

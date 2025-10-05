@@ -2,16 +2,17 @@
 
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/mongodb";
+import { UnauthorizedError } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
 import { verifySession } from "@/utils/verifySession";
 
 export async function getInboxes() {
     if (!verifySession()) {
-        throw new Error("Unauthorized");
+        throw new UnauthorizedError();
     }
     const session = await auth();
     if (!session) {
-        throw new Error("Unauthorized");
+        throw new UnauthorizedError();
     }
     try {
         await connectDB();

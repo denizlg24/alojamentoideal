@@ -9,7 +9,7 @@ import {
   ExperienceRateDto,
 } from "@/utils/bokun-requests";
 import { format, subHours } from "date-fns";
-import { BusFront, ClockIcon, RotateCcw, Users } from "lucide-react";
+import { BusFront, ClockIcon, PlusCircle, RotateCcw, Users } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { TourCheckoutForm } from "./checkout-form";
@@ -66,10 +66,10 @@ export const CheckoutHolder = ({
   selectedStartTime,
   guests,
   displayPrice,
-  initialCountry = "PT"
+  initialCountry = "PT",
 }: {
-  initialCountry:string;
-  cartId:string,
+  initialCountry: string;
+  cartId: string;
   displayPrice: number;
   selectedDate: string;
   selectedStartTime: ExperienceStartTimeDto | undefined;
@@ -146,10 +146,12 @@ export const CheckoutHolder = ({
     { locale: safeLocale }
   );
   const displayT = useTranslations("tourDisplay");
+  const extraT = useTranslations("extras");
   return (
     <div className="lg:grid flex flex-col-reverse grid-cols-5 w-full max-w-7xl px-4 pt-12 gap-8 relative lg:items-start items-center">
       <Card className="col-span-3 flex flex-col gap-4 p-4 w-full">
-        <Image unoptimized 
+        <Image
+          unoptimized
           src={experience.photos[0].originalUrl}
           alt={experience.photos[0].caption ?? "thumbnail photo"}
           width={1920}
@@ -158,7 +160,9 @@ export const CheckoutHolder = ({
         />
         <div className="flex flex-col gap-0">
           <h1 className="font-semibold">{experience.title}</h1>
-          <h2 className="text-sm line-clamp-3">{experience.shortDescription}</h2>
+          <h2 className="text-sm line-clamp-3">
+            {experience.shortDescription}
+          </h2>
         </div>
         <Separator />
         <div className="w-full flex flex-col gap-0">
@@ -231,13 +235,36 @@ export const CheckoutHolder = ({
               </div>
             )}
           </div>
+          {(selectedRate.extraConfigs?.length ?? 0) > 0 && (
+            <>
+              <Separator className="my-4" />
+              <p className="sm:text-base text-sm font-semibold flex flex-row items-center gap-1 justify-start text-left">
+                <PlusCircle className="text-primary w-4 h-4 shrink-0"/>
+                {extraT("extras")}
+              </p>
+              <ul className="list-disc marker:text-gray-400 pl-5 text-sm">
+              {experience.extras
+                .filter((extra) =>
+                  selectedRate.extraConfigs.find(
+                    (extraConfig) => extraConfig.activityExtraId == extra.id
+                  )
+                    ? true
+                    : false
+                )
+                .map((extra) => {
+                  return <li className="text-sm" key={extra.id}>{extra.title} {selectedRate.extraConfigs.find((ex) => ex.activityExtraId == extra.id)?.selectionType == 'PRESELECTED' ? (selectedRate.extraConfigs.find((ex) => ex.activityExtraId == extra.id)?.pricingType == 'INCLUDED_IN_PRICE' ? extraT("included-in-price") : extraT('priced-separately')) : ''}</li>;
+                })}
+                </ul>
+              
+            </>
+          )}
           <Separator className="my-4" />
           <p className="sm:text-base text-sm font-semibold flex flex-row items-center gap-1 justify-start text-left">
             <RotateCcw className="text-blue-400 w-4 h-4 shrink-0" />
             {displayT("cancellation-policy")}
           </p>
 
-          <ul className="list-disc marker:text-gray-400 pl-5 text-xs">
+          <ul className="list-disc marker:text-gray-400 pl-5 text-sm">
             {selectedRate.cancellationPolicy &&
             selectedRate.cancellationPolicy.policyType != "NON_REFUNDABLE" ? (
               formatCancellationPolicy(
@@ -266,8 +293,8 @@ export const CheckoutHolder = ({
       <Card className="col-span-2 w-full p-4">
         <Elements stripe={stripePromise}>
           <TourCheckoutForm
-          initialCountry={initialCountry}
-          cartId={cartId}
+            initialCountry={initialCountry}
+            cartId={cartId}
             bookingQuestions={experience.bookingQuestions}
             mainPaxInfo={experience.mainPaxInfo}
             otherPaxInfo={experience.otherPaxInfo}

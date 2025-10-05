@@ -8,7 +8,7 @@ import { hostifyRequest } from "@/utils/hostify-request";
 import { format } from "date-fns";
 import { registerOrder } from "./createOrder";
 import { fetchClientSecret } from "./stripe";
-import { generateReservationID, generateUniqueId } from "@/lib/utils";
+import { generateReservationID, generateUniqueId, UnauthorizedError } from "@/lib/utils";
 import { ChatModel } from "@/models/Chat";
 import { connectDB } from "@/lib/mongodb";
 import { FullExperienceType } from "@/utils/bokun-requests";
@@ -30,7 +30,7 @@ export async function buyCart({ fees,guest_data, cart, clientName, clientEmail, 
     guest_data?: Guest[][],fees:FeeType[][]
 }) {
     if (!(await verifySession())) {
-        throw new Error('Unauthorized');
+        throw new UnauthorizedError();
     }
     try {
         await connectDB();

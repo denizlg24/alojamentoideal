@@ -94,7 +94,7 @@ const elementStyle: Appearance = {
     fontSize3Xs: "14px",
     colorTextPlaceholder: "#9ca3af",
     colorDanger: "#ef4444",
-    colorPrimary: "#5a002c",
+    colorPrimary: "#694334",
   },
 };
 
@@ -2583,8 +2583,8 @@ export const TourCheckoutForm = ({
                   </CarouselContent>
                   {activityBookings[0].passengers.length > 1 && (
                     <div className="absolute top-0 right-0">
-                      <CarouselPrevious className="border-none p-0 right-0 top-4 shadow-none w-fit h-fit" />
-                      <CarouselNext className="border-none p-0 right-2 top-4 shadow-none w-fit h-fit" />
+                      <CarouselPrevious type="button" className="border-none p-0 right-0 top-4 shadow-none w-fit h-fit" />
+                      <CarouselNext type="button" className="border-none p-0 right-2 top-4 shadow-none w-fit h-fit" />
                     </div>
                   )}
                 </Carousel>
@@ -2688,7 +2688,7 @@ export const TourCheckoutForm = ({
                   </div>
                   <div className="flex flex-col gap-0 items-start grow">
                     <p className="font-semibold">
-                      {clientInfo.getValues("vat")}
+                      {(clientInfo.getValues("vat") ?? "").length > 2 ? clientInfo.getValues("vat") : ""}
                     </p>
                     <p className="text-sm text-muted-foreground max-w-[200px]">
                       {`${addressData.address.line1}${

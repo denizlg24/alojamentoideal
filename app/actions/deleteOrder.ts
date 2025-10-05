@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/mongodb";
+import { UnauthorizedError } from "@/lib/utils";
 import { ChatModel, MessageModel } from "@/models/Chat";
 import GuestDataModel from "@/models/GuestData";
 import OrderModel from "@/models/Order";
@@ -10,13 +11,10 @@ import { verifySession } from "@/utils/verifySession";
 
 export async function deleteOrder(order_id: string) {
     if (!(await verifySession())) {
-        throw new Error("Unauthorized");
+        throw new UnauthorizedError();
     }
 
     const session = await auth();
-    if (!session) {
-        throw new Error("Unauthorized")
-    }
     try {
         await connectDB();
         const foundOrder = await OrderModel.findOneAndDelete({ orderId: order_id });
@@ -51,7 +49,7 @@ export async function deleteOrder(order_id: string) {
                 {
                     arrival_date: "",
                     is_completed: 0,
-                    details: `Deleted order by: ${session.user?.id}`
+                    details: session ? `Deleted order by: ${session.user?.id}` : `Order deleted automatically for payment error.`
                 },
                 undefined,
                 undefined

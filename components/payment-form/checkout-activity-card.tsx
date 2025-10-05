@@ -15,7 +15,7 @@ import { GetActivityAvailability } from "@/app/actions/getExperienceAvailability
 import { format, isSameDay } from "date-fns";
 import { getExperience } from "@/app/actions/getExperience";
 import { Skeleton } from "../ui/skeleton";
-import { Ban, BusFront, Users } from "lucide-react";
+import { Ban, BusFront, PlusCircle, Users } from "lucide-react";
 import { Button } from "../ui/button";
 export const CheckoutActivityCard = ({
   activityItem,
@@ -44,7 +44,7 @@ export const CheckoutActivityCard = ({
 
   const [loading, setLoading] = useState(true);
   const { disableItem, removeItem } = useCart();
-
+  const extraT = useTranslations("extras");
   useEffect(() => {
     const getActivityInfo = async (id: number) => {
       const experience = await getExperience(id);
@@ -240,9 +240,9 @@ export const CheckoutActivityCard = ({
               <div className="flex flex-row items-center justify-start gap-1">
                 <BusFront className="w-3 h-3 shrink-0" />
                 <p>
-                  Pick-up available{" "}
+                {displayT("pickup-available")}{" "}
                   {activityInfo.rate.pickupPricingType == "INCLUDED_IN_PRICE" &&
-                    "(included in price)"}
+                    displayT("pickup-included")}
                 </p>
               </div>
             )}
@@ -283,6 +283,41 @@ export const CheckoutActivityCard = ({
         )}
 
         <Separator />
+        {(activityInfo.rate?.extraConfigs?.length ?? 0) > 0 && (
+          <>
+            <div className="flex flex-row items-center flex-wrap gap-1">
+              <p className="sm:text-sm text-xs font-semibold flex flex-row items-center gap-1 justify-start text-left">
+                <PlusCircle className="text-primary w-4 h-4 shrink-0" />
+                {extraT("extras")}:
+              </p>
+              {activityInfo.activity?.extras
+                .filter((extra) =>
+                  activityInfo.rate?.extraConfigs.find(
+                    (extraConfig) => extraConfig.activityExtraId == extra.id
+                  )
+                    ? true
+                    : false
+                )
+                .map((extra) => {
+                  return (
+                    <p className="sm:text-sm text-xs" key={extra.id}>
+                      {extra.title}{" "}
+                      {activityInfo.rate?.extraConfigs.find(
+                        (ex) => ex.activityExtraId == extra.id
+                      )?.selectionType == "PRESELECTED"
+                        ? activityInfo.rate?.extraConfigs.find(
+                            (ex) => ex.activityExtraId == extra.id
+                          )?.pricingType == "INCLUDED_IN_PRICE"
+                          ? extraT("included-in-price")
+                          : extraT("priced-separately")
+                        : ""}
+                    </p>
+                  );
+                })}
+            </div>
+            <Separator className="" />
+          </>
+        )}
         {availabilityError ? (
           <p className="text-xs text-destructive">{availabilityError}</p>
         ) : (

@@ -1,6 +1,7 @@
 "use server";
 
 import { CartItem } from "@/hooks/cart-context";
+import { UnauthorizedError } from "@/lib/utils";
 import { FeeType, PriceType } from "@/schemas/price.schema";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { verifySession } from "@/utils/verifySession";
@@ -8,7 +9,7 @@ import { format } from "date-fns";
 
 export const calculateAmount = async (cart: CartItem[]) => {
     if (!(await verifySession())) {
-        throw new Error('Unauthorized');
+        throw new UnauthorizedError();
     }
     let total = 0;
     const fees:FeeType[][] = []

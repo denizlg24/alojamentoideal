@@ -34,6 +34,9 @@ import { IssueNoteButton } from "./issueNoteButton";
 import { getGuestData } from "@/app/actions/getGuestData";
 import { callHostkitAPI } from "@/app/actions/callHostkitApi";
 import { IGuestDataDocument } from "@/models/GuestData";
+import { bokunRequest } from "@/utils/bokun-server";
+import { FullExperienceType, PickupPlaceDto } from "@/utils/bokun-requests";
+import { TicketButton } from "@/app/[locale]/(frontend)/reservations/activities/[id]/ticket-button";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -141,8 +144,11 @@ export default async function Home({
         "GET"
       );
 
-      const orderItem = order.items
-        .filter((item) => item.type == "accommodation")[order.reservationIds.indexOf(reservationInfo.reservation.id.toString())]
+      const orderItem = order.items.filter(
+        (item) => item.type == "accommodation"
+      )[
+        order.reservationIds.indexOf(reservationInfo.reservation.id.toString())
+      ];
       return {
         listing: listingInfo.listing,
         reservation: reservationInfo.reservation,
@@ -190,12 +196,23 @@ export default async function Home({
         break;
     }
     if (charge.amount_refunded > 0) {
-      status = (
-        <div className="flex flex-row items-center justify-start gap-1">
-          <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-          <p>Refunded ({charge.amount_refunded / 100}€)</p>
-        </div>
-      );
+      
+      if(charge.amount_refunded == charge.amount){
+        status = (
+          <div className="flex flex-row items-center justify-start gap-1">
+            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+            <p>Refunded ({charge.amount_refunded / 100}€)</p>
+          </div>
+        );
+      }
+      else {
+        status = (
+          <div className="flex flex-row items-center justify-start gap-1">
+            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+            <p>Part Refunded ({charge.amount_refunded / 100}€)</p>
+          </div>
+        );
+      }
     }
     return status;
   };
@@ -439,13 +456,13 @@ export default async function Home({
                   <p className="font-semibold">{t("status")}</p>
                   <div className="flex flex-row items-center gap-2">
                     <p className="truncate">
-                      {t(
-                        (charge?.amount_refunded ?? 0) > 0
-                          ? "refunded"
-                          : charge?.status ?? "unknown-status"
-                      )}
-                      {charge?.status === "failed" &&
-                        " " + charge?.failure_message}
+                    {t(
+                      (charge?.amount_refunded ?? 0) > 0
+                        ? charge?.amount_refunded == charge?.amount ? "refunded" : "partial-refund"
+                        : charge?.status ?? "unknown-status"
+                    ,{refund:`(${(charge?.amount_refunded ?? 0)/100}€)`})}
+                    {charge?.status === "failed" &&
+                      " " + charge?.failure_message}
                     </p>
                     {renderStatusIcon({
                       status:
@@ -627,15 +644,13 @@ export default async function Home({
                                       )}
                                 </p>
                                 <p className="">
-                                {fee.total_net}€{" "}
-                                    {fee.inclusive_percent &&
-                                    fee.inclusive_percent > 0
-                                      ? "+ " +
-                                        (fee.inclusive_percent * 100).toFixed(
-                                          0
-                                        ) +
-                                        "% IVA"
-                                      : ""}
+                                  {fee.total_net}€{" "}
+                                  {fee.inclusive_percent &&
+                                  fee.inclusive_percent > 0
+                                    ? "+ " +
+                                      (fee.inclusive_percent * 100).toFixed(0) +
+                                      "% IVA"
+                                    : ""}
                                 </p>
                               </div>
                             );
@@ -689,6 +704,281 @@ export default async function Home({
                   </div>
                 );
               })}
+            </CardContent>
+          </Card>
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle>Associated Activities</CardTitle>
+            </CardHeader>
+            <CardContent className="gap-4">
+              {order.items
+                .filter((item) => item.type == "activity")
+                .map(async (item) => {
+                  const bokunResponse = await bokunRequest<{
+                    activity: Omit<FullExperienceType, "meetingType"> & {
+                      meetingType:
+                        | "MEET_ON_LOCATION"
+                        | "PICK_UP"
+                        | "MEET_ON_LOCATION_OR_PICK_UP";
+                      startPoints: {
+                        labels?: string[];
+                        address: {
+                          geoPoint: { latitude: number; longitude: number };
+                        };
+                        title: string;
+                        id: number;
+                      }[];
+                    };
+                    bookingId: number;
+                    parentBookingId: number;
+                    answers: {
+                      answer: string;
+                      group: string;
+                      id: number;
+                      question: string;
+                      type: string;
+                    }[];
+                    productConfirmationCode: string;
+                    bookedPricingCategories: {
+                      id: number;
+                      title: string;
+                      ticketCategory:
+                        | "ADULT"
+                        | "CHILD"
+                        | "TEENAGER"
+                        | "INFANT"
+                        | "SENIOR"
+                        | "STUDENT"
+                        | "MILITARY"
+                        | "OTHER";
+                      ageQualified: boolean;
+                      minAge?: number;
+                      maxAge?: number;
+                      fullTitle: string;
+                    }[];
+                    bookingAnswers: {
+                      questionId: string;
+                      values: string[];
+                      label: string;
+                    }[];
+                    pickupAnswers: {
+                      questionId: string;
+                      values: string[];
+                      label: string;
+                    }[];
+                    cancelNote?: string;
+                    cancellationDate?: string;
+                    cancelledBy?: string;
+                    confirmationCode: string;
+                    date: string;
+                    flexible: boolean;
+                    id: number;
+                    pickup: boolean;
+                    pickupPlace?: PickupPlaceDto;
+                    pickupPlaceDescription?: string;
+                    pickupPlaceRoomNumber?: string;
+                    pickupTime?: string;
+                    startTime?: string;
+                    startTimeId?: number;
+                    cancellationPolicy?: {
+                      id: number;
+                      title: string;
+                      penaltyRules: {
+                        id: number;
+                        cutoffHours: number;
+                        charge: number;
+                        chargeType: "percentage" | "amount";
+                        percentage: number;
+                      }[];
+                    };
+                    quantityByPricingCategory: { [categoryId: number]: number };
+                    status:
+                      | "CART"
+                      | "REQUESTED"
+                      | "RESERVED"
+                      | "CONFIRMED"
+                      | "TIMEOUT"
+                      | "ABORTED"
+                      | "CANCELLED"
+                      | "ERROR"
+                      | "ARRIVED"
+                      | "NO_SHOW"
+                      | "REJECTED";
+                    totalParticipants: number;
+                    totalPrice: number;
+                  }>({
+                    method: "GET",
+                    path: `/booking.json/activity-booking/${
+                      order.activityBookingIds![
+                        order.items
+                          .filter((item) => item.type == "activity")
+                          .indexOf(item)
+                      ]
+                    }`,
+                  });
+                  if (!bokunResponse.success) {
+                    return;
+                  }
+                  const ticketResponse = await bokunRequest<{ data: string }>({
+                    method: "GET",
+                    path: `/booking.json/activity-booking/${
+                      order.activityBookingIds![
+                        order.items
+                          .filter((item) => item.type == "activity")
+                          .indexOf(item)
+                      ]
+                    }/ticket`,
+                  });
+                  if (!ticketResponse.success) {
+                    return;
+                  }
+
+                  const invoiceResponse = await bokunRequest<{ data: string }>({
+                    method: "GET",
+                    path: `/booking.json/${bokunResponse.parentBookingId}/summary`,
+                  });
+                  if (!invoiceResponse.success) {
+                    return;
+                  }
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex flex-col gap-0 w-full items-start"
+                    >
+                      <div className="border-muted border-dotted flex flex-row items-start gap-2 w-full mt-0.5">
+                        <div className="w-[15%] md:block hidden shrink-0 h-auto aspect-video relative overflow-hidden rounded">
+                          <Image
+                            unoptimized
+                            src={item.photo}
+                            alt="photo"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="grow flex flex-col gap-1 text-sm">
+                          <div className="min-[550px]:w-fit min-[550px]:flex-1 flex flex-col gap-0 items-start">
+                            <p className="font-bold truncate">{item.name}</p>
+                            <div className="col-span-1 flex flex-col w-full h-fit!">
+                              <p className="text-sm font-medium">
+                                Code:{" "}
+                                {
+                                  order.activityBookingIds![
+                                    order.items
+                                      .filter((item) => item.type == "activity")
+                                      .indexOf(item)
+                                  ]
+                                }
+                              </p>
+                              <p className="text-xs font-normal">
+                                {format(
+                                  new Date(item.selectedDate),
+                                  "EEE, MMM dd",
+                                  {
+                                    locale:
+                                      localeMap[
+                                        locale as keyof typeof localeMap
+                                      ],
+                                  }
+                                )}
+                              </p>
+                            </div>
+                            <p className="font-semibold truncate">
+                              Guests:{" "}
+                              {Object.values(item.guests).reduce(
+                                (prev, curr) => prev + curr,
+                                0
+                              )}
+                            </p>
+                          </div>
+                          <div className="w-full flex flex-row gap-2 items-center flex-wrap">
+                            <TicketButton
+                              variant="default"
+                              className="grow h-fit! p-2! py-1!"
+                              title="Ticket"
+                              base64={ticketResponse.data}
+                            />
+                            <TicketButton
+                              variant="outline"
+                              className="grow h-fit! p-2! py-1!"
+                              title="Invoice"
+                              base64={invoiceResponse.data}
+                            />
+                            {(() => {
+                              switch (bokunResponse.status) {
+                                case "CART":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
+                                      In-cart
+                                    </div>
+                                  );
+                                case "REQUESTED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
+                                      Requested
+                                    </div>
+                                  );
+                                case "RESERVED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
+                                      Reserved
+                                    </div>
+                                  );
+                                case "CONFIRMED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-green-100 text-green-800">
+                                      Confirmed
+                                    </div>
+                                  );
+                                case "TIMEOUT":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-yellow-100 text-yellow-700">
+                                      Timed out
+                                    </div>
+                                  );
+                                case "ABORTED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      Aborted
+                                    </div>
+                                  );
+                                case "CANCELLED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      Canceled
+                                    </div>
+                                  );
+                                case "ERROR":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      Error
+                                    </div>
+                                  );
+                                case "ARRIVED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-blue-100 text-blue-700">
+                                      Arrived
+                                    </div>
+                                  );
+                                case "NO_SHOW":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      No show
+                                    </div>
+                                  );
+                                case "REJECTED":
+                                  return (
+                                    <div className="grow px-3 py-1.5 text-xs text-center font-semibold rounded-sm shadow-sm bg-red-100 text-red-700">
+                                      Rejected
+                                    </div>
+                                  );
+                              }
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
             </CardContent>
           </Card>
         </div>

@@ -7,6 +7,7 @@ import { ActivityPreviewCard } from "./tour-preview-card";
 import Image from "next/image";
 import toursBanner from "@/public/porto-banner.jpeg";
 import { bokunRequest } from "@/utils/bokun-server";
+import env from "@/utils/env";
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
   return {
@@ -58,14 +59,12 @@ export default async function Page({
       </main>
     );
   }
-  /*const flatIds = [
+  const flatIds = env.BOKUN_ENVIRONMENT == 'DEV' ? [1094683,1094996] : [
     942574, 942571, 950369, 942578, 942572, 942577, 942570, 944482, 944999,
     942575, 944942, 949420, 944947, 945073,
-  ];*/
+  ];
 
   //const flatIds1 = response.items.map((i) => i.id);
-
-  const flatIds = [1088165, 1090873];
 
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">

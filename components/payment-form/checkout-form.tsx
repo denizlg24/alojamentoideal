@@ -90,6 +90,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { FeeType } from "@/schemas/price.schema";
+import { deleteOrder } from "@/app/actions/deleteOrder";
 
 const elementStyle: Appearance = {
   variables: {
@@ -104,7 +105,7 @@ const elementStyle: Appearance = {
     fontSize3Xs: "14px",
     colorTextPlaceholder: "#9ca3af",
     colorDanger: "#ef4444",
-    colorPrimary: "#5a002c",
+    colorPrimary: "#694334",
   },
 };
 
@@ -424,7 +425,7 @@ export const CheckoutForm = ({
     const clientEmail = data.email;
     const clientPhone = addressData?.phone ?? "";
     const clientNotes = data.note;
-    const clientTax = data.vat;
+    const clientTax = data.vat ? data.vat.length > 2 ? data.vat : undefined : undefined;
     const clientAddress = addressData.address;
     setLoadingMessage("loading_create_res");
     const { success, client_secret, payment_id, order_id } = await buyCart({
@@ -505,6 +506,9 @@ export const CheckoutForm = ({
         },
       });
       if (result.error) {
+        if(order_id){
+          await deleteOrder(order_id);
+        }
         setError(result.error.message || "Payment failed");
         setLoading(false);
         return;
@@ -530,6 +534,9 @@ export const CheckoutForm = ({
         },
       });
       if (result.error) {
+        if(order_id){
+          await deleteOrder(order_id);
+        }
         setError(result.error.message || "Payment failed");
         setLoading(false);
         return;
@@ -707,7 +714,7 @@ export const CheckoutForm = ({
         const clientEmail = clientInfo.getValues("email");
         const clientPhone = addressData?.phone ?? "";
         const clientNotes = clientInfo.getValues("note");
-        const clientTax = clientInfo.getValues("vat");
+        const clientTax =clientInfo.getValues("vat") ? clientInfo.getValues("vat")!.length > 2 ? clientInfo.getValues("vat") : undefined : undefined;
         const clientAddress = addressData.address;
         setLoadingMessage("loading_create_res");
         const { success, client_secret, payment_id, order_id } = await buyCart({
@@ -782,6 +789,9 @@ export const CheckoutForm = ({
         );
 
         if (error) {
+          if(order_id){
+            await deleteOrder(order_id);
+          }
           event.complete("fail");
           return;
         }
@@ -793,6 +803,9 @@ export const CheckoutForm = ({
             client_secret
           );
           if (actionError) {
+            if(order_id){
+              await deleteOrder(order_id);
+            }
             setError(actionError.message || "Payment failed");
             setLoading(false);
             return;
@@ -3072,8 +3085,8 @@ export const CheckoutForm = ({
                     </CarouselContent>
                     {activityBookings[step].passengers.length > 1 && (
                       <div className="absolute top-0 right-0">
-                        <CarouselPrevious className="border-none p-0 right-0 top-4 shadow-none w-fit h-fit" />
-                        <CarouselNext className="border-none p-0 right-2 top-4 shadow-none w-fit h-fit" />
+                        <CarouselPrevious type="button" className="border-none p-0 right-0 top-4 shadow-none w-fit h-fit" />
+                        <CarouselNext type="button" className="border-none p-0 right-2 top-4 shadow-none w-fit h-fit" />
                       </div>
                     )}
                   </Carousel>
@@ -3577,7 +3590,7 @@ export const CheckoutForm = ({
                     </div>
                     <div className="flex flex-col gap-0 items-start grow">
                       <p className="font-semibold">
-                        {clientInfo.getValues("vat")}
+                      {(clientInfo.getValues("vat") ?? "").length > 2 ? clientInfo.getValues("vat") : ""}
                       </p>
                       <p className="text-sm text-muted-foreground max-w-[200px]">
                         {`${addressData.address.line1}${

@@ -27,7 +27,7 @@ export async function createHouseInvoice({ clientName, clientAddress, clientTax,
 
     const fees = info.fees;
 
-    const customer_id = clientTax == '' ? '999999990' : clientTax;
+    const customer_id = clientTax ? (clientTax == '' ? '999999990' : clientTax) : '999999990';
     const name = clientName;
     const country = clientAddress?.country ? alpha2ToAlpha3(clientAddress.country) : undefined;
     const address = clientAddress?.line1 + (clientAddress?.line2 ? ` ${clientAddress.line2}` : "");
@@ -157,6 +157,9 @@ export async function issueCreditNote({ clientEmail, invoice_id, item, reservati
     const invoice = await callHostkitAPI<{ invoice_url: string, series: string, }[]>({
         listingId: item.property_id.toString(), endpoint: "getReservationInvoices", query: { rcode: reservationCode }
     })
+    if(!invoice || !invoice[0]){
+        return false;
+    }
     const creditNote = await callHostkitAPI<{ status: 'success' | unknown, id?: string }>({
         listingId: item.property_id.toString(), endpoint: "addCreditNote", query: { refid: invoice_id, refseries: invoice[0].series }
     })
@@ -221,7 +224,7 @@ export async function createRefundHouseInvoice({ clientName, clientAddress, clie
 
     const fees = info.fees;
 
-    const customer_id = clientTax == '' ? '999999990' : clientTax;
+    const customer_id = clientTax ? (clientTax == '' ? '999999990' : clientTax) : '999999990';
     const name = clientName;
     const country = clientAddress?.country ? alpha2ToAlpha3(clientAddress.country) : undefined;
     const address = clientAddress?.line1 + (clientAddress?.line2 ? ` ${clientAddress.line2}` : "");

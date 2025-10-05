@@ -89,14 +89,14 @@ export const ActivityPreviewCard = ({
           height={600}
           className={cn(
             "w-full h-auto aspect-[1/0.75] rounded-t-lg object-cover",
-            isLoadingThumbnail ? "hidden" : ""
+            isLoadingThumbnail ? "opacity-0" : ""
           )}
           onLoad={() => {
             setIsLoadingThumbnail(false);
           }}
         />
         {isLoadingThumbnail && (
-          <Skeleton className="w-full h-auto aspect-[1/0.75] flex items-center justify-center rounded-t-lg">
+          <Skeleton className="w-full h-auto aspect-[1/0.75] flex items-center justify-center rounded-t-lg absolute top-0">
             <Loader2 className="animate-spin mx-auto w-4 h-4 text-primary" />
           </Skeleton>
         )}

@@ -71,6 +71,7 @@ import { cn, localeMap } from "@/lib/utils";
 import { CountrySelect } from "@/components/orders/country-select";
 import { Guest } from "@/models/GuestData";
 import { FeeType } from "@/schemas/price.schema";
+import { deleteOrder } from "@/app/actions/deleteOrder";
 
 const elementStyle: Appearance = {
   variables: {
@@ -85,7 +86,7 @@ const elementStyle: Appearance = {
     fontSize3Xs: "14px",
     colorTextPlaceholder: "#9ca3af",
     colorDanger: "#ef4444",
-    colorPrimary: "#5a002c",
+    colorPrimary: "#694334",
   },
 };
 
@@ -284,7 +285,7 @@ export const RoomCheckoutForm = ({
     const clientEmail = data.email;
     const clientPhone = addressData?.phone ?? "";
     const clientNotes = data.note;
-    const clientTax = data.vat;
+    const clientTax = data.vat ? data.vat.length > 2 ? data.vat : undefined : undefined;
     const clientAddress = addressData.address;
     setLoadingMessage("loading_create_res");
     const {
@@ -336,6 +337,9 @@ export const RoomCheckoutForm = ({
         },
       });
       if (result.error) {
+        if(order_id){
+          await deleteOrder(order_id);
+        }
         setError(result.error.message || "Payment failed");
         setLoading(false);
         return;
@@ -362,6 +366,9 @@ export const RoomCheckoutForm = ({
         },
       });
       if (result.error) {
+        if(order_id){
+          await deleteOrder(order_id);
+        }
         setError(result.error.message || "Payment failed");
         setLoading(false);
         return;
@@ -480,7 +487,7 @@ export const RoomCheckoutForm = ({
         const clientEmail = clientInfo.getValues("email");
         const clientPhone = addressData?.phone ?? "";
         const clientNotes = clientInfo.getValues("note");
-        const clientTax = clientInfo.getValues("vat");
+        const clientTax =  clientInfo.getValues("vat") ?  clientInfo.getValues("vat")!.length > 2 ?  clientInfo.getValues("vat") : undefined : undefined;
         const clientAddress = addressData.address;
         setLoadingMessage("loading_create_res");
         const {
@@ -524,6 +531,9 @@ export const RoomCheckoutForm = ({
         );
 
         if (error) {
+          if(order_id){
+            await deleteOrder(order_id);
+          }
           event.complete("fail");
           return;
         }
@@ -535,6 +545,9 @@ export const RoomCheckoutForm = ({
             client_secret
           );
           if (actionError) {
+            if(order_id){
+              await deleteOrder(order_id);
+            }
             setError(actionError.message || "Payment failed");
             setLoading(false);
             return;
@@ -1182,7 +1195,7 @@ export const RoomCheckoutForm = ({
                     </div>
                     <div className="flex flex-col gap-0 items-start grow">
                       <p className="font-semibold">
-                        {clientInfo.getValues("vat")}
+                      {(clientInfo.getValues("vat") ?? "").length > 2 ? clientInfo.getValues("vat") : ""}
                       </p>
                       <p className="text-sm text-muted-foreground max-w-[200px]">
                         {`${addressData.address.line1}${
