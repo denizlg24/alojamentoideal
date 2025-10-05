@@ -14,9 +14,6 @@ export async function deleteOrder(order_id: string) {
     }
 
     const session = await auth();
-    if (!session) {
-        throw new Error("Unauthorized")
-    }
     try {
         await connectDB();
         const foundOrder = await OrderModel.findOneAndDelete({ orderId: order_id });
@@ -51,7 +48,7 @@ export async function deleteOrder(order_id: string) {
                 {
                     arrival_date: "",
                     is_completed: 0,
-                    details: `Deleted order by: ${session.user?.id}`
+                    details: session ? `Deleted order by: ${session.user?.id}` : `Order deleted automatically for payment error.`
                 },
                 undefined,
                 undefined

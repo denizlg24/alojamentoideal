@@ -71,6 +71,7 @@ import { cn, localeMap } from "@/lib/utils";
 import { CountrySelect } from "@/components/orders/country-select";
 import { Guest } from "@/models/GuestData";
 import { FeeType } from "@/schemas/price.schema";
+import { deleteOrder } from "@/app/actions/deleteOrder";
 
 const elementStyle: Appearance = {
   variables: {
@@ -336,6 +337,9 @@ export const RoomCheckoutForm = ({
         },
       });
       if (result.error) {
+        if(order_id){
+          await deleteOrder(order_id);
+        }
         setError(result.error.message || "Payment failed");
         setLoading(false);
         return;
@@ -362,6 +366,9 @@ export const RoomCheckoutForm = ({
         },
       });
       if (result.error) {
+        if(order_id){
+          await deleteOrder(order_id);
+        }
         setError(result.error.message || "Payment failed");
         setLoading(false);
         return;
@@ -524,6 +531,9 @@ export const RoomCheckoutForm = ({
         );
 
         if (error) {
+          if(order_id){
+            await deleteOrder(order_id);
+          }
           event.complete("fail");
           return;
         }
@@ -535,6 +545,9 @@ export const RoomCheckoutForm = ({
             client_secret
           );
           if (actionError) {
+            if(order_id){
+              await deleteOrder(order_id);
+            }
             setError(actionError.message || "Payment failed");
             setLoading(false);
             return;
