@@ -113,7 +113,8 @@
     "cta": "Aquí tienes algunos enlaces útiles:",
     "home": "Página principal",
     "homes": "Alojamientos",
-    "tours": "Experiencias"
+    "tours": "Experiencias",
+    "unauthenticated": "Su sesión ha expirado, actualice la página. \nUtilizamos cookies de sesión para proteger todos sus datos y transacciones."
   },
   "header": {
     "homes": "Alojamientos",

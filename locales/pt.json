@@ -113,7 +113,8 @@
     "cta": "Aqui estão alguns links úteis:",
     "home": "Página inicial",
     "homes": "Alojamentos",
-    "tours": "Atividades"
+    "tours": "Atividades",
+    "unauthenticated": "Sua sessão expirou, atualize a página. \nUsamos cookies de sessão para proteger todos os seus dados e transações."
   },
   "header": {
     "homes": "Alojamentos",

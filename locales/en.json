@@ -113,7 +113,8 @@
     "cta": "Here are some helpful links instead:",
     "home": "Homepage",
     "homes": "Homes",
-    "tours": "Activities"
+    "tours": "Activities",
+    "unauthenticated": "Your session has expired, please refresh the page. We use session cookies to protect all your data and transactions."
   },
   "header": {
     "homes": "Homes",

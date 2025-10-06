@@ -27,7 +27,7 @@ export default async function middleware(req: NextRequest) {
     const session = cookieStore.get('session_id');
     const res = intlMiddleware(req);
     const maxAgeMs = 60 * 60 * 24;
-    let needsNewSession = false;
+    let needsNewSession = true;
 
     if (session) {
         const [timestamp] = session.value.split('.');
