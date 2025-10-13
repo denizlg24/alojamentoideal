@@ -3,6 +3,7 @@ import { sendMail } from "@/app/actions/sendMail";
 import { CartItem, TourItem } from "@/hooks/cart-context";
 import { connectDB } from "@/lib/mongodb";
 import { stripe } from "@/lib/stripe";
+import GuestDataModel from "@/models/GuestData";
 import OrderModel from "@/models/Order";
 import { bokunRequest } from "@/utils/bokun-server";
 import env from "@/utils/env";
@@ -155,6 +156,9 @@ export async function POST(req: Request) {
                             undefined,
                             undefined
                         );
+                    }
+                    for(const booking_code of failed_foundOrder.reservationReferences){
+                        await GuestDataModel.deleteMany({booking_code});
                     }
                 }
                 break;
