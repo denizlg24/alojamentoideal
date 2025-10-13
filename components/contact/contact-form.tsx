@@ -59,7 +59,7 @@ export const ContactForm = () => {
       { "{{message}}": values.message },
     ]);
     const { success } = await sendMail({
-      email: "site@alojamentoideal.pt",
+      email: "geral@alojamentoideal.pt",
       html,
       subject: "Novo contacto - alojamentoideal.pt",
     });

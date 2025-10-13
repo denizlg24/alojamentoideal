@@ -92,7 +92,7 @@ Rua: ${stage0Form.getValues("address")}\n`,
       },
     ]);
     const { success } = await sendMail({
-      email: "site@alojamentoideal.pt",
+      email: "geral@alojamentoideal.pt",
       html,
       subject: "Novo contacto de de proprietário. - alojamentoideal.pt",
     });

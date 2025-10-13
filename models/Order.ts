@@ -19,8 +19,8 @@ export interface OrderDocument extends Document {
     tax_number?: string;
     isCompany: boolean;
     companyName?: string;
-    activityBookingIds?:string[];
-    activityBookingReferences?:string[];
+    activityBookingIds?: string[];
+    activityBookingReferences?: string[];
 }
 
 export interface IOrder {
@@ -39,8 +39,8 @@ export interface IOrder {
     tax_number?: string;
     isCompany: boolean;
     companyName?: string;
-    activityBookingIds?:string[];
-    activityBookingReferences?:string[];
+    activityBookingIds?: string[];
+    activityBookingReferences?: string[];
 }
 
 const FeeSchema = new mongoose.Schema<FeeType>(
@@ -86,7 +86,7 @@ const ItemSchema = new mongoose.Schema<CartItem>(
         description: { type: String },
         property_id: { type: Number },
         invoice: { type: String, default: "" },
-        invoice_id:{ type: String, default: "" },
+        invoice_id: { type: String, default: "" },
         start_date: { type: String },
         end_date: { type: String },
         adults: { type: Number },
@@ -125,8 +125,8 @@ const OrderSchema = new mongoose.Schema<OrderDocument>(
         transaction_id: [{ type: String }],
         companyName: { type: String },
         isCompany: { type: Boolean },
-        activityBookingIds:[{type:String}],
-        activityBookingReferences:[{type:String}]
+        activityBookingIds: [{ type: String }],
+        activityBookingReferences: [{ type: String }]
     },
     { timestamps: true }
 );
