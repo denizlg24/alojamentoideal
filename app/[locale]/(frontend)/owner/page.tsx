@@ -2,7 +2,6 @@ import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
 import { use } from "react";
-import amar from "@/public/amar-outside.webp";
 import vertical from "@/public/regras-espelho.webp";
 import { OwnerContactCard } from "./owner-contact-card";
 import { VideoHolder } from "@/components/home/video-holder";

@@ -3,7 +3,6 @@ import { Suspense, use } from "react";
 import { FloatingFilter } from "@/components/home/floating-filter";
 import { AccommodationMapHolder } from "@/components/home/accommodation-map-holder";
 import { Skeleton } from "@/components/ui/skeleton";
-import { VideoHolder } from "@/components/home/video-holder";
 import { OrderSearch } from "@/components/home/order-search";
 import { useTranslations } from "next-intl";
 import { HomeVideoHolder } from "@/components/home/home-video-holder";
