@@ -142,7 +142,10 @@
   "home": {
     "map-title": "¿Dónde te alojarás esta noche?",
     "searching": "¿Buscas un lugar para alojarte?",
-    "have_res": "¿Tienes una reserva?"
+    "have_res": "¿Tienes una reserva?",
+    "property-owner": "Soy dueño de una propiedad",
+    "headline": "Encuentra el lugar perfecto para quedarte.",
+    "your-jorney-start-with-us": "¡Tu viaje comienza con nosotros!"
   },
   "home-map": {
     "book": "Reservar ahora"
