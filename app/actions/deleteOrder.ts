@@ -39,7 +39,7 @@ export async function deleteOrder(order_id: string) {
             }
         }
         for (const reservationReference of foundOrder.reservationReferences) {
-            await GuestDataModel.findOneAndDelete({ booking_code: reservationReference });
+            await GuestDataModel.deleteMany({ booking_code: reservationReference });
         }
         for (const transactionId of foundOrder.transaction_id) {
             await hostifyRequest<{ success: boolean }>(

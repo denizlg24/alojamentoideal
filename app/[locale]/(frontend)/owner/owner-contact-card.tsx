@@ -92,7 +92,7 @@ Rua: ${stage0Form.getValues("address")}\n`,
       },
     ]);
     const { success } = await sendMail({
-      email: "site@alojamentoideal.pt",
+      email: "geral@alojamentoideal.pt",
       html,
       subject: "Novo contacto de de proprietário. - alojamentoideal.pt",
     });
@@ -110,9 +110,9 @@ Rua: ${stage0Form.getValues("address")}\n`,
   const locale = useLocale();
 
   return (
-    <Card className="h-[500px] w-[350px] shadow-2xl p-0 overflow-hidden border-0 gap-3">
+    <Card className="h-[500px] lg:w-[350px] w-full shadow-2xl p-0 overflow-hidden border-0 gap-3">
       <CardHeader className="bg-primary px-3 pt-4 pb-2">
-        <div className="flex flex-row justify-between w-[30%] items-center">
+        <div className="flex flex-row justify-between w-fit gap-2 items-center">
           <div
             className={cn(
               "w-4 h-4 rounded-full transition-colors",

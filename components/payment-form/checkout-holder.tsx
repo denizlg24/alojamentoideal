@@ -84,7 +84,7 @@ export const CheckoutHolder = ({
 
   const stripePromise = useMemo(
     () =>
-      loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!, {
+      loadStripe(process.env.NEXT_PUBLIC_ENVIRONMENT == 'DEV' ? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY! : process.env.NEXT_PUBLIC_STRIPE_PROD_KEY!, {
         locale: safeLocale,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -18,10 +18,12 @@ const envSchema = z.object({
     BOKUN_SECRET_KEY: z.string().nonempty(),
     DETOURS_STRIPE_ID: z.string().nonempty(),
     DETOURS_STRIPE_ID_PROD: z.string().nonempty(),
-    BOKUN_PREFIX:z.string().nonempty(),
-    BOKUN_PREFIX_PROD:z.string().nonempty(),
-    BOKUN_ENVIRONMENT:z.string().nonempty(),
-    DETOURS_CONTACTS:z.string().nonempty()
+    BOKUN_PREFIX: z.string().nonempty(),
+    BOKUN_PREFIX_PROD: z.string().nonempty(),
+    BOKUN_ENVIRONMENT: z.string().nonempty(),
+    DETOURS_CONTACTS: z.string().nonempty(),
+    STRIPE_PROD_WEBHOOK_SECRET: z.string().nonempty(),
+    STRIPE_PROD_SECRET: z.string().nonempty(),
 });
 
 export default envSchema.parse(process.env);

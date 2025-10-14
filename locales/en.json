@@ -1140,7 +1140,8 @@
     "reservation-refund-id": "Refund for failed reservation {order_id}",
     "view-bokun-order": "View bokun order",
     "new-order": "New Activity Order",
-    "order-title-bokun": "What's in the order?"
+    "order-title-bokun": "What's in the order?",
+    "reservation-refunded": "Reservation refunded"
   },
   "toast": {
     "email-sent": "Email sent successfully!",

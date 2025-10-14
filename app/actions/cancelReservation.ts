@@ -5,7 +5,7 @@ import { connectDB } from "@/lib/mongodb";
 import OrderModel from "@/models/Order";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { verifySession } from "@/utils/verifySession";
-import { createRefundHouseInvoice, issueCreditNote } from "./createHouseInvoice";
+import { createHouseInvoice, createRefundHouseInvoice, issueCreditNote } from "./createHouseInvoice";
 import { stripe } from "@/lib/stripe";
 import { attachInvoice } from "./attachInvoice";
 import { ReservationType } from "@/schemas/reservation.schema";
@@ -15,8 +15,9 @@ import { getHtml } from "./getHtml";
 import env from "@/utils/env";
 import { sendMail } from "./sendMail";
 import { UnauthorizedError } from "@/lib/utils";
+import GuestDataModel from "@/models/GuestData";
 
-export async function cancelReservation(reservation_id: string, transaction_id: string) {
+export async function cancelReservation(reservation_id: string, reservation_code:string, transaction_id: string) {
     if (!(await verifySession())) {
         throw new UnauthorizedError();
     }
@@ -25,6 +26,7 @@ export async function cancelReservation(reservation_id: string, transaction_id: 
         throw new UnauthorizedError();
     }
     await connectDB();
+    await GuestDataModel.deleteMany({booking_code:reservation_code});
     await hostifyRequest<{ success: boolean }>(
         `reservations/${reservation_id}`,
         "PUT",
@@ -61,6 +63,7 @@ export async function clientCancelReservation(reservation_id: number, reservatio
         if (!foundOrder) {
             return false;
         }
+        await GuestDataModel.deleteMany({booking_code:reservation_code});
         const t = await getTranslations("order-email")
         const item = foundOrder.items.filter((item) => item.type == 'accommodation')[foundOrder.reservationIds.indexOf(reservation_id.toString())]
         const nights =
@@ -84,7 +87,7 @@ export async function clientCancelReservation(reservation_id: number, reservatio
             { "{{your-invoice-is-ready}}": t('your-activity-cancelled') },
             { "{{view-your-invoice}}": t('view-reservation') },
             { "{{order-number}}": t('reservation-number', { order_id: reservation_code }) },
-            { '{{invoice_url}}': `${env.SITE_URL}/reservations/${reservation_id}`}
+            { '{{invoice_url}}': `${env.SITE_URL}/reservations/${reservation_id}` }
             ])
 
         await sendMail({
@@ -93,6 +96,46 @@ export async function clientCancelReservation(reservation_id: number, reservatio
             subject: t('reservation-cancellation', { order_id: reservation_code }),
         });
         if (refund_amount == 0) {
+            const paymentId = await stripe.paymentIntents.retrieve(foundOrder.payment_id);
+            const chargeID = paymentId.latest_charge as string;
+            const charge = await stripe.charges.retrieve(chargeID);
+            const accommodationItems = foundOrder.items.filter((item) => item.type == 'accommodation');
+            const reservationIndx = foundOrder.reservationIds.indexOf(reservation_id.toString());
+            const orderItem = accommodationItems[reservationIndx];
+            const order_index = foundOrder.items.indexOf(orderItem);
+            const itemInvoice = await createHouseInvoice({ reservationId: reservation_id, clientName: foundOrder.isCompany ? (foundOrder.companyName || foundOrder.name) : foundOrder.name, clientTax: foundOrder.tax_number, booking_code: reservation_code, clientAddress: charge.billing_details.address ?? undefined })
+            if (itemInvoice.url && itemInvoice.id) {
+                const nights =
+                    (new Date(orderItem.end_date!).getTime() -
+                        new Date(orderItem.start_date!).getTime()) /
+                    (1000 * 60 * 60 * 24);
+                const productHtml = await getHtml('emails/order-product.html', [{ '{{product_name}}': orderItem.name }, {
+                    '{{product_description}}': t("nights", {
+                        count:
+                            nights,
+                        adults: orderItem.adults!,
+                        children:
+                            orderItem.children! > 0 ? t("children_text", { count: orderItem.children! }) : "",
+                        infants:
+                            orderItem.infants! > 0 ? t("infants_text", { count: orderItem.infants! }) : "",
+                    })
+                }, { '{{product_quantity}}': t("reservation", { number: reservation_code }) }, { "{{product_price}}": `${orderItem.front_end_price ?? 0}€` }, { "{{product_photo}}": orderItem.photo }])
+
+                const orderHtml = await getHtml('emails/invoice-sent-email.html',
+                    [{ "{{products_html}}": productHtml },
+                    { "{{your-invoice-is-ready}}": t('your-invoice-is-ready') },
+                    { "{{view-your-invoice}}": t('view-your-invoice') },
+                    { "{{order-number}}": t('reservation-number', { order_id: reservation_code }) },
+                    { '{{invoice_url}}': itemInvoice.url }
+                    ])
+                await attachInvoice({ orderId: order_id, index: order_index, invoice_url: { url: itemInvoice.url, id: itemInvoice.id } })
+
+                await sendMail({
+                    email: foundOrder.email,
+                    html: orderHtml,
+                    subject: t('invoice-for-reservation', { order_id: reservation_code }),
+                });
+            }
             const success = await hostifyRequest<{ success: boolean }>(
                 `reservations/${reservation_id}`,
                 "PUT",
@@ -149,6 +192,43 @@ export async function clientCancelReservation(reservation_id: number, reservatio
                         subject: t('invoice-for-reservation', { order_id: reservation_code }),
                     });
                 }
+            } else {
+                const newInvoice = await createRefundHouseInvoice({ reservationId: reservation_id, clientName: foundOrder.isCompany ? (foundOrder.companyName || foundOrder.name) : foundOrder.name, clientTax: foundOrder.tax_number, booking_code: reservation_code, clientAddress: charge.billing_details.address ?? undefined, refund_amount: 50, previous_invoice: true })
+                if (newInvoice.url && newInvoice.id) {
+                    const attached = await attachInvoice({ orderId: foundOrder.orderId, invoice_url: newInvoice, index: foundOrder.items.indexOf(item) });
+                    if (attached) {
+                        console.log(attached);
+                    }
+                    const nights =
+                        (new Date(item.end_date!).getTime() -
+                            new Date(item.start_date!).getTime()) /
+                        (1000 * 60 * 60 * 24);
+                    const productHtml = await getHtml('emails/order-product.html', [{ '{{product_name}}': item.name }, {
+                        '{{product_description}}': t("nights", {
+                            count:
+                                nights,
+                            adults: item.adults!,
+                            children:
+                                item.children! > 0 ? t("children_text", { count: item.children! }) : "",
+                            infants:
+                                item.infants! > 0 ? t("infants_text", { count: item.infants! }) : "",
+                        })
+                    }, { '{{product_quantity}}': t("reservation", { number: reservation_code }) }, { "{{product_price}}": `${item.front_end_price ?? 0}€` }, { "{{product_photo}}": item.photo }])
+
+                    const orderHtml = await getHtml('emails/invoice-sent-email.html',
+                        [{ "{{products_html}}": productHtml },
+                        { "{{your-invoice-is-ready}}": t('your-new-invoice-is-ready') },
+                        { "{{view-your-invoice}}": t('view-your-invoice') },
+                        { "{{order-number}}": t('reservation-number', { order_id: reservation_code }) },
+                        { '{{invoice_url}}': newInvoice.url }
+                        ])
+
+                    await sendMail({
+                        email: foundOrder.email,
+                        html: orderHtml,
+                        subject: t('invoice-for-reservation', { order_id: reservation_code }),
+                    });
+                }
             }
             const info = await hostifyRequest<{ reservation: ReservationType, fees: ReservationFee[] }>(
                 `reservations/${reservation_id}?fees=1`,
@@ -158,31 +238,6 @@ export async function clientCancelReservation(reservation_id: number, reservatio
                 undefined
             );
             const fees = info.fees;
-
-            const cancelled = await hostifyRequest<{ success: boolean }>(
-                `reservations/${reservation_id}`,
-                "PUT",
-                undefined,
-                {
-                    status: "cancelled_by_guest",
-                },
-                undefined,
-                undefined
-            );
-
-            if (!cancelled.success) {
-                const hostCancel = await hostifyRequest<{ success: boolean }>(
-                    `reservations/${reservation_id}`,
-                    "PUT",
-                    undefined,
-                    {
-                        status: "cancelled_by_host",
-                    },
-                    undefined,
-                    undefined
-                );
-                console.log(hostCancel);
-            }
 
             let finalRefundPrice = 0;
             const refundTaxPercentages: Record<number, number> = {};
@@ -281,22 +336,14 @@ export async function clientCancelReservation(reservation_id: number, reservatio
                 const t = await getTranslations("order-email")
                 const refundHtml = await getHtml('emails/invoice-sent-email.html',
                     [{ "{{products_html}}": t("success-refund", { amount: refund.amount / 100 }) },
-                    { "{{your-invoice-is-ready}}": t('activity-cancellation') },
-                    { "{{view-your-invoice}}": t('view-activity-page') },
+                    { "{{your-invoice-is-ready}}": t('reservation-refunded') },
+                    { "{{view-your-invoice}}": t('view-reservation') },
                     { "{{order-number}}": t('order-number', { order_id: foundOrder.orderId }) },
                     { '{{invoice_url}}': `${env.SITE_URL}/reservations/${reservation_id}` }
                     ])
                 await sendMail({ email, html: refundHtml, subject: t("activity-refund-id", { id: reservation_code }) })
             }
-            return true;
-        }
-        if (refund_amount == 100) {
-            const paymentIntent = await stripe.paymentIntents.retrieve(foundOrder.payment_id);
-            const charge = await stripe.charges.retrieve(paymentIntent.latest_charge as string);
-            if (item && item.invoice_id) {
-                await issueCreditNote({ clientEmail: foundOrder.email, invoice_id: item.invoice_id, item, reservationCode: reservation_code });
-            }
-            await hostifyRequest<{ success: boolean }>(
+            const cancelled = await hostifyRequest<{ success: boolean }>(
                 `reservations/${reservation_id}`,
                 "PUT",
                 undefined,
@@ -306,6 +353,29 @@ export async function clientCancelReservation(reservation_id: number, reservatio
                 undefined,
                 undefined
             );
+
+            if (!cancelled.success) {
+                const hostCancel = await hostifyRequest<{ success: boolean }>(
+                    `reservations/${reservation_id}`,
+                    "PUT",
+                    undefined,
+                    {
+                        status: "cancelled_by_host",
+                    },
+                    undefined,
+                    undefined
+                );
+                console.log("host cancel: ", hostCancel);
+            }
+            return true;
+        }
+        if (refund_amount == 100) {
+            const paymentIntent = await stripe.paymentIntents.retrieve(foundOrder.payment_id);
+            const charge = await stripe.charges.retrieve(paymentIntent.latest_charge as string);
+            if (item && item.invoice_id) {
+                await issueCreditNote({ clientEmail: foundOrder.email, invoice_id: item.invoice_id, item, reservationCode: reservation_code });
+            }
+
 
             const transaction = await hostifyRequest<{ success: boolean, transaction: { amount: number } }>(
                 `transactions/${foundOrder.transaction_id[foundOrder.reservationIds.indexOf(reservation_id.toString())]}`,
@@ -322,12 +392,36 @@ export async function clientCancelReservation(reservation_id: number, reservatio
                 const t = await getTranslations("order-email")
                 const refundHtml = await getHtml('emails/invoice-sent-email.html',
                     [{ "{{products_html}}": t("success-refund", { amount: refund.amount / 100 }) },
-                    { "{{your-invoice-is-ready}}": t('activity-cancellation') },
-                    { "{{view-your-invoice}}": t('view-activity-page') },
+                    { "{{your-invoice-is-ready}}": t('reservation-refunded') },
+                    { "{{view-your-invoice}}": t('view-reservation') },
                     { "{{order-number}}": t('order-number', { order_id: foundOrder.orderId }) },
                     { '{{invoice_url}}': `${env.SITE_URL}/reservations/${reservation_id}` }
                     ])
                 await sendMail({ email, html: refundHtml, subject: t("activity-refund-id", { id: reservation_code }) })
+            }
+            const cancelled = await hostifyRequest<{ success: boolean }>(
+                `reservations/${reservation_id}`,
+                "PUT",
+                undefined,
+                {
+                    status: "cancelled_by_guest",
+                },
+                undefined,
+                undefined
+            );
+
+            if (!cancelled.success) {
+                const hostCancel = await hostifyRequest<{ success: boolean }>(
+                    `reservations/${reservation_id}`,
+                    "PUT",
+                    undefined,
+                    {
+                        status: "cancelled_by_host",
+                    },
+                    undefined,
+                    undefined
+                );
+                console.log("host cancel: ", hostCancel);
             }
             return true;
         }

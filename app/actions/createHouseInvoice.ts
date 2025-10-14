@@ -209,7 +209,7 @@ export async function issueCreditNote({ clientEmail, invoice_id, item, reservati
     return false;
 }
 
-export async function createRefundHouseInvoice({ clientName, clientAddress, clientTax, booking_code, reservationId, refund_amount }: { clientName: string, clientAddress?: Address, clientTax: string | undefined, booking_code: string, reservationId: number | string, refund_amount: number }) {
+export async function createRefundHouseInvoice({ clientName, clientAddress, clientTax, booking_code, reservationId, refund_amount,previous_invoice }: { clientName: string, clientAddress?: Address, clientTax: string | undefined, booking_code: string, reservationId: number | string, refund_amount: number, previous_invoice?:boolean }) {
     const info = await hostifyRequest<{ reservation: ReservationType, fees: ReservationFee[] }>(
         `reservations/${reservationId}?fees=1`,
         "GET",
@@ -323,6 +323,7 @@ export async function createRefundHouseInvoice({ clientName, clientAddress, clie
                             id,
                             product_id,
                             custom_descr: `Accommodation, half (50%) of the stay`,
+                            ...(previous_invoice ? {rcode}:{}),
                             qty,
                             price,
                             discount: 0,

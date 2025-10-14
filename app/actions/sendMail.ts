@@ -11,12 +11,12 @@ export async function sendMail({ email, html, subject, attachments }: { email: s
             port: 465,
             secure: true, // upgrade later with STARTTLS
             auth: {
-                user: "site@alojamentoideal.pt",
+                user: "geral@alojamentoideal.pt",
                 pass: env.WEBMAIL_PASS,
             },
         });
         const mailOptions: SMTPTransport.MailOptions = {
-            from: "Alojamento Ideal <site@alojamentoideal.pt>",
+            from: "Alojamento Ideal <geral@alojamentoideal.pt>",
             to: email,
             subject,
             html,

@@ -1140,7 +1140,8 @@
     "order-title-bokun": "¿Qué hay en el pedido?",
     "reservation-refund-id": "Reembolso por reserva fallida {order_id}",
     "success-refund-reservation-failed": "Lamentablemente, se ha producido un problema al crear su reserva. Debido a ello, y dado que su pago se ha procesado, le hemos reembolsado {amount}€ en su cuenta. Los fondos pueden tardar hasta 10 días en aparecer. Esto puede haber ocurrido por muchas razones, como que el periodo seleccionado haya sido reservado por otra persona mientras completaba el proceso de pago o por un error técnico del servidor. Lo sentimos profundamente.",
-    "view-bokun-order": "Ver pedido bokun"
+    "view-bokun-order": "Ver pedido bokun",
+    "reservation-refunded": "Reserva reembolsada"
   },
   "toast": {
     "email-sent": "¡Correo enviado con éxito!",

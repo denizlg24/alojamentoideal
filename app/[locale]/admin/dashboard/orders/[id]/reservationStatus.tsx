@@ -43,7 +43,8 @@ export const GetReservationStatus = ({
               setLoading(true);
               await cancelReservation(
                 reservation.id.toString(),
-                transaction_id
+                reservation.confirmation_code,
+                transaction_id,
               );
               setLoading(false);
               router.refresh();
@@ -72,7 +73,9 @@ export const GetReservationStatus = ({
               setLoading(true);
               await cancelReservation(
                 reservation.id.toString(),
-                transaction_id
+                reservation.confirmation_code,
+                transaction_id,
+                
               );
               router.refresh();
             }}
@@ -100,6 +103,7 @@ export const GetReservationStatus = ({
               setLoading(true);
               await cancelReservation(
                 reservation.id.toString(),
+                reservation.confirmation_code,
                 transaction_id
               );
               router.refresh();
@@ -125,7 +129,7 @@ export const GetReservationStatus = ({
           disabled={loading}
           onClick={async () => {
             setLoading(true);
-            await cancelReservation(reservation.id.toString(), transaction_id);
+            await cancelReservation(reservation.id.toString(),reservation.confirmation_code, transaction_id);
             router.refresh();
           }}
           className="h-fit! p-1! rounded!"
@@ -150,7 +154,7 @@ export const GetReservationStatus = ({
           disabled={loading}
           onClick={async () => {
             setLoading(true);
-            await cancelReservation(reservation.id.toString(), transaction_id);
+            await cancelReservation(reservation.id.toString(),reservation.confirmation_code, transaction_id);
             router.refresh();
           }}
           className="h-fit! p-1! rounded!"
@@ -177,7 +181,7 @@ export const GetReservationStatus = ({
           disabled={loading}
           onClick={async () => {
             setLoading(true);
-            await cancelReservation(reservation.id.toString(), transaction_id);
+            await cancelReservation(reservation.id.toString(),reservation.confirmation_code, transaction_id);
             router.refresh();
           }}
           className="h-fit! p-1! rounded!"

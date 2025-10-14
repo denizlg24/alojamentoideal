@@ -142,7 +142,7 @@ export const CheckoutHolder = ({
   const safeLocale: StripeLocale = isValidLocale(locale) ? locale : "auto";
 
   const stripePromise = loadStripe(
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+    process.env.NEXT_PUBLIC_ENVIRONMENT == 'DEV' ? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY! : process.env.NEXT_PUBLIC_STRIPE_PROD_KEY!,
     { locale: safeLocale }
   );
   const displayT = useTranslations("tourDisplay");
