@@ -5,6 +5,7 @@ import { use } from "react";
 import amar from "@/public/amar-outside.webp";
 import vertical from "@/public/regras-espelho.webp";
 import { OwnerContactCard } from "./owner-contact-card";
+import { VideoHolder } from "@/components/home/video-holder";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -49,12 +50,8 @@ export default function Home({
           {t("subtitle")}
         </h2>
       </div>
-      <div className="absolute xl:block hidden left-0 top-1/4 xl:w-[70%] w-full overflow-hidden xl:rounded-br-4xl -z-10 shadow-2xl">
-        <Image unoptimized 
-          src={amar}
-          alt="amar"
-          className="w-full h-auto object-cover aspect-[2.5]"
-        />
+      <div className="lg:absolute left-0 top-1/4 xl:w-[70%] w-full overflow-hidden lg:rounded-r-4xl lg rounded -z-10 shadow-2xl">
+        <VideoHolder/>  
       </div>
       <div className="w-full max-w-6xl flex flex-row xl:justify-end justify-center">
         <OwnerContactCard />

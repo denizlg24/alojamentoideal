@@ -33,7 +33,7 @@ export const VideoHolder = () => {
           src={videoFallback}
           alt="video-fallback"
           priority
-          className="w-full h-full object-cover lg:max-h-[600px] max-h-[300px]"
+          className="w-full h-full object-cover"
         />
       )}
 
