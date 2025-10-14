@@ -34,15 +34,15 @@ export const HomeVideoHolder = () => {
           src={videoFallback}
           alt="video-fallback"
           priority
-          className="w-full object-cover lg:max-h-[600px] max-h-screen h-screen rotate-180"
+          className="w-full object-cover lg:max-h-[600px] max-h-screen h-screen"
         />
       )}
 
       <video
-        src="/beach.mov"
+        src="/river.mov"
         preload="true"
         className={cn(
-          "w-full object-cover lg:max-h-[600px] max-h-screen h-screen rotate-180",
+          "w-full object-cover lg:max-h-[600px] max-h-screen h-screen",
           !videoLoaded && "hidden"
         )}
         autoPlay

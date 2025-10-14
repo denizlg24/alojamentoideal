@@ -55,10 +55,10 @@ export default function Home({
         </div>
       </div>
       <div className="z-85 sm:pt-22 pt-6 w-full max-w-7xl flex flex-col gap-4 sm:items-start sm:text-left text-center absolute px-4">
-        <h1 className="font-black md:text-5xl sm:text-4xl text-3xl text-white text-shadow-lg">
+        <h1 className="font-black md:text-5xl sm:text-4xl text-3xl text-white text-shadow-lg backdrop-blur-xs">
           {t("headline")}
         </h1>
-        <h2 className="font-bold md:text-3xl sm:text-2xl text-xl text-white text-shadow-lg">
+        <h2 className="font-bold md:text-3xl sm:text-2xl text-xl text-white text-shadow-lg backdrop-blur-xs">
           Alojamento Ideal &mdash; {t("your-jorney-start-with-us")}
         </h2>
         <Button
