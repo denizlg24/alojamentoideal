@@ -19,6 +19,8 @@ import { useTranslations } from "next-intl";
 //import { Separator } from "../ui/separator";
 import { LocaleSwitcher } from "../ui/locale-switcher";
 import { Cart } from "../ui/cart";
+import { Button } from "../ui/button";
+import { KeyRound } from "lucide-react";
 /*import {
   Accordion,
   AccordionContent,
@@ -54,7 +56,8 @@ export const Header = () => {
     >
       <div className="max-w-7xl mx-auto flex flex-row justify-between w-full">
         <Link href="/" className="h-full">
-          <Image unoptimized 
+          <Image
+            unoptimized
             src="/alojamento-ideal-logo.png"
             width={256}
             height={256}
@@ -71,7 +74,8 @@ export const Header = () => {
                   href="/rooms"
                   className="font-medium flex flex-row items-center gap-2"
                 >
-                  <Image unoptimized 
+                  <Image
+                    unoptimized
                     width={128}
                     height={128}
                     src={"/house_icon.png"}
@@ -89,7 +93,8 @@ export const Header = () => {
                   href="/tours"
                   className="font-medium flex flex-row items-center gap-2"
                 >
-                  <Image unoptimized 
+                  <Image
+                    unoptimized
                     width={128}
                     height={128}
                     src={"/tour_icon.png"}
@@ -185,6 +190,14 @@ export const Header = () => {
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
+              <Button className="rounded-full" asChild>
+                <Link className="font-medium" href="/owner">
+                  <KeyRound />
+                  {t("im-an-owner")}
+                </Link>
+              </Button>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
               <LocaleSwitcher />
             </NavigationMenuItem>
             <NavigationMenuItem>
@@ -219,7 +232,8 @@ export const Header = () => {
                         className="font-medium flex flex-row items-center gap-2"
                         href="/rooms"
                       >
-                        <Image unoptimized 
+                        <Image
+                          unoptimized
                           width={128}
                           height={128}
                           src={"/house_icon.png"}
@@ -232,7 +246,7 @@ export const Header = () => {
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
-                  <NavigationMenuLink asChild>
+                    <NavigationMenuLink asChild>
                       <Link
                         onClick={() => {
                           setOpen(false);
@@ -240,7 +254,8 @@ export const Header = () => {
                         className="font-medium flex flex-row items-center gap-2"
                         href="/tours"
                       >
-                        <Image unoptimized 
+                        <Image
+                          unoptimized
                           width={128}
                           height={128}
                           src={"/tour_icon.png"}
@@ -404,6 +419,14 @@ export const Header = () => {
                         {t("contact")}
                       </Link>
                     </NavigationMenuLink>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <Button className="w-full rounded-full" asChild>
+                      <Link className="font-medium" href="/owner">
+                        <KeyRound />
+                        {t("im-an-owner")}
+                      </Link>
+                    </Button>
                   </NavigationMenuItem>
                 </NavigationMenuList>
               </NavigationMenu>

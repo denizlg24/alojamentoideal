@@ -137,7 +137,8 @@
     "terms": "Termos e Condições",
     "privacy": "Política de Privacidade",
     "no-tours-available": "Nenhuma atividade está disponível no momento.",
-    "tours-desc": "Explore todas as nossas atividades."
+    "tours-desc": "Explore todas as nossas atividades.",
+    "im-an-owner": "Sou proprietário de um imóvel"
   },
   "home": {
     "map-title": "Onde vai ficar esta noite?",
@@ -149,7 +150,8 @@
     "staying-in": "Vai ficar no {city}?"
   },
   "home-map": {
-    "book": "Reservar agora"
+    "book": "Reservar agora",
+    "we-have-n-apartments-here": "A mostar {count} apartamentos nesta área."
   },
   "listing-home-card": {
     "from": "Desde ",
