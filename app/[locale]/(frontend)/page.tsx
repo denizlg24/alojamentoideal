@@ -66,7 +66,7 @@ export default function Home({
           asChild
           variant={"default"}
           size={"lg"}
-          className="rounded-full sm:w-auto font-bold  w-full"
+          className="rounded-full sm:w-auto font-bold w-full hover:text-white border-2 border-transparent hover:border-white hover:bg-transparent transition-colors"
         >
           <Link href={"/owner"}>
             <KeyRound />

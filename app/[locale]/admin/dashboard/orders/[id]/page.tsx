@@ -540,6 +540,8 @@ export default async function Home({
                     className="flex flex-col gap-0 w-full items-start"
                   >
                     <GetReservationStatus
+                      createdAt={order.createdAt}
+                      order_id={id}
                       guestInfoCustomDoneField={guestInfoDone}
                       reservation={reservation.reservation}
                       transaction_id={order.transaction_id[arrayIndx]}

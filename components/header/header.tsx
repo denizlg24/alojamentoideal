@@ -72,9 +72,9 @@ export const Header = () => {
               <NavigationMenuLink asChild>
                 <Link
                   href="/rooms"
-                  className="font-medium flex flex-row items-center gap-2"
+                  className="flex flex-row items-center gap-2 font-semibold"
                 >
-                  <Image
+                  {/* <Image
                     unoptimized
                     width={128}
                     height={128}
@@ -82,7 +82,7 @@ export const Header = () => {
                     alt="house icon"
                     priority
                     className="h-full max-h-6 w-auto aspect-square object-contain"
-                  />
+                  /> */}
                   {t("homes")}
                 </Link>
               </NavigationMenuLink>
@@ -91,9 +91,9 @@ export const Header = () => {
               <NavigationMenuLink asChild>
                 <Link
                   href="/tours"
-                  className="font-medium flex flex-row items-center gap-2"
+                  className="flex flex-row items-center gap-2 font-semibold"
                 >
-                  <Image
+                  {/* <Image
                     unoptimized
                     width={128}
                     height={128}
@@ -101,14 +101,14 @@ export const Header = () => {
                     alt="house icon"
                     priority
                     className="h-full max-h-6 w-auto aspect-square object-contain"
-                  />
+                  /> */}
                   {t("tours")}
                 </Link>
               </NavigationMenuLink>
               {/*  <NavigationMenuTrigger className="w-fit px-0 pr-2">
                 <NavigationMenuLink asChild>
                   <Link
-                    className="font-medium flex flex-row items-center gap-2 w-full hover:bg-transparent"
+                    className="flex flex-row items-center gap-2 font-semibold w-full hover:bg-transparent"
                     href="/tours"
                   >
                     <Image unoptimized 
@@ -190,7 +190,10 @@ export const Header = () => {
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Button className="rounded-full" asChild>
+              <Button
+                className="rounded-full border-2 border-transparent hover:border-primary hover:text-primary hover:bg-transparent transition-colors"
+                asChild
+              >
                 <Link className="font-medium" href="/owner">
                   <KeyRound />
                   {t("im-an-owner")}
@@ -229,10 +232,10 @@ export const Header = () => {
                         onClick={() => {
                           setOpen(false);
                         }}
-                        className="font-medium flex flex-row items-center gap-2"
+                        className="flex flex-row items-center gap-2 font-semibold"
                         href="/rooms"
                       >
-                        <Image
+                        {/* <Image
                           unoptimized
                           width={128}
                           height={128}
@@ -240,7 +243,7 @@ export const Header = () => {
                           alt="house icon"
                           priority
                           className="h-full max-h-6 w-auto aspect-square object-contain"
-                        />
+                        /> */}
                         {t("homes")}
                       </Link>
                     </NavigationMenuLink>
@@ -251,10 +254,10 @@ export const Header = () => {
                         onClick={() => {
                           setOpen(false);
                         }}
-                        className="font-medium flex flex-row items-center gap-2"
+                        className="flex flex-row items-center gap-2 font-semibold"
                         href="/tours"
                       >
-                        <Image
+                        {/* <Image
                           unoptimized
                           width={128}
                           height={128}
@@ -262,7 +265,7 @@ export const Header = () => {
                           alt="house icon"
                           priority
                           className="h-full max-h-6 w-auto aspect-square object-contain"
-                        />
+                        /> */}
                         {t("tours")}
                       </Link>
                     </NavigationMenuLink>
