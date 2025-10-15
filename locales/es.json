@@ -145,7 +145,8 @@
     "have_res": "¿Tienes una reserva?",
     "property-owner": "Soy dueño de una propiedad",
     "headline": "Encuentra el lugar perfecto para quedarte.",
-    "your-jorney-start-with-us": "¡Tu viaje comienza con nosotros!"
+    "your-jorney-start-with-us": "¡Tu viaje comienza con nosotros!",
+    "staying-in": "¿Quedarse en {city}?"
   },
   "home-map": {
     "book": "Reservar ahora"

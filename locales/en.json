@@ -143,10 +143,10 @@
     "map-title": "Where will you stay tonight?",
     "searching": "Searching for a place to stay?",
     "have_res": "Have a Reservation?",
-    
- "headline": "Find the perfect place to stay.",
- "your-jorney-start-with-us": "Your trip starts with us!",
- "property-owner": "I am a property owner"
+    "headline": "Find the perfect place to stay.",
+    "your-jorney-start-with-us": "Your trip starts with us!",
+    "property-owner": "I am a property owner",
+    "staying-in": "Staying in {city}?"
   },
   "home-map": {
     "book": "Book Now"

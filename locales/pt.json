@@ -145,7 +145,8 @@
     "have_res": "Tem uma reserva?",
     "property-owner": "Sou proprietário de um imóvel",
     "headline": "Encontre o lugar ideal para ficar.",
-    "your-jorney-start-with-us": "A sua viagem começa conosco!"
+    "your-jorney-start-with-us": "A sua viagem começa conosco!",
+    "staying-in": "Vai ficar no {city}?"
   },
   "home-map": {
     "book": "Reservar agora"
@@ -1312,7 +1313,7 @@
   },
   "owner": {
     "headline": "Descubra a Verdadeira Rentabilidade da Sua Propriedade",
-    "subtitle": "Submeta os detalhes da sua propriedade e receba um estudo personalizado gratuito dos nossos especialistas.",
+    "subtitle": "Submeta os detalhes do seu imóvel e receba um estudo personalizado gratuito dos nossos especialistas.",
     "get-profitability-study-title": "Receba o seu estudo de rentabilidade",
     "field-required": "Este campo é obrigatório.",
     "invalid-email": "Deve ser um endereço de e-mail válido.",

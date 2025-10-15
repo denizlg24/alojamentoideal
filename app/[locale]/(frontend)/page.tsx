@@ -46,6 +46,7 @@ export default function Home({
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full relative flex flex-col items-center">
         <HomeVideoHolder />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-50% via-black/30 to-transparent"></div>
         <div className="absolute sm:flex hidden bottom-0 translate-y-1/2 w-full flex-col items-center z-85 px-4">
           <Suspense
             fallback={<Skeleton className="w-full mx-auto h-[120px]" />}
@@ -55,10 +56,10 @@ export default function Home({
         </div>
       </div>
       <div className="z-85 sm:pt-22 pt-6 w-full max-w-7xl flex flex-col gap-4 sm:items-start sm:text-left text-center absolute px-4">
-        <h1 className="font-black md:text-5xl sm:text-4xl text-3xl text-white text-shadow-lg backdrop-blur-xs">
+        <h1 className="font-black md:text-5xl sm:text-4xl text-3xl text-white text-shadow-lg">
           {t("headline")}
         </h1>
-        <h2 className="font-bold md:text-3xl sm:text-2xl text-xl text-white text-shadow-lg backdrop-blur-xs">
+        <h2 className="font-bold md:text-3xl sm:text-2xl text-xl text-white text-shadow-lg">
           Alojamento Ideal &mdash; {t("your-jorney-start-with-us")}
         </h2>
         <Button
@@ -92,7 +93,7 @@ export default function Home({
         </h2>
         <OrderSearch />
       </div>
-      <div className="w-full max-w-7xl mt-4 mx-auto h-[450px] sm:mt-8 flex flex-col gap-2 px-4">
+      <div className="w-full max-w-7xl mt-4 mx-auto h-full sm:mt-8 flex flex-col px-4">
         <Suspense fallback={<Skeleton className="w-full mx-auto h-[350px]" />}>
           <AccommodationMapHolder />
         </Suspense>
