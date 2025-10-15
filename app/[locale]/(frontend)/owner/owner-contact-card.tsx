@@ -110,7 +110,7 @@ Rua: ${stage0Form.getValues("address")}\n`,
   const locale = useLocale();
 
   return (
-    <Card className="h-[500px] lg:w-[350px] w-full shadow-2xl p-0 overflow-hidden border-0 gap-3">
+    <Card className="h-[500px] xl:w-[350px] w-full shadow-2xl p-0 overflow-hidden border-0 gap-3">
       <CardHeader className="bg-primary px-3 pt-4 pb-2">
         <div className="flex flex-row justify-between w-fit gap-2 items-center">
           <div

@@ -37,6 +37,7 @@ import { IGuestDataDocument } from "@/models/GuestData";
 import { bokunRequest } from "@/utils/bokun-server";
 import { FullExperienceType, PickupPlaceDto } from "@/utils/bokun-requests";
 import { TicketButton } from "@/app/[locale]/(frontend)/reservations/activities/[id]/ticket-button";
+import { CancelBookingDialog } from "@/app/[locale]/(frontend)/reservations/activities/[id]/cancel-booking-dialog";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -196,16 +197,14 @@ export default async function Home({
         break;
     }
     if (charge.amount_refunded > 0) {
-      
-      if(charge.amount_refunded == charge.amount){
+      if (charge.amount_refunded == charge.amount) {
         status = (
           <div className="flex flex-row items-center justify-start gap-1">
             <div className="w-2 h-2 rounded-full bg-blue-400"></div>
             <p>Refunded ({charge.amount_refunded / 100}€)</p>
           </div>
         );
-      }
-      else {
+      } else {
         status = (
           <div className="flex flex-row items-center justify-start gap-1">
             <div className="w-2 h-2 rounded-full bg-blue-400"></div>
@@ -456,13 +455,16 @@ export default async function Home({
                   <p className="font-semibold">{t("status")}</p>
                   <div className="flex flex-row items-center gap-2">
                     <p className="truncate">
-                    {t(
-                      (charge?.amount_refunded ?? 0) > 0
-                        ? charge?.amount_refunded == charge?.amount ? "refunded" : "partial-refund"
-                        : charge?.status ?? "unknown-status"
-                    ,{refund:`(${(charge?.amount_refunded ?? 0)/100}€)`})}
-                    {charge?.status === "failed" &&
-                      " " + charge?.failure_message}
+                      {t(
+                        (charge?.amount_refunded ?? 0) > 0
+                          ? charge?.amount_refunded == charge?.amount
+                            ? "refunded"
+                            : "partial-refund"
+                          : charge?.status ?? "unknown-status",
+                        { refund: `(${(charge?.amount_refunded ?? 0) / 100}€)` }
+                      )}
+                      {charge?.status === "failed" &&
+                        " " + charge?.failure_message}
                     </p>
                     {renderStatusIcon({
                       status:
@@ -538,6 +540,8 @@ export default async function Home({
                     className="flex flex-col gap-0 w-full items-start"
                   >
                     <GetReservationStatus
+                      createdAt={order.createdAt}
+                      order_id={id}
                       guestInfoCustomDoneField={guestInfoDone}
                       reservation={reservation.reservation}
                       transaction_id={order.transaction_id[arrayIndx]}
@@ -840,6 +844,29 @@ export default async function Home({
                   if (!invoiceResponse.success) {
                     return;
                   }
+
+                  function getRefundPercentage(
+                    activityDate: Date,
+                    currentDate: Date
+                  ): number {
+                    const diffMs =
+                      activityDate.getTime() - currentDate.getTime();
+                    const diffHours = diffMs / (1000 * 60 * 60);
+
+                    if (diffHours >= 48) {
+                      return 100; // Full refund
+                    } else if (diffHours >= 24) {
+                      return 50; // Half refund
+                    } else {
+                      return 0; // No refund
+                    }
+                  }
+
+                  const refundPercentage = getRefundPercentage(
+                    new Date(bokunResponse.date),
+                    new Date()
+                  );
+
                   return (
                     <div
                       key={item.id}
@@ -891,6 +918,15 @@ export default async function Home({
                             </p>
                           </div>
                           <div className="w-full flex flex-row gap-2 items-center flex-wrap">
+                            {bokunResponse.status == "CONFIRMED" && (
+                              <CancelBookingDialog
+                                refundPercentage={refundPercentage}
+                                productConfirmationCode={
+                                  bokunResponse.productConfirmationCode
+                                }
+                                total_price={bokunResponse.totalPrice}
+                              />
+                            )}
                             <TicketButton
                               variant="default"
                               className="grow h-fit! p-2! py-1!"

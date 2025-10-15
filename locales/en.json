@@ -137,15 +137,21 @@
     "terms": "Terms & Conditions",
     "privacy": "Privacy Policy",
     "tours-desc": "Explore all our activities.",
-    "no-tours-available": "No tours are available at this time."
+    "no-tours-available": "No tours are available at this time.",
+    "im-an-owner": "I'm a property owner"
   },
   "home": {
     "map-title": "Where will you stay tonight?",
     "searching": "Searching for a place to stay?",
-    "have_res": "Have a Reservation?"
+    "have_res": "Have a Reservation?",
+    "headline": "Find the perfect place to stay.",
+    "your-jorney-start-with-us": "Your trip starts with us!",
+    "property-owner": "I'm a property owner",
+    "staying-in": "Staying in {city}?"
   },
   "home-map": {
-    "book": "Book Now"
+    "book": "Book Now",
+    "we-have-n-apartments-here": "Showing {count} apartments in this area."
   },
   "listing-home-card": {
     "from": "Starting at ",

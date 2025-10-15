@@ -1,9 +1,10 @@
 "use client";
+
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import videoFallback from "@/public/video-fallback.png";
+import videoFallback from "@/public/frame-2.png";
 import { cn } from "@/lib/utils";
-export const VideoHolder = () => {
+export const HomeVideoHolder = () => {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const ref = useRef<HTMLVideoElement | null>(null);
 
@@ -17,6 +18,7 @@ export const VideoHolder = () => {
     };
     if (video.readyState >= 3) {
       setVideoLoaded(true);
+      video.play();
     } else {
       video.addEventListener("canplay", handleCanPlay);
     }
@@ -32,15 +34,15 @@ export const VideoHolder = () => {
           src={videoFallback}
           alt="video-fallback"
           priority
-          className="w-full  h-full object-cover lg:max-h-[600px] max-h-[300px]"
+          className="w-full object-cover lg:max-h-[600px] max-h-screen h-screen"
         />
       )}
 
       <video
-        src="/main_vid.mp4"
+        src="/river.mov"
         preload="true"
         className={cn(
-          "w-full h-full object-cover lg:max-h-[600px] max-h-[300px]",
+          "w-full object-cover lg:max-h-[600px] max-h-screen h-screen",
           !videoLoaded && "hidden"
         )}
         autoPlay

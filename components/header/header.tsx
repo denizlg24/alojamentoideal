@@ -19,6 +19,8 @@ import { useTranslations } from "next-intl";
 //import { Separator } from "../ui/separator";
 import { LocaleSwitcher } from "../ui/locale-switcher";
 import { Cart } from "../ui/cart";
+import { Button } from "../ui/button";
+import { KeyRound } from "lucide-react";
 /*import {
   Accordion,
   AccordionContent,
@@ -54,7 +56,8 @@ export const Header = () => {
     >
       <div className="max-w-7xl mx-auto flex flex-row justify-between w-full">
         <Link href="/" className="h-full">
-          <Image unoptimized 
+          <Image
+            unoptimized
             src="/alojamento-ideal-logo.png"
             width={256}
             height={256}
@@ -69,16 +72,17 @@ export const Header = () => {
               <NavigationMenuLink asChild>
                 <Link
                   href="/rooms"
-                  className="font-medium flex flex-row items-center gap-2"
+                  className="flex flex-row items-center gap-2 font-semibold"
                 >
-                  <Image unoptimized 
+                  {/* <Image
+                    unoptimized
                     width={128}
                     height={128}
                     src={"/house_icon.png"}
                     alt="house icon"
                     priority
                     className="h-full max-h-6 w-auto aspect-square object-contain"
-                  />
+                  /> */}
                   {t("homes")}
                 </Link>
               </NavigationMenuLink>
@@ -87,23 +91,24 @@ export const Header = () => {
               <NavigationMenuLink asChild>
                 <Link
                   href="/tours"
-                  className="font-medium flex flex-row items-center gap-2"
+                  className="flex flex-row items-center gap-2 font-semibold"
                 >
-                  <Image unoptimized 
+                  {/* <Image
+                    unoptimized
                     width={128}
                     height={128}
                     src={"/tour_icon.png"}
                     alt="house icon"
                     priority
                     className="h-full max-h-6 w-auto aspect-square object-contain"
-                  />
+                  /> */}
                   {t("tours")}
                 </Link>
               </NavigationMenuLink>
               {/*  <NavigationMenuTrigger className="w-fit px-0 pr-2">
                 <NavigationMenuLink asChild>
                   <Link
-                    className="font-medium flex flex-row items-center gap-2 w-full hover:bg-transparent"
+                    className="flex flex-row items-center gap-2 font-semibold w-full hover:bg-transparent"
                     href="/tours"
                   >
                     <Image unoptimized 
@@ -185,6 +190,17 @@ export const Header = () => {
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
+              <Button
+                className="rounded-full border-2 border-transparent hover:border-primary hover:text-primary hover:bg-transparent transition-colors"
+                asChild
+              >
+                <Link className="font-medium" href="/owner">
+                  <KeyRound />
+                  {t("im-an-owner")}
+                </Link>
+              </Button>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
               <LocaleSwitcher />
             </NavigationMenuItem>
             <NavigationMenuItem>
@@ -216,38 +232,40 @@ export const Header = () => {
                         onClick={() => {
                           setOpen(false);
                         }}
-                        className="font-medium flex flex-row items-center gap-2"
+                        className="flex flex-row items-center gap-2 font-semibold"
                         href="/rooms"
                       >
-                        <Image unoptimized 
+                        {/* <Image
+                          unoptimized
                           width={128}
                           height={128}
                           src={"/house_icon.png"}
                           alt="house icon"
                           priority
                           className="h-full max-h-6 w-auto aspect-square object-contain"
-                        />
+                        /> */}
                         {t("homes")}
                       </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
-                  <NavigationMenuLink asChild>
+                    <NavigationMenuLink asChild>
                       <Link
                         onClick={() => {
                           setOpen(false);
                         }}
-                        className="font-medium flex flex-row items-center gap-2"
+                        className="flex flex-row items-center gap-2 font-semibold"
                         href="/tours"
                       >
-                        <Image unoptimized 
+                        {/* <Image
+                          unoptimized
                           width={128}
                           height={128}
                           src={"/tour_icon.png"}
                           alt="house icon"
                           priority
                           className="h-full max-h-6 w-auto aspect-square object-contain"
-                        />
+                        /> */}
                         {t("tours")}
                       </Link>
                     </NavigationMenuLink>
@@ -404,6 +422,14 @@ export const Header = () => {
                         {t("contact")}
                       </Link>
                     </NavigationMenuLink>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <Button className="w-full rounded-full" asChild>
+                      <Link className="font-medium" href="/owner">
+                        <KeyRound />
+                        {t("im-an-owner")}
+                      </Link>
+                    </Button>
                   </NavigationMenuItem>
                 </NavigationMenuList>
               </NavigationMenu>

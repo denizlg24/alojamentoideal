@@ -2,7 +2,6 @@ import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
 import { use } from "react";
-import amar from "@/public/amar-outside.webp";
 import vertical from "@/public/regras-espelho.webp";
 import { OwnerContactCard } from "./owner-contact-card";
 import { VideoHolder } from "@/components/home/video-holder";
@@ -50,10 +49,10 @@ export default function Home({
           {t("subtitle")}
         </h2>
       </div>
-      <div className="lg:absolute left-0 top-1/4 xl:w-[70%] w-full overflow-hidden lg:rounded-r-4xl lg rounded -z-10 shadow-2xl">
+      <div className="xl:absolute left-0 top-1/4 xl:w-[70%] w-full overflow-hidden xl:rounded-r-4xl min-[420px]:rounded lg -z-10 shadow-2xl">
         <VideoHolder/>  
       </div>
-      <div className="w-full max-w-6xl flex flex-row xl:justify-end justify-center">
+      <div className="w-full max-w-6xl flex flex-row xl:justify-end justify-center min-[420px]:px-0 px-4">
         <OwnerContactCard />
       </div>
 

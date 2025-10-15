@@ -1,5 +1,7 @@
 "use client";
 import { cancelReservation } from "@/app/actions/cancelReservation";
+import { CancelBookingButton } from "@/components/orders/cancel-booking-button";
+import { getRefundPercentage } from "@/components/orders/property-info-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "@/i18n/navigation";
@@ -11,17 +13,20 @@ import { useState } from "react";
 export const GetReservationStatus = ({
   reservation,
   transaction_id,
-  guestInfoCustomDoneField
+  order_id,
+  guestInfoCustomDoneField,
+  createdAt,
 }: {
   reservation: ReservationType;
+  order_id: string;
   transaction_id: string;
-  guestInfoCustomDoneField:"done" | "pending" | "failed" | false
+  guestInfoCustomDoneField: "done" | "pending" | "failed" | false;
+  createdAt: Date;
 }) => {
   const [loading, setLoading] = useState(false);
 
   const t = useTranslations("propertyCard");
   const router = useRouter();
-
 
   if (!reservation) {
     return (
@@ -31,34 +36,24 @@ export const GetReservationStatus = ({
       </div>
     );
   }
+  const refund = getRefundPercentage(
+    createdAt,
+    new Date(reservation.checkIn),
+    new Date()
+  );
+
   if (reservation.status == "accepted") {
     if (!guestInfoCustomDoneField) {
       return (
         <div className="w-full flex flex-row items-center gap-2">
           <div className="h-2.5 w-2.5 rounded-full bg-yellow-600"></div>
           <p className="text-xs font-semibold">{t("waiting-for-guest-data")}</p>
-          <Button
-            disabled={loading}
-            onClick={async () => {
-              setLoading(true);
-              await cancelReservation(
-                reservation.id.toString(),
-                reservation.confirmation_code,
-                transaction_id,
-              );
-              setLoading(false);
-              router.refresh();
-            }}
-            className="h-fit! p-1! rounded!"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin" /> Canceling Order
-              </>
-            ) : (
-              <>Cancel Order</>
-            )}
-          </Button>
+          <CancelBookingButton
+            refundPercentage={refund}
+            reservation_id={reservation.id}
+            productConfirmationCode={reservation.confirmation_code}
+            order_id={order_id}
+          />
         </div>
       );
     }
@@ -67,28 +62,12 @@ export const GetReservationStatus = ({
         <div className="w-full flex flex-row items-center gap-2">
           <div className="h-2.5 w-2.5 rounded-full bg-yellow-600"></div>
           <p className="text-xs font-semibold">{t("verifying-guest-data")}</p>
-          <Button
-            disabled={loading}
-            onClick={async () => {
-              setLoading(true);
-              await cancelReservation(
-                reservation.id.toString(),
-                reservation.confirmation_code,
-                transaction_id,
-                
-              );
-              router.refresh();
-            }}
-            className="h-fit! p-1! rounded!"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin" /> Canceling Order
-              </>
-            ) : (
-              <>Cancel Order</>
-            )}
-          </Button>
+          <CancelBookingButton
+            refundPercentage={refund}
+            reservation_id={reservation.id}
+            productConfirmationCode={reservation.confirmation_code}
+            order_id={order_id}
+          />
         </div>
       );
     }
@@ -121,27 +100,17 @@ export const GetReservationStatus = ({
         </div>
       );
     }
+
     return (
       <div className="w-full flex flex-row items-center gap-2">
         <div className="h-2.5 w-2.5 rounded-full bg-green-600"></div>
         <p className="text-xs font-semibold">{t("order-confirmed")}</p>
-        <Button
-          disabled={loading}
-          onClick={async () => {
-            setLoading(true);
-            await cancelReservation(reservation.id.toString(),reservation.confirmation_code, transaction_id);
-            router.refresh();
-          }}
-          className="h-fit! p-1! rounded!"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="animate-spin" /> Canceling Order
-            </>
-          ) : (
-            <>Cancel Order</>
-          )}
-        </Button>
+        <CancelBookingButton
+          refundPercentage={refund}
+          reservation_id={reservation.id}
+          productConfirmationCode={reservation.confirmation_code}
+          order_id={order_id}
+        />
       </div>
     );
   }
@@ -154,7 +123,11 @@ export const GetReservationStatus = ({
           disabled={loading}
           onClick={async () => {
             setLoading(true);
-            await cancelReservation(reservation.id.toString(),reservation.confirmation_code, transaction_id);
+            await cancelReservation(
+              reservation.id.toString(),
+              reservation.confirmation_code,
+              transaction_id
+            );
             router.refresh();
           }}
           className="h-fit! p-1! rounded!"
@@ -181,7 +154,11 @@ export const GetReservationStatus = ({
           disabled={loading}
           onClick={async () => {
             setLoading(true);
-            await cancelReservation(reservation.id.toString(),reservation.confirmation_code, transaction_id);
+            await cancelReservation(
+              reservation.id.toString(),
+              reservation.confirmation_code,
+              transaction_id
+            );
             router.refresh();
           }}
           className="h-fit! p-1! rounded!"
