@@ -51,8 +51,8 @@ It also supports **multi-purchase checkout**, allowing customers to book several
 ## 🖼️ Preview
 
 ![Homepage Screenshot](/docs/preview.png)  
-![Property Listing Screenshot](./public/listing.png)  
-![Checkout Page Screenshot](./public/checkout.png)
+![Property Listing Screenshot](/docs/listing.png)  
+![Checkout Page Screenshot](/docs/checkout.png)
 
 ---
 
