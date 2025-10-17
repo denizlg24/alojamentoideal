@@ -67,7 +67,7 @@ export function AccommodationMapClient({
         <RecommendedListings
           loading={loading}
           listings={listings}
-          ids={[700029813, 700029814, 700042996, 700040137, 700029827]}
+          ids={[700029813, 700029814, 700042996, 700029827]}
         />
       </div>
     </>

@@ -1,9 +1,9 @@
 import amar from "@/public/amar-outside.webp";
 import { StaticImageData } from "next/image";
-import regras from "@/public/regras-espelho.webp"
+import regras from "@/public/espelho.jpg"
 import checkout from "@/public/home-bg.jpg"
 import activity from "@/public/povoa-view.jpg"
-import guestdata from "@/public/regras-livro.webp"
+import guestdata from "@/public/livro.jpg"
 
 interface TextContent {
     type: "text",

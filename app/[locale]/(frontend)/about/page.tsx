@@ -1,9 +1,9 @@
 import { useTranslations } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
-import regras_amenidade from "@/public/regras-tostas.webp";
-import regras_espelho from "@/public/regras-espelho.webp";
-import regras_livros from "@/public/regras-livro.webp";
+import regras_amenidade from "@/public/tostas.jpg";
+import regras_espelho from "@/public/espelho.jpg";
+import regras_livros from "@/public/livro.jpg";
 import regras_refeicao from "@/public/amar-outside.webp";
 import Image from "next/image";
 import leca_view from "@/public/leça-view.jpg";
