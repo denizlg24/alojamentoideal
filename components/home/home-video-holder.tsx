@@ -39,7 +39,7 @@ export const HomeVideoHolder = () => {
       )}
 
       <video
-        src="/river.mov"
+        src="/river2.mov"
         preload="true"
         className={cn(
           "w-full object-cover lg:max-h-[600px] max-h-screen h-screen",
