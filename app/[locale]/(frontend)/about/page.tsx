@@ -6,7 +6,7 @@ import regras_espelho from "@/public/espelho.jpg";
 import regras_livros from "@/public/livro.jpg";
 import regras_refeicao from "@/public/amar-outside.webp";
 import Image from "next/image";
-import leca_view from "@/public/leça-view.jpg";
+import leca_view from "@/public/leca.jpg";
 import porto_view from "@/public/porto-view.jpg";
 import povoa_view from "@/public/povoa-view.jpg";
 import { Button } from "@/components/ui/button";
