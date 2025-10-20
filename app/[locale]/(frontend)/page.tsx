@@ -9,6 +9,7 @@ import { HomeVideoHolder } from "@/components/home/home-video-holder";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { KeyRound } from "lucide-react";
+//import { AddWebhookButton } from "./add-webhook-button";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -98,6 +99,9 @@ export default function Home({
           <AccommodationMapHolder />
         </Suspense>
       </div>
+      {/*<div>
+        <AddWebhookButton />
+      </div>*/}
       {/*<RecommendedListings />*/}
     </main>
   );
