@@ -1307,9 +1307,11 @@
     "per guest": "Por hóspede",
     "per adult / night": "Por adulto / noite",
     "per guest / night": "Por hóspede / noite",
+    "per guest  / night": "Por hóspede / noite",
     "percent": "Percentagem",
     "tmt póvoa de varzim": "Taxa municipal da Póvoa",
     "tmt porto": "Taxa municipal do Porto",
+    "tmt vila nova de gaia": "Taxa municipal de Gaia",
     "cleaning tax": "Taxa de limpeza",
     "taxa limpeza": "Taxa de limpeza"
   },

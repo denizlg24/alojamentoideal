@@ -102,7 +102,7 @@ export async function RoomListingHolder({
 
   const { total, totalPages, listings } =
     from && to
-      ? await getAvailableListings(page, perPage, from, to, adults + infants)
+      ? await getAvailableListings(page, perPage, from, to, adults + children)
       : await getAllListings(page, perPage);
   const buildHref = () => {
     const params = new URLSearchParams();
