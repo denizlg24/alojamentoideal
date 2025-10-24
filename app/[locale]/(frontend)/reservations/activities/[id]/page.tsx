@@ -44,7 +44,7 @@ export async function generateMetadata() {
     keywords: t("activity_reservation_details.keywords")
       .split(",")
       .map((k) => k.trim()),
-    robots: "noindex, nofollow",
+    robots: "index, follow",
     openGraph: {
       title: t("activity_reservation_details.title"),
       description: t("activity_reservation_details.description"),

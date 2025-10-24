@@ -25,7 +25,7 @@ export async function generateMetadata({
     description:
       t("not_found.description") ||
       "The room you’re looking for does not exist or is no longer available.",
-    robots: "noindex, nofollow",
+    robots: "index, follow",
     openGraph: {
       title: t("not_found.title") || "Page Not Found - Alojamento Ideal",
       description:

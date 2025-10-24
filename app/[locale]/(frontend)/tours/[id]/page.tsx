@@ -20,7 +20,7 @@ export async function generateMetadata() {
     keywords: t("activity_details.keywords")
       .split(",")
       .map((k) => k.trim()),
-    robots: "noindex, nofollow",
+    robots: "index, follow",
     openGraph: {
       title:
         t("activity_details.title") || "Your Booking Details - Alojamento Ideal",
