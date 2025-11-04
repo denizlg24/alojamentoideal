@@ -47,10 +47,11 @@ import { RoomInfoMap } from "./room-info-map";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { DateRange } from "react-day-picker";
 import {
-  addMonths,
+  addDays,
   eachDayOfInterval,
   format,
   isValid,
+  parse,
   parseISO,
 } from "date-fns";
 import { Calendar } from "../ui/calendar";
@@ -71,12 +72,12 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 export const RoomInfoProvider = ({
   id,
-  listingCalendar,
+  initialListingCalendar,
   listingInfo,
   listingTranslations,
 }: {
   id: string;
-  listingCalendar: CalendarType[];
+  initialListingCalendar: CalendarType[];
   listingInfo: FullListingType;
   listingTranslations: TranslationResponse;
 }) => {
@@ -119,7 +120,9 @@ export const RoomInfoProvider = ({
   }>({ adults: 1, children: 0, infants: 0, pets: 0 });
   const searchParams = useSearchParams();
   const [filtersLoading, setFiltersLoading] = useState(true);
-
+  const [listingCalendar, setListingCalendar] = useState<CalendarType[]>(
+    initialListingCalendar
+  );
   useEffect(() => {
     if (!listingCalendar) {
       return;
@@ -176,6 +179,44 @@ export const RoomInfoProvider = ({
       setListingTranslated(found);
     }
   }, [listingInfo, listingTranslations, locale]);
+
+  useEffect(() => {
+    const getCalendar = async (id: string,start_date:Date) => {
+      try {
+        const calendar = await hostifyRequest<{ calendar: CalendarType[] }>(
+          `calendar?listing_id=${id}&start_date=${format(
+            start_date,
+            "yyyy-MM-dd"
+          )}`,
+          "GET",
+          undefined,
+          undefined,
+          undefined,
+          { page: 1, perPage: 365 }
+        );
+        return { calendar: calendar.calendar };
+      } catch {
+        return { calendar: undefined };
+      }
+    };
+    if (!date) {
+      return;
+    }
+    if (date.from && !date?.to) {
+      getCalendar(id,date.from!).then(({ calendar }) => {
+        if (calendar) {
+          console.log(calendar);
+          setListingCalendar((prev) =>
+            prev.map((cal) =>
+              parse(cal.date, "yyyy-MM-dd", new Date()) < date.from!
+                ? cal
+                : calendar.find((cal2) => cal2.date == cal.date) ?? cal
+            )
+          );
+        }
+      });
+    }
+  }, [date, id]);
 
   const getStayPrice = async (
     from: Date,
@@ -1017,7 +1058,7 @@ export const RoomInfoProvider = ({
                               }}
                               today={undefined}
                               defaultMonth={date?.to}
-                              startMonth={addMonths(date.from, 1)}
+                              startMonth={addDays(date.from,2)}
                               selected={date?.to}
                               onSelect={(e) => {
                                 setDate((prev) => {

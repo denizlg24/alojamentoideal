@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { DateRange } from "react-day-picker";
 import { useEffect, useState } from "react";
-import { addMonths, format, isValid, parseISO } from "date-fns";
+import { addDays, format, isValid, parseISO } from "date-fns";
 import { cn, localeMap } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
 import {
@@ -202,7 +202,7 @@ export const FloatingFilter = ({
                   </DialogHeader>
                   <Calendar
                     showOutsideDays={false}
-                    startMonth={addMonths(date.from, 1)}
+                    startMonth={addDays(date.from,2)}
                     locale={localeMap[locale as keyof typeof localeMap]}
                     mode="single"
                     disabled={(date) =>

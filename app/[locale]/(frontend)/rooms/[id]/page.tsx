@@ -111,7 +111,7 @@ export default async function Home({
       <RoomInfoProvider
         listingInfo={listing}
         listingTranslations={translations}
-        listingCalendar={calendar}
+        initialListingCalendar={calendar}
         id={id}
       />
     </main>
