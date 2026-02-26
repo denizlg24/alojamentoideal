@@ -17,6 +17,7 @@ import { sendMail } from "./sendMail";
 import { getHtml } from "./getHtml";
 import { getTranslations } from "next-intl/server";
 import { connectDB } from "@/lib/mongodb";
+import { resolveDiscountCode } from "@/app/actions/discount";
 
 export async function getExperience(id: number) {
   if (!(await verifySession())) {
@@ -202,7 +203,7 @@ export async function getShoppingCartQuestion(cartId: string) {
   return response
 }
 
-export async function createBookingRequest({ mainContactDetails, activityBookings, checkoutOptionAnswers, clientAddress, clientEmail, clientName, clientPhone, clientNotes, clientTax, companyName, guests, selectedStartTimeId, isCompany, selectedRateId, }: {
+export async function createBookingRequest({ mainContactDetails, activityBookings, checkoutOptionAnswers, clientAddress, clientEmail, clientName, clientPhone, clientNotes, clientTax, companyName, guests, selectedStartTimeId, isCompany, selectedRateId, discountCode }: {
   mainContactDetails: { questionId: string, values: string[] }[],
   activityBookings: { activityId: number, answers?: { questionId: string, values: string[] }[], pickupAnswers?: { questionId: string, values: string[] }[], rateId: number, startTimeId: number | undefined, date: string, pickup: boolean, pickupPlaceId: string | undefined, passengers: { pricingCategoryId: number, groupSize: number, passengerDetails: { questionId: string, values: string[] }[], answers: { questionId: string, values: string[] }[] }[] }[],
   checkoutOptionAnswers: { questionId: string, values: string[] }[], clientName: string, clientEmail: string, clientPhone: string,
@@ -216,7 +217,8 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
   }, isCompany: boolean, selectedRateId: number[],
   guests: { [categoryId: number]: number }[],
   selectedStartTimeId: number[],
-  clientNotes?: string, clientTax?: string, companyName?: string
+  clientNotes?: string, clientTax?: string, companyName?: string,
+  discountCode?: string,
 }) {
   if (!(await verifySession())) {
     throw new UnauthorizedError();
@@ -274,7 +276,16 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
   if (!response.success || response.booking.status == 'ERROR' || !response.booking.totalPrice) {
     return false;
   }
-  const amount = response.booking.totalPrice * 100;
+  const baseAmountCents = Math.round(response.booking.totalPrice * 100);
+
+  const discountCodeTrimmed = String(discountCode || "").trim();
+  let discount: any = null;
+  if (discountCodeTrimmed && baseAmountCents > 0) {
+    const r = await resolveDiscountCode(discountCodeTrimmed, baseAmountCents);
+    if (r?.ok) discount = r;
+  }
+
+  const amount = discount?.ok ? Number(discount.finalAmountCents) : baseAmountCents;
 
   const cartItems: TourItem[] = response.booking.activityBookings.map((activity, i) => ({
     id: activity.activity.id,
@@ -296,7 +307,8 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
     clientNotes,
     [],
     clientAddress,
-    [response.booking.confirmationCode.toString()]
+    [response.booking.confirmationCode.toString()],
+    discount?.ok ? { code: discount.code, amountOffCents: Number(discount.amountOffCents || 0) } : null,
   );
 
   const { success: order_success, orderId } = await registerOrder({
@@ -313,6 +325,8 @@ export async function createBookingRequest({ mainContactDetails, activityBooking
     tax_number: clientTax,
     isCompany,
     companyName,
+    discountCode: discount?.ok ? discount.code : undefined,
+    discountAmountCents: discount?.ok ? Number(discount.amountOffCents || 0) : undefined,
     activityBookingIds: response.booking.activityBookings.map((activity) => activity.productConfirmationCode),
     activityBookingReferences: [response.booking.confirmationCode]
   });

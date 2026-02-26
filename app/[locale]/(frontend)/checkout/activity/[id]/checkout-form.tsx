@@ -69,6 +69,7 @@ import {
   removeActivity,
   startShoppingCart,
 } from "@/app/actions/getExperience";
+import { previewDiscountOnAmount } from "@/app/actions/discount";
 import { Label } from "@/components/ui/label";
 import { PopoverClose } from "@radix-ui/react-popover";
 import {
@@ -157,6 +158,10 @@ export const TourCheckoutForm = ({
   const [error, setError] = useState("");
   const [_amount, setAmount] = useState(0);
   const [priceLoading, setPriceLoading] = useState(true);
+
+  const [discountCode, setDiscountCode] = useState("");
+  const [appliedDiscountCode, setAppliedDiscountCode] = useState<string | undefined>(undefined);
+
   //const [checking, setChecking] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [addressData, setAddressData] = useState<{
@@ -281,6 +286,7 @@ export const TourCheckoutForm = ({
       clientNotes: data.note,
       clientTax: data.vat,
       companyName: data.business_name,
+      discountCode: appliedDiscountCode,
     });
     if (!response) {
       setError("error_reservation");
@@ -423,7 +429,21 @@ export const TourCheckoutForm = ({
       const selectedOption = response.options.find(
         (option) => option.type === "CUSTOMER_FULL_PAYMENT"
       );
-      setAmount((selectedOption?.amount ?? 0) * 100 || 0);
+      const rawAmountCents = (selectedOption?.amount ?? 0) * 100 || 0;
+      if (appliedDiscountCode) {
+        try {
+          const preview = await previewDiscountOnAmount(appliedDiscountCode, rawAmountCents);
+          if (preview?.ok) {
+            setAmount(preview.finalAmountCents);
+          } else {
+            setAmount(rawAmountCents);
+          }
+        } catch {
+          setAmount(rawAmountCents);
+        }
+      } else {
+        setAmount(rawAmountCents);
+      }
       setMainContactDetails(response.questions.mainContactDetails);
       setActivityBookings(response.questions.activityBookings);
       setPriceLoading(false);
@@ -446,6 +466,7 @@ export const TourCheckoutForm = ({
     rateId,
     selectedDate,
     selectedStartTimeId,
+    appliedDiscountCode,
   ]);
 
   return (
@@ -2717,6 +2738,7 @@ export const TourCheckoutForm = ({
             )}
 
             <Separator />
+
             <Tabs
               value={selectedTab}
               onValueChange={(e) => {

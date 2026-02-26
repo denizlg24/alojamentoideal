@@ -13,7 +13,7 @@ import {
   IbanElement,
 } from "@stripe/react-stripe-js";
 import flags from "react-phone-number-input/flags";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -91,6 +91,7 @@ import {
 } from "../ui/dialog";
 import { FeeType } from "@/schemas/price.schema";
 import { deleteOrder } from "@/app/actions/deleteOrder";
+import { resolveDiscountCode } from "@/app/actions/discount";
 
 const elementStyle: Appearance = {
   variables: {
@@ -129,7 +130,9 @@ export const CheckoutForm = ({
   activities,
   cartId,
   initialCountry = "PT",
+  setDiscountCode:updateSidePanel,
 }: {
+  setDiscountCode: React.Dispatch<React.SetStateAction<{discount:string,newPrice:number} | null>>;
   initialCountry: string;
   cartId: string;
   activities: {
@@ -199,10 +202,10 @@ export const CheckoutForm = ({
                     arrival: property.start_date,
                     departure: property.end_date,
                   }
-                : guestData
+                : guestData,
             )
-          : guestDataArray
-      )
+          : guestDataArray,
+      ),
     );
     if (
       step + 1 ==
@@ -225,7 +228,7 @@ export const CheckoutForm = ({
             birthday: parse(
               guest_data[step][pIndx + 1].birthday,
               "yyyy-MM-dd",
-              new Date()
+              new Date(),
             ),
             document_type: guest_data[step][pIndx + 1].document_type as
               | "P"
@@ -246,7 +249,7 @@ export const CheckoutForm = ({
             birthday: parse(
               guest_data[step + 1][0].birthday,
               "yyyy-MM-dd",
-              new Date()
+              new Date(),
             ),
             document_type: guest_data[step + 1][0].document_type as
               | "P"
@@ -265,7 +268,7 @@ export const CheckoutForm = ({
             birthday: parse(
               guest_data[step][pIndx + 1].birthday,
               "yyyy-MM-dd",
-              new Date()
+              new Date(),
             ),
             document_type: guest_data[step][pIndx + 1].document_type as
               | "P"
@@ -296,6 +299,14 @@ export const CheckoutForm = ({
   const { cart, cartLoading } = useCart();
   const [_amount, setAmount] = useState(0);
   const [priceLoading, setPriceLoading] = useState(true);
+
+  const [discountCode, setDiscountCode] = useState("");
+  const [appliedDiscountCode, setAppliedDiscountCode] = useState<
+    string | undefined
+  >(undefined);
+  const [discountPreview, setDiscountPreview] = useState<any>(null);
+  const [discountApplying, setDiscountApplying] = useState(false);
+
   const [checking, setChecking] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState("");
   const [addressData, setAddressData] = useState<{
@@ -315,17 +326,15 @@ export const CheckoutForm = ({
 
   const [guest_data, setGuestData] = useState<Guest[][]>([]);
 
-  console.log(guest_data);
-
   const [accommodationQuestions, setAccommodationQuestions] = useState(
-    cart.filter((item) => item.type == "accommodation").length > 0
+    cart.filter((item) => item.type == "accommodation").length > 0,
   );
 
   const [needCompanySwitch, setNeedCompanySwitch] = useState(false);
   const [vatCountryCode, setVatCountryCode] = useState("PT");
   const [selectedTab, selectTab] = useState("card");
   const [step, setStep] = useState<"client_info" | number | "paying">(
-    "client_info"
+    "client_info",
   );
 
   const [mainContactDetails, setMainContactDetails] = useState<
@@ -336,21 +345,23 @@ export const CheckoutForm = ({
   >([]);
 
   const [selectedPickupPlaceId, setPickupPlaceId] = useState<string[]>(
-    new Array(activities.length).fill("custom")
+    new Array(activities.length).fill("custom"),
   );
 
   const [pickupQuestionsLoading, setPickupQuestionsLoading] = useState<
     boolean[]
   >(new Array(activities.length).fill(false));
 
-  const [fees,setFees] = useState<FeeType[][]>([]);
+  const [fees, setFees] = useState<FeeType[][]>([]);
 
   const router = useRouter();
   useEffect(() => {
     const getAmount = async () => {
       setPriceLoading(true);
-      const amount = await calculateAmount(cart);
+      const amount = await calculateAmount(cart, appliedDiscountCode);
       setFees(amount.fees);
+      setDiscountPreview(amount.discount ?? null);
+      updateSidePanel(amount.discount ? { discount: amount.discount.code, newPrice: amount.total / 100 } : null);
       for (const activity of cart.filter((item) => item.type == "activity")) {
         const shopping = await startShoppingCart(
           cartId,
@@ -358,24 +369,31 @@ export const CheckoutForm = ({
           activity.selectedRateId,
           activity.selectedStartTimeId,
           activity.selectedDate,
-          activity.guests
+          activity.guests,
         );
         if (!shopping.success) {
           setError("error-processing-request");
           return;
         }
       }
-      const response = await getShoppingCartQuestion(cartId);
-      if (!response?.success) {
-        return;
+      if (cart.filter((item) => item.type == "activity").length > 0) {
+        const response = await getShoppingCartQuestion(cartId);
+        if (!response?.success) {
+          return;
+        }
+        const selectedOption = response.options.find(
+          (option) => option.type === "CUSTOMER_FULL_PAYMENT",
+        );
+        setMainContactDetails(response.questions.mainContactDetails);
+        setActivityBookings(response.questions.activityBookings);
+        setAmount(amount.total + ((selectedOption?.amount ?? 0) * 100 || 0));
+        setPriceLoading(false);
+      } else {
+        setAmount(
+          amount.total /*+ ((selectedOption?.amount ?? 0) * 100 || 0)*/,
+        );
+        setPriceLoading(false);
       }
-      const selectedOption = response.options.find(
-        (option) => option.type === "CUSTOMER_FULL_PAYMENT"
-      );
-      setMainContactDetails(response.questions.mainContactDetails);
-      setActivityBookings(response.questions.activityBookings);
-      setAmount(amount.total + ((selectedOption?.amount ?? 0) * 100 || 0));
-      setPriceLoading(false);
     };
     if (cart.length == 0 && !cartLoading) {
       if (document.referrer && document.referrer !== window.location.href) {
@@ -402,14 +420,15 @@ export const CheckoutForm = ({
               departure: "",
               country_residence: "",
               city_residence: "",
-            }))
-          )
+            })),
+          ),
       );
       setChecking(false);
       getAmount();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cart]);
+  }, [cart, cartLoading, appliedDiscountCode]);
+
   const handleSubmit = async (data: z.infer<typeof FormSchema>) => {
     setLoading(true);
     setLoadingMessage("loading_verify_price");
@@ -425,12 +444,17 @@ export const CheckoutForm = ({
     const clientEmail = data.email;
     const clientPhone = addressData?.phone ?? "";
     const clientNotes = data.note;
-    const clientTax = data.vat ? data.vat.length > 2 ? data.vat : undefined : undefined;
+    const clientTax = data.vat
+      ? data.vat.length > 2
+        ? data.vat
+        : undefined
+      : undefined;
     const clientAddress = addressData.address;
     setLoadingMessage("loading_create_res");
     const { success, client_secret, payment_id, order_id } = await buyCart({
       fees,
       cart,
+      discountCode: appliedDiscountCode,
       clientName,
       clientEmail,
       clientPhone,
@@ -467,7 +491,7 @@ export const CheckoutForm = ({
                 .selectedStartTimeId,
         date: format(
           cart.filter((i) => i.type == "activity")[indx].selectedDate,
-          "yyyy-MM-dd"
+          "yyyy-MM-dd",
         ),
         passengers: activity.passengers.map((passenger) => ({
           pricingCategoryId: passenger.pricingCategoryId,
@@ -506,7 +530,7 @@ export const CheckoutForm = ({
         },
       });
       if (result.error) {
-        if(order_id){
+        if (order_id) {
           await deleteOrder(order_id);
         }
         setError(result.error.message || "Payment failed");
@@ -534,7 +558,7 @@ export const CheckoutForm = ({
         },
       });
       if (result.error) {
-        if(order_id){
+        if (order_id) {
           await deleteOrder(order_id);
         }
         setError(result.error.message || "Payment failed");
@@ -563,7 +587,7 @@ export const CheckoutForm = ({
         }
         return true;
       },
-      { message: t("invalid-company") }
+      { message: t("invalid-company") },
     ),
     vat: z
       .string()
@@ -578,7 +602,7 @@ export const CheckoutForm = ({
         },
         {
           message: t("invalid-tax"),
-        }
+        },
       )
       .optional(),
   });
@@ -624,7 +648,7 @@ export const CheckoutForm = ({
       selectedStartTimeId: number | undefined;
       guests: { [categoryId: number]: number };
     },
-    pickupPlaceId: string | undefined
+    pickupPlaceId: string | undefined,
   ) => {
     const removed = await removeActivity(cartId, bookingId);
     if (removed) {
@@ -637,7 +661,7 @@ export const CheckoutForm = ({
           : tourItem.selectedStartTimeId,
         tourItem.selectedDate,
         tourItem.guests,
-        pickupPlaceId
+        pickupPlaceId,
       );
       const response = await getShoppingCartQuestion(cartId);
 
@@ -660,8 +684,8 @@ export const CheckoutForm = ({
                 bookingId: newBookingId ?? 0,
                 pickupQuestions: newPickUpQuestion ?? [],
               }
-            : activity
-        )
+            : activity,
+        ),
       );
     }
   };
@@ -714,12 +738,17 @@ export const CheckoutForm = ({
         const clientEmail = clientInfo.getValues("email");
         const clientPhone = addressData?.phone ?? "";
         const clientNotes = clientInfo.getValues("note");
-        const clientTax =clientInfo.getValues("vat") ? clientInfo.getValues("vat")!.length > 2 ? clientInfo.getValues("vat") : undefined : undefined;
+        const clientTax = clientInfo.getValues("vat")
+          ? clientInfo.getValues("vat")!.length > 2
+            ? clientInfo.getValues("vat")
+            : undefined
+          : undefined;
         const clientAddress = addressData.address;
         setLoadingMessage("loading_create_res");
         const { success, client_secret, payment_id, order_id } = await buyCart({
           fees,
           cart,
+          discountCode: appliedDiscountCode,
           clientName,
           clientEmail,
           clientPhone,
@@ -757,7 +786,7 @@ export const CheckoutForm = ({
                     .selectedStartTimeId,
             date: format(
               cart.filter((i) => i.type == "activity")[indx].selectedDate,
-              "yyyy-MM-dd"
+              "yyyy-MM-dd",
             ),
             passengers: activity.passengers.map((passenger) => ({
               pricingCategoryId: passenger.pricingCategoryId,
@@ -785,11 +814,11 @@ export const CheckoutForm = ({
           {
             payment_method: event.paymentMethod.id,
           },
-          { handleActions: false }
+          { handleActions: false },
         );
 
         if (error) {
-          if(order_id){
+          if (order_id) {
             await deleteOrder(order_id);
           }
           event.complete("fail");
@@ -799,11 +828,10 @@ export const CheckoutForm = ({
         event.complete("success");
 
         if (paymentIntent.status === "requires_action") {
-          const { error: actionError } = await stripe.confirmCardPayment(
-            client_secret
-          );
+          const { error: actionError } =
+            await stripe.confirmCardPayment(client_secret);
           if (actionError) {
-            if(order_id){
+            if (order_id) {
               await deleteOrder(order_id);
             }
             setError(actionError.message || "Payment failed");
@@ -872,7 +900,7 @@ export const CheckoutForm = ({
                   checked={needCompanySwitch}
                   onCheckedChange={(checked) => {
                     setNeedCompanySwitch(
-                      checked.valueOf() === true ? true : false
+                      checked.valueOf() === true ? true : false,
                     );
                   }}
                 />
@@ -956,7 +984,7 @@ export const CheckoutForm = ({
                   const valueWithoutPrefix =
                     field.value?.replace(
                       new RegExp(`^${vatCountryCode}`),
-                      ""
+                      "",
                     ) ?? "";
                   return (
                     <FormItem className="w-full flex flex-col gap-1">
@@ -1003,7 +1031,7 @@ export const CheckoutForm = ({
                             onChange={(e) => {
                               const newValue = e.target.value.replace(
                                 new RegExp(`^${vatCountryCode}`),
-                                ""
+                                "",
                               );
                               field.onChange(vatCountryCode + newValue);
                             }}
@@ -1052,7 +1080,7 @@ export const CheckoutForm = ({
                     return;
                   }
                   const accommodations = cart.filter(
-                    (item) => item.type == "accommodation"
+                    (item) => item.type == "accommodation",
                   );
                   if (accommodations.length > 0) {
                     if (guest_data[0][0].first_name) {
@@ -1061,7 +1089,7 @@ export const CheckoutForm = ({
                         birthday: parse(
                           guest_data[0][0].birthday,
                           "yyyy-MM-dd",
-                          new Date()
+                          new Date(),
                         ),
                         document_type: guest_data[0][0].document_type as
                           | "P"
@@ -1132,11 +1160,11 @@ export const CheckoutForm = ({
                                           (q) =>
                                             q.questionId == question.questionId
                                               ? { ...q, answers: [v] }
-                                              : q
+                                              : q,
                                         ),
                                       }
-                                    : activity
-                                )
+                                    : activity,
+                                ),
                               )
                             }
                           >
@@ -1149,10 +1177,10 @@ export const CheckoutForm = ({
                                   question.required) ||
                                   !isValid(
                                     question.answers?.[0] ?? "",
-                                    question.dataFormat
+                                    question.dataFormat,
                                   )
                                   ? "border border-destructive"
-                                  : ""
+                                  : "",
                               )}
                             >
                               <SelectValue
@@ -1205,11 +1233,11 @@ export const CheckoutForm = ({
                                                   ...q,
                                                   answers: [c ? "yes" : "no"],
                                                 }
-                                              : q
+                                              : q,
                                         ),
                                       }
-                                    : activity
-                                )
+                                    : activity,
+                                ),
                               );
                             }}
                           />
@@ -1250,7 +1278,7 @@ export const CheckoutForm = ({
                                     question.required) ||
                                   !isValid(
                                     question.answers ? question.answers[0] : "",
-                                    question.dataFormat
+                                    question.dataFormat,
                                   )
                                 }
                                 className={
@@ -1277,7 +1305,7 @@ export const CheckoutForm = ({
                                     ? parse(
                                         question.answers[0],
                                         "yyyy-MM-dd",
-                                        new Date()
+                                        new Date(),
                                       )
                                     : undefined
                                 }
@@ -1290,7 +1318,7 @@ export const CheckoutForm = ({
                                     ? parse(
                                         question.answers[0],
                                         "yyyy-MM-dd",
-                                        new Date()
+                                        new Date(),
                                       )
                                     : undefined
                                 }
@@ -1306,11 +1334,11 @@ export const CheckoutForm = ({
                                                   q.questionId ==
                                                   question.questionId
                                                     ? { ...q, answers: [""] }
-                                                    : q
+                                                    : q,
                                                 ),
                                             }
-                                          : activity
-                                      )
+                                          : activity,
+                                      ),
                                     );
                                   } else {
                                     setActivityBookings((prev) =>
@@ -1327,20 +1355,20 @@ export const CheckoutForm = ({
                                                         answers: [
                                                           format(
                                                             date,
-                                                            "yyyy-MM-dd"
+                                                            "yyyy-MM-dd",
                                                           ),
                                                         ],
                                                       }
-                                                    : q
+                                                    : q,
                                                 ),
                                             }
-                                          : activity
-                                      )
+                                          : activity,
+                                      ),
                                     );
                                   }
                                   document
                                     .querySelector<HTMLButtonElement>(
-                                      `[data-popover-close="${question.questionId}"]`
+                                      `[data-popover-close="${question.questionId}"]`,
                                     )
                                     ?.click();
                                 }}
@@ -1379,11 +1407,11 @@ export const CheckoutForm = ({
                                       questions: activity.questions?.map((q) =>
                                         q.questionId == question.questionId
                                           ? { ...q, answers: [e.target.value] }
-                                          : q
+                                          : q,
                                       ),
                                     }
-                                  : activity
-                              )
+                                  : activity,
+                              ),
                             );
                           }}
                           className={cn(
@@ -1393,10 +1421,10 @@ export const CheckoutForm = ({
                               question.required) ||
                               !isValid(
                                 question.answers?.[0] ?? "",
-                                question.dataFormat
+                                question.dataFormat,
                               )
                               ? "border border-destructive"
-                              : ""
+                              : "",
                           )}
                         />
                       </div>
@@ -1419,18 +1447,18 @@ export const CheckoutForm = ({
                       value={selectedPickupPlaceId[step] || "custom"}
                       onValueChange={async (v) => {
                         setPickupPlaceId((prev) =>
-                          prev.map((old, i) => (i == step ? v : old))
+                          prev.map((old, i) => (i == step ? v : old)),
                         );
                         setPickupQuestionsLoading((prev) =>
-                          prev.map((old, i) => (i == step ? true : old))
+                          prev.map((old, i) => (i == step ? true : old)),
                         );
                         await updateBookingPickUpQuestions(
                           activityBookings[step].bookingId,
                           activities[step],
-                          v == "custom" ? undefined : v
+                          v == "custom" ? undefined : v,
                         );
                         setPickupQuestionsLoading((prev) =>
-                          prev.map((old, i) => (i == step ? false : old))
+                          prev.map((old, i) => (i == step ? false : old)),
                         );
                       }}
                     >
@@ -1488,15 +1516,16 @@ export const CheckoutForm = ({
                                       ? {
                                           ...activity,
                                           questions:
-                                            activity.pickupQuestions?.map((q) =>
-                                              q.questionId ==
-                                              question.questionId
-                                                ? { ...q, answers: [v] }
-                                                : q
+                                            activity.pickupQuestions?.map(
+                                              (q) =>
+                                                q.questionId ==
+                                                question.questionId
+                                                  ? { ...q, answers: [v] }
+                                                  : q,
                                             ),
                                         }
-                                      : activity
-                                  )
+                                      : activity,
+                                  ),
                                 )
                               }
                             >
@@ -1509,10 +1538,10 @@ export const CheckoutForm = ({
                                     question.required) ||
                                     !isValid(
                                       question.answers?.[0] ?? "",
-                                      question.dataFormat
+                                      question.dataFormat,
                                     )
                                     ? "border border-destructive"
-                                    : ""
+                                    : "",
                                 )}
                               >
                                 <SelectValue
@@ -1560,18 +1589,21 @@ export const CheckoutForm = ({
                                       ? {
                                           ...activity,
                                           pickupQuestions:
-                                            activity.pickupQuestions?.map((q) =>
-                                              q.questionId ==
-                                              question.questionId
-                                                ? {
-                                                    ...q,
-                                                    answers: [c ? "yes" : "no"],
-                                                  }
-                                                : q
+                                            activity.pickupQuestions?.map(
+                                              (q) =>
+                                                q.questionId ==
+                                                question.questionId
+                                                  ? {
+                                                      ...q,
+                                                      answers: [
+                                                        c ? "yes" : "no",
+                                                      ],
+                                                    }
+                                                  : q,
                                             ),
                                         }
-                                      : activity
-                                  )
+                                      : activity,
+                                  ),
                                 );
                               }}
                             />
@@ -1614,7 +1646,7 @@ export const CheckoutForm = ({
                                       question.answers
                                         ? question.answers[0]
                                         : "",
-                                      question.dataFormat
+                                      question.dataFormat,
                                     )
                                   }
                                   className={
@@ -1641,7 +1673,7 @@ export const CheckoutForm = ({
                                       ? parse(
                                           question.answers[0],
                                           "yyyy-MM-dd",
-                                          new Date()
+                                          new Date(),
                                         )
                                       : undefined
                                   }
@@ -1654,7 +1686,7 @@ export const CheckoutForm = ({
                                       ? parse(
                                           question.answers[0],
                                           "yyyy-MM-dd",
-                                          new Date()
+                                          new Date(),
                                         )
                                       : undefined
                                   }
@@ -1674,11 +1706,11 @@ export const CheckoutForm = ({
                                                             ...q,
                                                             answers: [""],
                                                           }
-                                                        : q
+                                                        : q,
                                                   ),
                                               }
-                                            : activity
-                                        )
+                                            : activity,
+                                        ),
                                       );
                                     } else {
                                       setActivityBookings((prev) =>
@@ -1696,20 +1728,20 @@ export const CheckoutForm = ({
                                                             answers: [
                                                               format(
                                                                 date,
-                                                                "yyyy-MM-dd"
+                                                                "yyyy-MM-dd",
                                                               ),
                                                             ],
                                                           }
-                                                        : q
+                                                        : q,
                                                   ),
                                               }
-                                            : activity
-                                        )
+                                            : activity,
+                                        ),
                                       );
                                     }
                                     document
                                       .querySelector<HTMLButtonElement>(
-                                        `[data-popover-close="${question.questionId}"]`
+                                        `[data-popover-close="${question.questionId}"]`,
                                       )
                                       ?.click();
                                   }}
@@ -1768,17 +1800,17 @@ export const CheckoutForm = ({
                                                             ? [
                                                                 `${val}:${
                                                                   q.answers[0]?.split(
-                                                                    ":"
+                                                                    ":",
                                                                   )[1] ?? "00"
                                                                 }`,
                                                               ]
                                                             : [`${val}:00`],
                                                       }
-                                                    : q
+                                                    : q,
                                               ),
                                           }
-                                        : activity
-                                    )
+                                        : activity,
+                                    ),
                                   );
                                 }}
                               >
@@ -1788,7 +1820,7 @@ export const CheckoutForm = ({
                                     (!question.answers ||
                                       (question.answers[0] ?? "") == "") &&
                                       question.required &&
-                                      "border border-destructive"
+                                      "border border-destructive",
                                   )}
                                 >
                                   <SelectValue />
@@ -1818,7 +1850,8 @@ export const CheckoutForm = ({
                                   question.answers
                                     ? (question.answers[0] ?? "") == ""
                                       ? ""
-                                      : question.answers[0].split(":")[1] ?? ""
+                                      : (question.answers[0].split(":")[1] ??
+                                        "")
                                     : ""
                                 }
                                 onValueChange={(val) => {
@@ -1840,17 +1873,17 @@ export const CheckoutForm = ({
                                                             ? [
                                                                 `${
                                                                   q.answers[0]?.split(
-                                                                    ":"
+                                                                    ":",
                                                                   )[0] ?? "00"
                                                                 }:${val}`,
                                                               ]
                                                             : [`00:${val}`],
                                                       }
-                                                    : q
+                                                    : q,
                                               ),
                                           }
-                                        : activity
-                                    )
+                                        : activity,
+                                    ),
                                   );
                                 }}
                               >
@@ -1860,7 +1893,7 @@ export const CheckoutForm = ({
                                     (!question.answers ||
                                       (question.answers[0] ?? "") == "") &&
                                       question.required &&
-                                      "border border-destructive"
+                                      "border border-destructive",
                                   )}
                                 >
                                   <SelectValue />
@@ -1914,11 +1947,11 @@ export const CheckoutForm = ({
                                                   ...q,
                                                   answers: [e.target.value],
                                                 }
-                                              : q
+                                              : q,
                                           ),
                                       }
-                                    : activity
-                                )
+                                    : activity,
+                                ),
                               );
                             }}
                             className={cn(
@@ -1928,10 +1961,10 @@ export const CheckoutForm = ({
                                 question.required) ||
                                 !isValid(
                                   question.answers?.[0] ?? "",
-                                  question.dataFormat
+                                  question.dataFormat,
                                 )
                                 ? "border border-destructive"
-                                : ""
+                                : "",
                             )}
                           />
                         </div>
@@ -1943,8 +1976,8 @@ export const CheckoutForm = ({
                 mainContactDetails?.filter(
                   (question) =>
                     !["firstName", "lastName", "email", "phoneNumber"].includes(
-                      question.questionId
-                    )
+                      question.questionId,
+                    ),
                 )?.length > 0 && (
                   <div className="w-full flex flex-col gap-2 items-start">
                     <p className="w-fit max-w-full pr-4 border-b-2 border-primary text-base font-semibold">
@@ -1958,7 +1991,7 @@ export const CheckoutForm = ({
                             "lastName",
                             "email",
                             "phoneNumber",
-                          ].includes(question.questionId)
+                          ].includes(question.questionId),
                       )
                       .map((question) => {
                         if (
@@ -1990,8 +2023,8 @@ export const CheckoutForm = ({
                                     prev.map((q) =>
                                       q.questionId == question.questionId
                                         ? { ...q, answers: [v] }
-                                        : q
-                                    )
+                                        : q,
+                                    ),
                                   )
                                 }
                               >
@@ -2004,10 +2037,10 @@ export const CheckoutForm = ({
                                       question.required) ||
                                       !isValid(
                                         question.answers?.[0] ?? "",
-                                        question.dataFormat
+                                        question.dataFormat,
                                       )
                                       ? "border border-destructive"
-                                      : ""
+                                      : "",
                                   )}
                                 >
                                   <SelectValue
@@ -2053,8 +2086,8 @@ export const CheckoutForm = ({
                                     prev.map((q) =>
                                       q.questionId == question.questionId
                                         ? { ...q, answers: [c ? "yes" : "no"] }
-                                        : q
-                                    )
+                                        : q,
+                                    ),
                                   );
                                 }}
                               />
@@ -2097,7 +2130,7 @@ export const CheckoutForm = ({
                                         question.answers
                                           ? question.answers[0]
                                           : "",
-                                        question.dataFormat
+                                        question.dataFormat,
                                       )
                                     }
                                     className={
@@ -2126,7 +2159,7 @@ export const CheckoutForm = ({
                                         ? parse(
                                             question.answers[0],
                                             "yyyy-MM-dd",
-                                            new Date()
+                                            new Date(),
                                           )
                                         : undefined
                                     }
@@ -2139,7 +2172,7 @@ export const CheckoutForm = ({
                                         ? parse(
                                             question.answers[0],
                                             "yyyy-MM-dd",
-                                            new Date()
+                                            new Date(),
                                           )
                                         : undefined
                                     }
@@ -2149,8 +2182,8 @@ export const CheckoutForm = ({
                                           prev.map((q) =>
                                             q.questionId == question.questionId
                                               ? { ...q, answers: [""] }
-                                              : q
-                                          )
+                                              : q,
+                                          ),
                                         );
                                       } else {
                                         setMainContactDetails((prev) =>
@@ -2162,13 +2195,13 @@ export const CheckoutForm = ({
                                                     format(date, "yyyy-MM-dd"),
                                                   ],
                                                 }
-                                              : q
-                                          )
+                                              : q,
+                                          ),
                                         );
                                       }
                                       document
                                         .querySelector<HTMLButtonElement>(
-                                          `[data-popover-close="${question.questionId}"]`
+                                          `[data-popover-close="${question.questionId}"]`,
                                         )
                                         ?.click();
                                     }}
@@ -2207,8 +2240,8 @@ export const CheckoutForm = ({
                                   prev.map((q) =>
                                     q.questionId == question.questionId
                                       ? { ...q, answers: [e.target.value] }
-                                      : q
-                                  )
+                                      : q,
+                                  ),
                                 );
                               }}
                               className={cn(
@@ -2219,10 +2252,10 @@ export const CheckoutForm = ({
                                   question.required) ||
                                   !isValid(
                                     question.answers?.[0] ?? "",
-                                    question.dataFormat
+                                    question.dataFormat,
                                   )
                                   ? "border border-destructive"
-                                  : ""
+                                  : "",
                               )}
                             />
                           </div>
@@ -2234,7 +2267,7 @@ export const CheckoutForm = ({
                 activityBookings[step].passengers.some(
                   (passenger) =>
                     passenger.passengerDetails?.length > 0 ||
-                    passenger.questions?.length > 0
+                    passenger.questions?.length > 0,
                 ) && (
                   <Carousel className="w-full mx-auto border shadow p-2 rounded-lg">
                     <CarouselContent className="p-0">
@@ -2250,7 +2283,7 @@ export const CheckoutForm = ({
                                   count: pIndx + 1,
                                   category: displayT(
                                     categoriesMap[passenger.pricingCategoryId]
-                                      .title
+                                      .title,
                                   ),
                                 })}
                               </p>
@@ -2296,7 +2329,7 @@ export const CheckoutForm = ({
                                                                 passengerDetails:
                                                                   passenger.passengerDetails.map(
                                                                     (
-                                                                      pQuestion
+                                                                      pQuestion,
                                                                     ) =>
                                                                       pQuestion.questionId ==
                                                                       question.questionId
@@ -2307,14 +2340,14 @@ export const CheckoutForm = ({
                                                                                 v,
                                                                               ],
                                                                           }
-                                                                        : pQuestion
+                                                                        : pQuestion,
                                                                   ),
                                                               }
-                                                            : passenger
+                                                            : passenger,
                                                       ),
                                                   }
-                                                : activity
-                                            )
+                                                : activity,
+                                            ),
                                           )
                                         }
                                       >
@@ -2327,10 +2360,10 @@ export const CheckoutForm = ({
                                               question.required) ||
                                               !isValid(
                                                 question.answers?.[0] ?? "",
-                                                question.dataFormat
+                                                question.dataFormat,
                                               )
                                               ? "border border-destructive"
-                                              : ""
+                                              : "",
                                           )}
                                         >
                                           <SelectValue
@@ -2352,7 +2385,7 @@ export const CheckoutForm = ({
                                                     {option.label}
                                                   </SelectItem>
                                                 );
-                                            }
+                                            },
                                           )}
                                         </SelectContent>
                                       </Select>
@@ -2389,7 +2422,7 @@ export const CheckoutForm = ({
                                                                 passengerDetails:
                                                                   passenger.passengerDetails.map(
                                                                     (
-                                                                      pQuestion
+                                                                      pQuestion,
                                                                     ) =>
                                                                       pQuestion.questionId ==
                                                                       question.questionId
@@ -2402,14 +2435,14 @@ export const CheckoutForm = ({
                                                                                   : "no",
                                                                               ],
                                                                           }
-                                                                        : pQuestion
+                                                                        : pQuestion,
                                                                   ),
                                                               }
-                                                            : passenger
+                                                            : passenger,
                                                       ),
                                                   }
-                                                : activity
-                                            )
+                                                : activity,
+                                            ),
                                           );
                                         }}
                                       />
@@ -2452,7 +2485,7 @@ export const CheckoutForm = ({
                                                 question.answers
                                                   ? question.answers[0]
                                                   : "",
-                                                question.dataFormat
+                                                question.dataFormat,
                                               )
                                             }
                                             className={
@@ -2481,7 +2514,7 @@ export const CheckoutForm = ({
                                                 ? parse(
                                                     question.answers[0],
                                                     "yyyy-MM-dd",
-                                                    new Date()
+                                                    new Date(),
                                                   )
                                                 : undefined
                                             }
@@ -2494,7 +2527,7 @@ export const CheckoutForm = ({
                                                 ? parse(
                                                     question.answers[0],
                                                     "yyyy-MM-dd",
-                                                    new Date()
+                                                    new Date(),
                                                   )
                                                 : undefined
                                             }
@@ -2507,14 +2540,17 @@ export const CheckoutForm = ({
                                                           ...activity,
                                                           passengers:
                                                             activity.passengers.map(
-                                                              (passenger, pI) =>
+                                                              (
+                                                                passenger,
+                                                                pI,
+                                                              ) =>
                                                                 pI == pIndx
                                                                   ? {
                                                                       ...passenger,
                                                                       passengerDetails:
                                                                         passenger.passengerDetails.map(
                                                                           (
-                                                                            pQuestion
+                                                                            pQuestion,
                                                                           ) =>
                                                                             pQuestion.questionId ==
                                                                             question.questionId
@@ -2525,14 +2561,14 @@ export const CheckoutForm = ({
                                                                                       "",
                                                                                     ],
                                                                                 }
-                                                                              : pQuestion
+                                                                              : pQuestion,
                                                                         ),
                                                                     }
-                                                                  : passenger
+                                                                  : passenger,
                                                             ),
                                                         }
-                                                      : activity
-                                                  )
+                                                      : activity,
+                                                  ),
                                                 );
                                               } else {
                                                 setActivityBookings((prev) =>
@@ -2542,14 +2578,17 @@ export const CheckoutForm = ({
                                                           ...activity,
                                                           passengers:
                                                             activity.passengers.map(
-                                                              (passenger, pI) =>
+                                                              (
+                                                                passenger,
+                                                                pI,
+                                                              ) =>
                                                                 pI == pIndx
                                                                   ? {
                                                                       ...passenger,
                                                                       passengerDetails:
                                                                         passenger.passengerDetails.map(
                                                                           (
-                                                                            pQuestion
+                                                                            pQuestion,
                                                                           ) =>
                                                                             pQuestion.questionId ==
                                                                             question.questionId
@@ -2559,23 +2598,23 @@ export const CheckoutForm = ({
                                                                                     [
                                                                                       format(
                                                                                         date,
-                                                                                        "yyyy-MM-dd"
+                                                                                        "yyyy-MM-dd",
                                                                                       ),
                                                                                     ],
                                                                                 }
-                                                                              : pQuestion
+                                                                              : pQuestion,
                                                                         ),
                                                                     }
-                                                                  : passenger
+                                                                  : passenger,
                                                             ),
                                                         }
-                                                      : activity
-                                                  )
+                                                      : activity,
+                                                  ),
                                                 );
                                               }
                                               document
                                                 .querySelector<HTMLButtonElement>(
-                                                  `[data-popover-close="${question.questionId}"]`
+                                                  `[data-popover-close="${question.questionId}"]`,
                                                 )
                                                 ?.click();
                                             }}
@@ -2627,7 +2666,9 @@ export const CheckoutForm = ({
                                                               ...passenger,
                                                               passengerDetails:
                                                                 passenger.passengerDetails.map(
-                                                                  (pQuestion) =>
+                                                                  (
+                                                                    pQuestion,
+                                                                  ) =>
                                                                     pQuestion.questionId ==
                                                                     question.questionId
                                                                       ? {
@@ -2639,14 +2680,14 @@ export const CheckoutForm = ({
                                                                                 .value,
                                                                             ],
                                                                         }
-                                                                      : pQuestion
+                                                                      : pQuestion,
                                                                 ),
                                                             }
-                                                          : passenger
+                                                          : passenger,
                                                     ),
                                                 }
-                                              : activity
-                                          )
+                                              : activity,
+                                          ),
                                         );
                                       }}
                                       className={cn(
@@ -2657,10 +2698,10 @@ export const CheckoutForm = ({
                                           question.required) ||
                                           !isValid(
                                             question.answers?.[0] ?? "",
-                                            question.dataFormat
+                                            question.dataFormat,
                                           )
                                           ? "border border-destructive"
-                                          : ""
+                                          : "",
                                       )}
                                     />
                                   </div>
@@ -2708,7 +2749,7 @@ export const CheckoutForm = ({
                                                                 questions:
                                                                   passenger.questions.map(
                                                                     (
-                                                                      pQuestion
+                                                                      pQuestion,
                                                                     ) =>
                                                                       pQuestion.questionId ==
                                                                       question.questionId
@@ -2719,14 +2760,14 @@ export const CheckoutForm = ({
                                                                                 v,
                                                                               ],
                                                                           }
-                                                                        : pQuestion
+                                                                        : pQuestion,
                                                                   ),
                                                               }
-                                                            : passenger
+                                                            : passenger,
                                                       ),
                                                   }
-                                                : activity
-                                            )
+                                                : activity,
+                                            ),
                                           )
                                         }
                                       >
@@ -2739,10 +2780,10 @@ export const CheckoutForm = ({
                                               question.required) ||
                                               !isValid(
                                                 question.answers?.[0] ?? "",
-                                                question.dataFormat
+                                                question.dataFormat,
                                               )
                                               ? "border border-destructive"
-                                              : ""
+                                              : "",
                                           )}
                                         >
                                           <SelectValue
@@ -2764,7 +2805,7 @@ export const CheckoutForm = ({
                                                     {option.label}
                                                   </SelectItem>
                                                 );
-                                            }
+                                            },
                                           )}
                                         </SelectContent>
                                       </Select>
@@ -2801,7 +2842,7 @@ export const CheckoutForm = ({
                                                                 questions:
                                                                   passenger.questions.map(
                                                                     (
-                                                                      pQuestion
+                                                                      pQuestion,
                                                                     ) =>
                                                                       pQuestion.questionId ==
                                                                       question.questionId
@@ -2814,14 +2855,14 @@ export const CheckoutForm = ({
                                                                                   : "no",
                                                                               ],
                                                                           }
-                                                                        : pQuestion
+                                                                        : pQuestion,
                                                                   ),
                                                               }
-                                                            : passenger
+                                                            : passenger,
                                                       ),
                                                   }
-                                                : activity
-                                            )
+                                                : activity,
+                                            ),
                                           );
                                         }}
                                       />
@@ -2864,7 +2905,7 @@ export const CheckoutForm = ({
                                                 question.answers
                                                   ? question.answers[0]
                                                   : "",
-                                                question.dataFormat
+                                                question.dataFormat,
                                               )
                                             }
                                             className={
@@ -2893,7 +2934,7 @@ export const CheckoutForm = ({
                                                 ? parse(
                                                     question.answers[0],
                                                     "yyyy-MM-dd",
-                                                    new Date()
+                                                    new Date(),
                                                   )
                                                 : undefined
                                             }
@@ -2906,7 +2947,7 @@ export const CheckoutForm = ({
                                                 ? parse(
                                                     question.answers[0],
                                                     "yyyy-MM-dd",
-                                                    new Date()
+                                                    new Date(),
                                                   )
                                                 : undefined
                                             }
@@ -2919,14 +2960,17 @@ export const CheckoutForm = ({
                                                           ...activity,
                                                           passengers:
                                                             activity.passengers.map(
-                                                              (passenger, pI) =>
+                                                              (
+                                                                passenger,
+                                                                pI,
+                                                              ) =>
                                                                 pI == pIndx
                                                                   ? {
                                                                       ...passenger,
                                                                       questions:
                                                                         passenger.questions.map(
                                                                           (
-                                                                            pQuestion
+                                                                            pQuestion,
                                                                           ) =>
                                                                             pQuestion.questionId ==
                                                                             question.questionId
@@ -2937,14 +2981,14 @@ export const CheckoutForm = ({
                                                                                       "",
                                                                                     ],
                                                                                 }
-                                                                              : pQuestion
+                                                                              : pQuestion,
                                                                         ),
                                                                     }
-                                                                  : passenger
+                                                                  : passenger,
                                                             ),
                                                         }
-                                                      : activity
-                                                  )
+                                                      : activity,
+                                                  ),
                                                 );
                                               } else {
                                                 setActivityBookings((prev) =>
@@ -2954,14 +2998,17 @@ export const CheckoutForm = ({
                                                           ...activity,
                                                           passengers:
                                                             activity.passengers.map(
-                                                              (passenger, pI) =>
+                                                              (
+                                                                passenger,
+                                                                pI,
+                                                              ) =>
                                                                 pI == pIndx
                                                                   ? {
                                                                       ...passenger,
                                                                       questions:
                                                                         passenger.questions.map(
                                                                           (
-                                                                            pQuestion
+                                                                            pQuestion,
                                                                           ) =>
                                                                             pQuestion.questionId ==
                                                                             question.questionId
@@ -2971,23 +3018,23 @@ export const CheckoutForm = ({
                                                                                     [
                                                                                       format(
                                                                                         date,
-                                                                                        "yyyy-MM-dd"
+                                                                                        "yyyy-MM-dd",
                                                                                       ),
                                                                                     ],
                                                                                 }
-                                                                              : pQuestion
+                                                                              : pQuestion,
                                                                         ),
                                                                     }
-                                                                  : passenger
+                                                                  : passenger,
                                                             ),
                                                         }
-                                                      : activity
-                                                  )
+                                                      : activity,
+                                                  ),
                                                 );
                                               }
                                               document
                                                 .querySelector<HTMLButtonElement>(
-                                                  `[data-popover-close="${question.questionId}"]`
+                                                  `[data-popover-close="${question.questionId}"]`,
                                                 )
                                                 ?.click();
                                             }}
@@ -3039,7 +3086,9 @@ export const CheckoutForm = ({
                                                               ...passenger,
                                                               questions:
                                                                 passenger.questions.map(
-                                                                  (pQuestion) =>
+                                                                  (
+                                                                    pQuestion,
+                                                                  ) =>
                                                                     pQuestion.questionId ==
                                                                     question.questionId
                                                                       ? {
@@ -3051,14 +3100,14 @@ export const CheckoutForm = ({
                                                                                 .value,
                                                                             ],
                                                                         }
-                                                                      : pQuestion
+                                                                      : pQuestion,
                                                                 ),
                                                             }
-                                                          : passenger
+                                                          : passenger,
                                                     ),
                                                 }
-                                              : activity
-                                          )
+                                              : activity,
+                                          ),
                                         );
                                       }}
                                       className={cn(
@@ -3069,10 +3118,10 @@ export const CheckoutForm = ({
                                           question.required) ||
                                           !isValid(
                                             question.answers?.[0] ?? "",
-                                            question.dataFormat
+                                            question.dataFormat,
                                           )
                                           ? "border border-destructive"
-                                          : ""
+                                          : "",
                                       )}
                                     />
                                   </div>
@@ -3080,13 +3129,19 @@ export const CheckoutForm = ({
                               })}
                             </CarouselItem>
                           );
-                        }
+                        },
                       )}
                     </CarouselContent>
                     {activityBookings[step].passengers.length > 1 && (
                       <div className="absolute top-0 right-0">
-                        <CarouselPrevious type="button" className="border-none p-0 right-0 top-4 shadow-none w-fit h-fit" />
-                        <CarouselNext type="button" className="border-none p-0 right-2 top-4 shadow-none w-fit h-fit" />
+                        <CarouselPrevious
+                          type="button"
+                          className="border-none p-0 right-0 top-4 shadow-none w-fit h-fit"
+                        />
+                        <CarouselNext
+                          type="button"
+                          className="border-none p-0 right-2 top-4 shadow-none w-fit h-fit"
+                        />
                       </div>
                     )}
                   </Carousel>
@@ -3108,13 +3163,13 @@ export const CheckoutForm = ({
                               question.questionId == "firstName"
                                 ? [addressData?.firstName ?? ""]
                                 : question.questionId == "lastName"
-                                ? [addressData?.lastName ?? ""]
-                                : question.questionId == "email"
-                                ? [clientInfo.getValues("email") ?? ""]
-                                : [addressData?.phone ?? ""],
+                                  ? [addressData?.lastName ?? ""]
+                                  : question.questionId == "email"
+                                    ? [clientInfo.getValues("email") ?? ""]
+                                    : [addressData?.phone ?? ""],
                           }
-                        : question
-                    )
+                        : question,
+                    ),
                   );
 
                   setStep((prev) =>
@@ -3124,7 +3179,7 @@ export const CheckoutForm = ({
                           1
                         ? "paying"
                         : prev + 1
-                      : prev
+                      : prev,
                   );
                 }}
                 disabled={
@@ -3136,36 +3191,36 @@ export const CheckoutForm = ({
                           "lastName",
                           "email",
                           "phoneNumber",
-                        ].includes(question.questionId)
+                        ].includes(question.questionId),
                     )
                     .some(
                       (question) =>
                         question.required &&
-                        (question.answers ? question.answers[0] : "") == ""
+                        (question.answers ? question.answers[0] : "") == "",
                     ) ||
                   activityBookings[step].passengers.some((passenger) =>
                     passenger.passengerDetails.some(
                       (question) =>
                         question.required &&
-                        (question.answers ? question.answers[0] : "") == ""
-                    )
+                        (question.answers ? question.answers[0] : "") == "",
+                    ),
                   ) ||
                   activityBookings[step].passengers.some((passenger) =>
                     passenger.questions.some(
                       (question) =>
                         question.required &&
-                        (question.answers ? question.answers[0] : "") == ""
-                    )
+                        (question.answers ? question.answers[0] : "") == "",
+                    ),
                   ) ||
                   activityBookings[step]?.questions?.some(
                     (question) =>
                       question.required &&
-                      (question.answers ? question.answers[0] : "") == ""
+                      (question.answers ? question.answers[0] : "") == "",
                   ) ||
                   activityBookings[step]?.pickupQuestions?.some(
                     (question) =>
                       question.required &&
-                      (question.answers ? question.answers[0] : "") == ""
+                      (question.answers ? question.answers[0] : "") == "",
                   )
                 }
                 className="w-full"
@@ -3191,17 +3246,17 @@ export const CheckoutForm = ({
                       new Date(
                         cart.filter((item) => item.type == "accommodation")[
                           step
-                        ].start_date
+                        ].start_date,
                       ),
-                      "dd/MM/yy"
+                      "dd/MM/yy",
                     ),
                     endDate: format(
                       new Date(
                         cart.filter((item) => item.type == "accommodation")[
                           step
-                        ].end_date
+                        ].end_date,
                       ),
-                      "dd/MM/yy"
+                      "dd/MM/yy",
                     ),
                   })}
                 </p>
@@ -3214,18 +3269,18 @@ export const CheckoutForm = ({
                         .adults
                         ? t("adult")
                         : pIndx >=
-                            cart.filter((item) => item.type == "accommodation")[
-                              step
-                            ].adults &&
-                          pIndx <
-                            cart.filter((item) => item.type == "accommodation")[
-                              step
-                            ].adults +
                               cart.filter(
-                                (item) => item.type == "accommodation"
-                              )[step].children
-                        ? questionsT("children")
-                        : questionsT("infant"),
+                                (item) => item.type == "accommodation",
+                              )[step].adults &&
+                            pIndx <
+                              cart.filter(
+                                (item) => item.type == "accommodation",
+                              )[step].adults +
+                                cart.filter(
+                                  (item) => item.type == "accommodation",
+                                )[step].children
+                          ? questionsT("children")
+                          : questionsT("infant"),
                   })}
                 </p>
                 <Form {...addGuestForm}>
@@ -3242,7 +3297,7 @@ export const CheckoutForm = ({
                                 <Input
                                   {...field}
                                   placeholder={questionsT(
-                                    "first_name_placeholder"
+                                    "first_name_placeholder",
                                   )}
                                   className="grow"
                                 />
@@ -3262,7 +3317,7 @@ export const CheckoutForm = ({
                                 <Input
                                   {...field}
                                   placeholder={questionsT(
-                                    "last_name_placeholder"
+                                    "last_name_placeholder",
                                   )}
                                   className="grow"
                                 />
@@ -3294,9 +3349,9 @@ export const CheckoutForm = ({
                                             !field.value &&
                                               "text-muted-foreground",
                                             addGuestForm.getFieldState(
-                                              "birthday"
+                                              "birthday",
                                             ).error &&
-                                              "outline-destructive outline"
+                                              "outline-destructive outline",
                                           )}
                                         >
                                           {field.value ? (
@@ -3362,7 +3417,7 @@ export const CheckoutForm = ({
                                             "text-muted-foreground",
                                           addGuestForm.formState.errors
                                             .birthday &&
-                                            "border! border-destructive!"
+                                            "border! border-destructive!",
                                         )}
                                       >
                                         {field.value ? (
@@ -3590,7 +3645,9 @@ export const CheckoutForm = ({
                     </div>
                     <div className="flex flex-col gap-0 items-start grow">
                       <p className="font-semibold">
-                      {(clientInfo.getValues("vat") ?? "").length > 2 ? clientInfo.getValues("vat") : ""}
+                        {(clientInfo.getValues("vat") ?? "").length > 2
+                          ? clientInfo.getValues("vat")
+                          : ""}
                       </p>
                       <p className="text-sm text-muted-foreground max-w-[200px]">
                         {`${addressData.address.line1}${
@@ -3619,6 +3676,43 @@ export const CheckoutForm = ({
               )}
 
               <Separator />
+
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-semibold">Discount code</p>
+                <div className="flex flex-row gap-2">
+                  <Input
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value)}
+                    placeholder="Enter code"
+                    disabled={loading || priceLoading}
+                  />
+                  <Button
+                    type="button"
+                    disabled={discountApplying || loading || priceLoading}
+                    onClick={async () => {
+                      setDiscountApplying(true);
+                      try {
+                        const code = discountCode.trim();
+                        setAppliedDiscountCode(code ? code : undefined);
+                      } finally {
+                        setDiscountApplying(false);
+                      }
+                    }}
+                  >
+                    Apply
+                  </Button>
+                </div>
+                {discountPreview?.ok && (
+                  <p className="text-sm text-muted-foreground">
+                    Applied{" "}
+                    <span className="font-semibold">
+                      {discountPreview.code}
+                    </span>{" "}
+                    (save {(discountPreview.amountOffCents / 100).toFixed(2)}€)
+                  </p>
+                )}
+              </div>
+
               <Tabs
                 value={selectedTab}
                 onValueChange={(e) => {
@@ -3698,8 +3792,8 @@ export const CheckoutForm = ({
                   {priceLoading
                     ? t("loading")
                     : loading
-                    ? t(loadingMessage)
-                    : t("pay", { amount: _amount / 100 })}
+                      ? t(loadingMessage)
+                      : t("pay", { amount: _amount / 100 })}
                   {loading && <Loader2 className="animate-spin" />}
                 </Button>
               )}
@@ -3734,8 +3828,8 @@ export const CheckoutForm = ({
                   {priceLoading
                     ? t("loading")
                     : loading
-                    ? t(loadingMessage)
-                    : t("pay", { amount: _amount / 100 })}
+                      ? t(loadingMessage)
+                      : t("pay", { amount: _amount / 100 })}
                   {loading && <Loader2 className="animate-spin" />}
                 </Button>
               )}

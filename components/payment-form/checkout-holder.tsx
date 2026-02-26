@@ -115,6 +115,8 @@ export const CheckoutHolder = ({
 
   const { cart, getTotal, cartLoading } = useCart();
 
+  const [discountCode, setDiscountCode] = useState<{discount:string,newPrice:number} | null>(null);
+
   useEffect(() => {
     const mapActivities = async () => {
       const mapped = (
@@ -245,6 +247,16 @@ export const CheckoutHolder = ({
             </p>
           </div>
         )}
+        {!cartLoading && discountCode && (
+          <div className="w-full flex flex-row items-center justify-between border-t pt-2">
+            <p className="lg:text-base md:text-sm text-sm font-semibold">
+              Coupon {discountCode.discount}
+            </p>
+            <p className="lg:text-base md:text-sm text-sm font-semibold">
+              -{(getTotal() - discountCode.newPrice).toFixed(2)} €
+            </p>
+          </div>
+        )}
       </Card>
       <div className="col-span-2 w-full">
         {cart.filter((item) => item.type == "activity").length == 0 ||
@@ -253,6 +265,7 @@ export const CheckoutHolder = ({
             .length ? (
           <Elements stripe={stripePromise}>
             <CheckoutForm
+            setDiscountCode={setDiscountCode}
               initialCountry={initialCountry}
               cartId={cartId}
               activities={mappedActivities}

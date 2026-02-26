@@ -29,6 +29,8 @@ type RegisterOrderInput = {
     companyName?: string;
     activityBookingIds?: string[],
     activityBookingReferences?: string[],
+    discountCode?: string,
+    discountAmountCents?: number,
     orderId?: string
 };
 
@@ -101,7 +103,9 @@ export async function registerOrder(data: RegisterOrderInput) {
             payment_method_id: data.payment_method_id,
             tax_number: data.tax_number,
             isCompany: data.isCompany,
-            companyName: data.companyName
+            companyName: data.companyName,
+            discountCode: data.discountCode,
+            discountAmountCents: data.discountAmountCents,
         });
 
         await order.save();
@@ -139,24 +143,44 @@ export async function registerOrder(data: RegisterOrderInput) {
             }
 
         }
+        const subtotal = plainItems.reduce((prev, curr) => {
+            if (curr.price && curr.quantity) {
+                return prev + curr.price * curr.quantity;
+            }
+            if (curr.price) {
+                return prev + curr.price;
+            }
+            return prev + (curr.front_end_price ?? 0);
+        }, 0);
+
+        const discountAmountCents = Number(data.discountAmountCents || 0);
+        const discountAmount = discountAmountCents > 0 ? discountAmountCents / 100 : 0;
+        const totalAfterDiscount = Math.max(0, subtotal - discountAmount);
+
+        const discountHtml = data.discountCode && discountAmount > 0
+            ? `
+            <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%" style="margin-top: 12px">
+              <tr>
+                <td align="left" style="font-weight: 400; font-size: 14px; color: #333333; padding-right: 12px;">
+                  Discount (${data.discountCode})
+                </td>
+                <td align="right" style="font-weight: 400; font-size: 14px; color: #333333;">
+                  -${discountAmount.toFixed(2)}€
+                </td>
+              </tr>
+            </table>
+            `
+            : "";
+
         const adminOrderHtml = await getHtml('emails/order-confirmed-email.html',
             [{ "{{products_html}}": products_html },
+            { "{{discount_html}}": discountHtml },
             { "{{your-order-is-in}}": t('admin-new-order') },
             { "{{view-your-order}}": t('view-order') },
             { "{{order-title}}": t('order-items') },
             { "{{order-number}}": t('order-number', { order_id: order.orderId }) },
             { "{{order-total}}": 'Total:' },
-            {
-                "{{total_price}}": `${plainItems.reduce((prev, curr) => {
-                    if (curr.price && curr.quantity) {
-                        return prev + curr.price * curr.quantity;
-                    }
-                    if (curr.price) {
-                        return prev + curr.price;
-                    }
-                    return prev + curr.front_end_price!;
-                }, 0)}€`
-            },
+            { "{{total_price}}": `${totalAfterDiscount.toFixed(2)}€` },
             { '{{order_url}}': `${env.SITE_URL}/admin/dashboard/orders/${order.orderId}` }
             ])
             const adminEmail = await getAdminEmails();

@@ -21,6 +21,8 @@ export interface OrderDocument extends Document {
     companyName?: string;
     activityBookingIds?: string[];
     activityBookingReferences?: string[];
+    discountCode?: string;
+    discountAmountCents?: number;
 }
 
 export interface IOrder {
@@ -41,6 +43,8 @@ export interface IOrder {
     companyName?: string;
     activityBookingIds?: string[];
     activityBookingReferences?: string[];
+    discountCode?: string;
+    discountAmountCents?: number;
 }
 
 const FeeSchema = new mongoose.Schema<FeeType>(
@@ -126,7 +130,9 @@ const OrderSchema = new mongoose.Schema<OrderDocument>(
         companyName: { type: String },
         isCompany: { type: Boolean },
         activityBookingIds: [{ type: String }],
-        activityBookingReferences: [{ type: String }]
+        activityBookingReferences: [{ type: String }],
+        discountCode: { type: String },
+        discountAmountCents: { type: Number },
     },
     { timestamps: true }
 );

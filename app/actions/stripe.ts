@@ -5,14 +5,24 @@ import { stripe } from '../../lib/stripe'
 import env from '@/utils/env';
 import { UnauthorizedError } from '@/lib/utils';
 
-export async function fetchClientSecret(amount: { alojamentoIdeal: number, detours: number }, client_name: string, client_email: string, client_phone_number: string, notes: string | undefined, reservationIds: number[], clientAddress: {
+export async function fetchClientSecret(
+  amount: { alojamentoIdeal: number; detours: number },
+  client_name: string,
+  client_email: string,
+  client_phone_number: string,
+  notes: string | undefined,
+  reservationIds: number[],
+  clientAddress: {
     line1: string;
     line2: string | null;
     city: string;
     state: string;
     postal_code: string;
     country: string;
-}, activityBookings?: string[]) {
+  },
+  activityBookings?: string[],
+  discount?: { code: string; amountOffCents: number } | null,
+) {
     if (!(await verifySession())) {
         throw new UnauthorizedError();
     }
@@ -42,7 +52,9 @@ export async function fetchClientSecret(amount: { alojamentoIdeal: number, detou
                 client_phone_number,
                 reservationIds: commaSeparatedReservationIds,
                 activityBookings: commaSeparatedActivityIds ?? '',
-                notes: notes || "", 
+                notes: notes || "",
+                discount_code: discount?.code || "",
+                discount_amount_off_cents: String(discount?.amountOffCents || 0),
             },
             ...(amount.detours > 0
                 ? amount.alojamentoIdeal > 0 ? {

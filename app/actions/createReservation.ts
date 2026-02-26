@@ -12,22 +12,40 @@ import { ChatModel } from "@/models/Chat";
 import GuestDataModel, { Guest } from "@/models/GuestData";
 import { connectDB } from "@/lib/mongodb";
 import { FeeType } from "@/schemas/price.schema";
+import { calculateAmount } from "@/app/actions/calculateAmount";
 
-export async function purchaseAccommodation({ amount,property, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName,guest_data }: {
-    property: AccommodationItem, clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
+export async function purchaseAccommodation({ property, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName, guest_data, discountCode }: {
+    property: AccommodationItem,
+    clientName: string,
+    clientEmail: string,
+    clientPhone: string,
+    clientNotes?: string,
+    clientAddress: {
         line1: string;
         line2: string | null;
         city: string;
         state: string;
         postal_code: string;
         country: string;
-    }, clientTax?: string, isCompany: boolean, companyName?: string, guest_data:Guest[],amount:{total:number,fees:FeeType[]}
+    },
+    clientTax?: string,
+    isCompany: boolean,
+    companyName?: string,
+    guest_data: Guest[],
+    // NOTE: discount is resolved server-side; client does not send final totals.
+    discountCode?: string,
+    // legacy input kept for compatibility; ignored
+    amount?: { total: number, fees: FeeType[] },
 }) {
     if (!(await verifySession())) {
         throw new UnauthorizedError();
     }
     try {
         await connectDB();
+
+        const computed = await calculateAmount([property], discountCode);
+        const totalCents = computed.total;
+        const discount = computed.discount?.ok ? computed.discount : null;
 
         const reservation = await hostifyRequest<{ reservation: ReservationType }>(
             `reservations`,
@@ -40,13 +58,14 @@ export async function purchaseAccommodation({ amount,property, clientName, clien
                 name: clientName,
                 email: clientEmail,
                 phone: clientPhone,
-                total_price: amount.total /100,
+                total_price: totalCents / 100,
                 source: "alojamentoideal.pt",
                 status: "pending",
                 note: clientNotes,
                 guests: property.adults + property.children,
                 pets: property.pets,
-                fees: amount.fees,
+                fees: computed.fees?.[0] ?? [],
+                ...(discount ? { discount_code: discount.code } : {}),
             },
             undefined,
             undefined
@@ -54,13 +73,15 @@ export async function purchaseAccommodation({ amount,property, clientName, clien
 
 
         const { success, client_secret, id } = await fetchClientSecret(
-            {alojamentoIdeal:amount.total, detours:0},
+            { alojamentoIdeal: totalCents, detours: 0 },
             clientName,
             clientEmail,
             clientPhone,
             clientNotes,
             [reservation.reservation.id],
             clientAddress,
+            undefined,
+            discount ? { code: discount.code, amountOffCents: Number(discount.amountOffCents || 0) } : null,
         );
 
         const transaction = await hostifyRequest<{ success: boolean, transaction: { id: number } }>(
@@ -69,7 +90,7 @@ export async function purchaseAccommodation({ amount,property, clientName, clien
             undefined,
             {
                 reservation_id: reservation.reservation.id,
-                amount: amount.total/100,
+                amount: totalCents / 100,
                 currency: "EUR",
                 charge_date: format(new Date(), "yyyy-MM-dd"),
                 is_completed: 0,
@@ -91,7 +112,9 @@ export async function purchaseAccommodation({ amount,property, clientName, clien
             payment_method_id: "",
             tax_number: clientTax,
             isCompany,
-            companyName
+            companyName,
+            discountCode: discount?.code,
+            discountAmountCents: discount ? Number(discount.amountOffCents || 0) : undefined,
         });
 
         const newChatId = generateUniqueId();

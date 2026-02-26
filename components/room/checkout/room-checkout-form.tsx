@@ -70,8 +70,9 @@ import {
 import { cn, localeMap } from "@/lib/utils";
 import { CountrySelect } from "@/components/orders/country-select";
 import { Guest } from "@/models/GuestData";
-import { FeeType } from "@/schemas/price.schema";
+import { FeeType, PriceType } from "@/schemas/price.schema";
 import { deleteOrder } from "@/app/actions/deleteOrder";
+import { resolveDiscountCode } from "@/app/actions/discount";
 
 const elementStyle: Appearance = {
   variables: {
@@ -109,9 +110,15 @@ const FlagComponent = ({
 export const RoomCheckoutForm = ({
   property,
   initialCountry = "PT",
+  setDiscount,
+  setInitialStayPrice,
 }: {
   property: CartItem;
   initialCountry: string;
+  setDiscount: React.Dispatch<
+    React.SetStateAction<{ code: string; amountOffCents: number } | null>
+  >;
+  setInitialStayPrice: React.Dispatch<React.SetStateAction<PriceType>>;
 }) => {
   ok(property.type == "accommodation");
   const t = useTranslations("checkout_form");
@@ -123,6 +130,14 @@ export const RoomCheckoutForm = ({
   const [error, setError] = useState("");
   const [_amount, setAmount] = useState(0);
   const [priceLoading, setPriceLoading] = useState(true);
+
+  const [discountCode, setDiscountCode] = useState("");
+  const [appliedDiscountCode, setAppliedDiscountCode] = useState<
+    string | undefined
+  >(undefined);
+  const [discountPreview, setDiscountPreview] = useState<any>(null);
+  const [discountApplying, setDiscountApplying] = useState(false);
+
   const [checking, setChecking] = useState(true);
   const [addressData, setAddressData] = useState<{
     name: string;
@@ -158,7 +173,7 @@ export const RoomCheckoutForm = ({
       departure: "",
       country_residence: "",
       city_residence: "",
-    }))
+    })),
   );
   const addGuestSchema = z.object({
     first_name: z.string().min(2, { message: "" }),
@@ -196,8 +211,8 @@ export const RoomCheckoutForm = ({
               arrival: property.start_date,
               departure: property.end_date,
             }
-          : prev
-      )
+          : prev,
+      ),
     );
 
     if (pIndx + 1 == property.adults + property.children + property.infants) {
@@ -211,7 +226,7 @@ export const RoomCheckoutForm = ({
         birthday: parse(
           guest_data[pIndx + 1].birthday,
           "yyyy-MM-dd",
-          new Date()
+          new Date(),
         ),
         document_type: guest_data[pIndx + 1].document_type as "P" | "ID" | "O",
       });
@@ -236,17 +251,23 @@ export const RoomCheckoutForm = ({
   const [vatCountryCode, setVatCountryCode] = useState("PT");
   const [selectedTab, selectTab] = useState("card");
   const [step, setStep] = useState<"client_info" | "questions" | "paying">(
-    "client_info"
+    "client_info",
   );
-  const [fees,setFees] = useState<FeeType[][]>([]);
+  const [fees, setFees] = useState<FeeType[][]>([]);
 
   const router = useRouter();
   useEffect(() => {
     const getAmount = async () => {
       setPriceLoading(true);
-      const amount = await calculateAmount([property]);
+      const amount = await calculateAmount([property], appliedDiscountCode);
       setAmount(amount.total);
       setFees(amount.fees);
+      setInitialStayPrice((prev) => ({
+        ...prev,
+        fees: amount.fees[0],
+        total: amount.total/100,
+      }));
+      setDiscountPreview(amount.discount ?? null);
       setPriceLoading(false);
     };
     if (!property) {
@@ -259,7 +280,7 @@ export const RoomCheckoutForm = ({
       setChecking(false);
       getAmount();
     }
-  }, [property, router]);
+  }, [property, router, appliedDiscountCode]);
 
   const handleSubmit = async (data: z.infer<typeof FormSchema>) => {
     setLoading(true);
@@ -285,7 +306,11 @@ export const RoomCheckoutForm = ({
     const clientEmail = data.email;
     const clientPhone = addressData?.phone ?? "";
     const clientNotes = data.note;
-    const clientTax = data.vat ? data.vat.length > 2 ? data.vat : undefined : undefined;
+    const clientTax = data.vat
+      ? data.vat.length > 2
+        ? data.vat
+        : undefined
+      : undefined;
     const clientAddress = addressData.address;
     setLoadingMessage("loading_create_res");
     const {
@@ -296,8 +321,11 @@ export const RoomCheckoutForm = ({
       transaction,
       order_id,
     } = await purchaseAccommodation({
-      amount:{total:_amount,fees:fees[0]},
-      property,
+      property:{
+        ...property,
+        fees: fees[0],
+      },
+      discountCode: appliedDiscountCode,
       clientName,
       clientEmail,
       clientPhone,
@@ -337,7 +365,7 @@ export const RoomCheckoutForm = ({
         },
       });
       if (result.error) {
-        if(order_id){
+        if (order_id) {
           await deleteOrder(order_id);
         }
         setError(result.error.message || "Payment failed");
@@ -366,7 +394,7 @@ export const RoomCheckoutForm = ({
         },
       });
       if (result.error) {
-        if(order_id){
+        if (order_id) {
           await deleteOrder(order_id);
         }
         setError(result.error.message || "Payment failed");
@@ -396,7 +424,7 @@ export const RoomCheckoutForm = ({
         }
         return true;
       },
-      { message: t("invalid-company") }
+      { message: t("invalid-company") },
     ),
     vat: z
       .string()
@@ -411,7 +439,7 @@ export const RoomCheckoutForm = ({
         },
         {
           message: t("invalid-tax"),
-        }
+        },
       )
       .optional(),
   });
@@ -487,7 +515,11 @@ export const RoomCheckoutForm = ({
         const clientEmail = clientInfo.getValues("email");
         const clientPhone = addressData?.phone ?? "";
         const clientNotes = clientInfo.getValues("note");
-        const clientTax =  clientInfo.getValues("vat") ?  clientInfo.getValues("vat")!.length > 2 ?  clientInfo.getValues("vat") : undefined : undefined;
+        const clientTax = clientInfo.getValues("vat")
+          ? clientInfo.getValues("vat")!.length > 2
+            ? clientInfo.getValues("vat")
+            : undefined
+          : undefined;
         const clientAddress = addressData.address;
         setLoadingMessage("loading_create_res");
         const {
@@ -498,8 +530,8 @@ export const RoomCheckoutForm = ({
           transaction,
           order_id,
         } = await purchaseAccommodation({
-          amount:{total:_amount,fees:fees[0]},
           property,
+          discountCode: appliedDiscountCode,
           clientName,
           clientEmail,
           clientPhone,
@@ -527,11 +559,11 @@ export const RoomCheckoutForm = ({
           {
             payment_method: event.paymentMethod.id,
           },
-          { handleActions: false }
+          { handleActions: false },
         );
 
         if (error) {
-          if(order_id){
+          if (order_id) {
             await deleteOrder(order_id);
           }
           event.complete("fail");
@@ -541,11 +573,10 @@ export const RoomCheckoutForm = ({
         event.complete("success");
 
         if (paymentIntent.status === "requires_action") {
-          const { error: actionError } = await stripe.confirmCardPayment(
-            client_secret
-          );
+          const { error: actionError } =
+            await stripe.confirmCardPayment(client_secret);
           if (actionError) {
-            if(order_id){
+            if (order_id) {
               await deleteOrder(order_id);
             }
             setError(actionError.message || "Payment failed");
@@ -571,7 +602,7 @@ export const RoomCheckoutForm = ({
     router,
     needCompanySwitch,
     guest_data,
-    fees
+    fees,
   ]);
 
   //questions
@@ -614,7 +645,7 @@ export const RoomCheckoutForm = ({
                   checked={needCompanySwitch}
                   onCheckedChange={(checked) => {
                     setNeedCompanySwitch(
-                      checked.valueOf() === true ? true : false
+                      checked.valueOf() === true ? true : false,
                     );
                   }}
                 />
@@ -698,7 +729,7 @@ export const RoomCheckoutForm = ({
                   const valueWithoutPrefix =
                     field.value?.replace(
                       new RegExp(`^${vatCountryCode}`),
-                      ""
+                      "",
                     ) ?? "";
                   return (
                     <FormItem className="w-full flex flex-col gap-1">
@@ -745,7 +776,7 @@ export const RoomCheckoutForm = ({
                             onChange={(e) => {
                               const newValue = e.target.value.replace(
                                 new RegExp(`^${vatCountryCode}`),
-                                ""
+                                "",
                               );
                               field.onChange(vatCountryCode + newValue);
                             }}
@@ -799,7 +830,7 @@ export const RoomCheckoutForm = ({
                       birthday: parse(
                         guest_data[0].birthday,
                         "yyyy-MM-dd",
-                        new Date()
+                        new Date(),
                       ),
                       document_type: guest_data[0].document_type as
                         | "P"
@@ -828,9 +859,9 @@ export const RoomCheckoutForm = ({
                       pIndx < property.adults
                         ? t("adult")
                         : pIndx >= property.adults &&
-                          pIndx < property.adults + property.children
-                        ? questionsT("children")
-                        : questionsT("infant"),
+                            pIndx < property.adults + property.children
+                          ? questionsT("children")
+                          : questionsT("infant"),
                   })}
                 </p>
                 <Form {...addGuestForm}>
@@ -847,7 +878,7 @@ export const RoomCheckoutForm = ({
                                 <Input
                                   {...field}
                                   placeholder={questionsT(
-                                    "first_name_placeholder"
+                                    "first_name_placeholder",
                                   )}
                                   className="grow"
                                 />
@@ -867,7 +898,7 @@ export const RoomCheckoutForm = ({
                                 <Input
                                   {...field}
                                   placeholder={questionsT(
-                                    "last_name_placeholder"
+                                    "last_name_placeholder",
                                   )}
                                   className="grow"
                                 />
@@ -899,9 +930,9 @@ export const RoomCheckoutForm = ({
                                             !field.value &&
                                               "text-muted-foreground",
                                             addGuestForm.getFieldState(
-                                              "birthday"
+                                              "birthday",
                                             ).error &&
-                                              "outline-destructive outline"
+                                              "outline-destructive outline",
                                           )}
                                         >
                                           {field.value ? (
@@ -967,7 +998,7 @@ export const RoomCheckoutForm = ({
                                             "text-muted-foreground",
                                           addGuestForm.formState.errors
                                             .birthday &&
-                                            "border! border-destructive!"
+                                            "border! border-destructive!",
                                         )}
                                       >
                                         {field.value ? (
@@ -1195,7 +1226,9 @@ export const RoomCheckoutForm = ({
                     </div>
                     <div className="flex flex-col gap-0 items-start grow">
                       <p className="font-semibold">
-                      {(clientInfo.getValues("vat") ?? "").length > 2 ? clientInfo.getValues("vat") : ""}
+                        {(clientInfo.getValues("vat") ?? "").length > 2
+                          ? clientInfo.getValues("vat")
+                          : ""}
                       </p>
                       <p className="text-sm text-muted-foreground max-w-[200px]">
                         {`${addressData.address.line1}${
@@ -1225,6 +1258,48 @@ export const RoomCheckoutForm = ({
               )}
 
               <Separator />
+
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-semibold">Discount code</p>
+                <div className="flex flex-row gap-2">
+                  <Input
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value)}
+                    placeholder="Enter code"
+                    disabled={loading || priceLoading || !!appliedDiscountCode}
+                  />
+                  <Button
+                    type="button"
+                    disabled={
+                      discountApplying ||
+                      !!appliedDiscountCode ||
+                      loading ||
+                      priceLoading
+                    }
+                    onClick={async () => {
+                      setDiscountApplying(true);
+                      try {
+                        const code = discountCode.trim();
+                        setAppliedDiscountCode(code ? code : undefined);
+                      } finally {
+                        setDiscountApplying(false);
+                      }
+                    }}
+                  >
+                    Apply
+                  </Button>
+                </div>
+                {discountPreview?.ok && (
+                  <p className="text-sm text-muted-foreground">
+                    Applied{" "}
+                    <span className="font-semibold">
+                      {discountPreview.code}
+                    </span>{" "}
+                    ({discountPreview.percentOff}%)
+                  </p>
+                )}
+              </div>
+
               <Tabs
                 value={selectedTab}
                 onValueChange={(e) => {
@@ -1304,8 +1379,8 @@ export const RoomCheckoutForm = ({
                   {priceLoading
                     ? t("loading")
                     : loading
-                    ? t(loadingMessage)
-                    : t("pay", { amount: _amount / 100 })}
+                      ? t(loadingMessage)
+                      : t("pay", { amount: _amount / 100 })}
                   {loading && <Loader2 className="animate-spin" />}
                 </Button>
               )}
@@ -1340,8 +1415,8 @@ export const RoomCheckoutForm = ({
                   {priceLoading
                     ? t("loading")
                     : loading
-                    ? t(loadingMessage)
-                    : t("pay", { amount: _amount / 100 })}
+                      ? t(loadingMessage)
+                      : t("pay", { amount: _amount / 100 })}
                   {loading && <Loader2 className="animate-spin" />}
                 </Button>
               )}

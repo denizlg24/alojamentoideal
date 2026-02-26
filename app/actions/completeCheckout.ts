@@ -2,7 +2,7 @@
 
 import { AccommodationItem, CartItem } from "@/hooks/cart-context";
 import { verifySession } from "@/utils/verifySession";
-import { calculateAmount } from "./calculateAmount";
+import { calculateAmount, calculateBaseCents } from "./calculateAmount";
 import { ReservationType } from "@/schemas/reservation.schema";
 import { hostifyRequest } from "@/utils/hostify-request";
 import { format } from "date-fns";
@@ -17,7 +17,7 @@ import GuestDataModel, { Guest } from "@/models/GuestData";
 import { ok } from "assert";
 import { FeeType } from "@/schemas/price.schema";
 
-export async function buyCart({ fees,guest_data, cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName, mainContactDetails, activityBookings }: {
+export async function buyCart({ fees, guest_data, cart, clientName, clientEmail, clientPhone, clientNotes, clientAddress, clientTax, isCompany, companyName, mainContactDetails, activityBookings, discountCode }: {
     cart: CartItem[], clientName: string, clientEmail: string, clientPhone: string, clientNotes?: string, clientAddress: {
         line1: string;
         line2: string | null;
@@ -27,7 +27,8 @@ export async function buyCart({ fees,guest_data, cart, clientName, clientEmail, 
         country: string;
     }, clientTax?: string, isCompany: boolean, companyName?: string, mainContactDetails?: { questionId: string, values: string[] }[],
     activityBookings?: { activityId: number, answers?: { questionId: string, values: string[] }[], pickupAnswers?: { questionId: string, values: string[] }[], rateId: number, startTimeId: number | undefined, date: string, pickup: boolean, pickupPlaceId: string | undefined, passengers: { pricingCategoryId: number, groupSize: number, passengerDetails: { questionId: string, values: string[] }[], answers: { questionId: string, values: string[] }[] }[] }[],
-    guest_data?: Guest[][],fees:FeeType[][]
+    guest_data?: Guest[][], fees: FeeType[][],
+    discountCode?: string,
 }) {
     if (!(await verifySession())) {
         throw new UnauthorizedError();
@@ -36,47 +37,66 @@ export async function buyCart({ fees,guest_data, cart, clientName, clientEmail, 
         await connectDB();
         let tourAmount = 0;
         const amounts: number[] = []
+        const discountCodeTrimmed = String(discountCode || "").trim() || null;
         const reservationIds: number[] = [];
         const reservationReferences: string[] = [];
         const transactionIds: number[] = [];
         const newCart: CartItem[] = []
+
+        const accommodations = cart.filter((i) => i.type == "accommodation") as AccommodationItem[];
+        const accComputed: Array<{ property: AccommodationItem; guests_data: Guest[]; fees: FeeType[]; amountCents: number }> = [];
+
+        // 1) Compute base accommodation totals
         let indx = 0;
-        for (const property of cart.filter((i) => i.type == "accommodation")) {
+        let accommodationSubtotalCents = 0;
+        for (const property of accommodations) {
             ok(guest_data);
             const guests_data = guest_data[indx];
-            const property_amount = await calculateAmount([property]);
-            amounts.push(property_amount.total);
+            const property_amount = await calculateAmount([property],discountCodeTrimmed ?? undefined);
+            const baseAccommodationCents = await calculateBaseCents(property);
+            accommodationSubtotalCents += baseAccommodationCents;
+            const amountCents = Number(property_amount.total) || 0;
+            amounts.push(amountCents);
+            accComputed.push({ property, guests_data, fees: property_amount.fees[0], amountCents });
+            indx++;
+        }
+
+        // 4) Create Hostify reservations + transactions with discounted totals
+        for (let i = 0; i < accComputed.length; i++) {
+            const { property, guests_data, fees: propertyFees, amountCents } = accComputed[i];
+
             const reservation = await hostifyRequest<{ reservation: ReservationType }>(
                 `reservations`,
                 "POST",
                 undefined,
                 {
-                    listing_id: (property as AccommodationItem).property_id,
-                    start_date: (property as AccommodationItem).start_date,
-                    end_date: (property as AccommodationItem).end_date,
+                    listing_id: property.property_id,
+                    start_date: property.start_date,
+                    end_date: property.end_date,
                     name: clientName,
                     email: clientEmail,
                     phone: clientPhone,
-                    total_price: property_amount.total / 100,
+                    total_price:  amountCents / 100,
                     source: "alojamentoideal.pt",
                     status: "pending",
                     note: clientNotes,
-                    guests: (property as AccommodationItem).adults + (property as AccommodationItem).children,
-                    pets: (property as AccommodationItem).pets,
-                    fees: fees[indx],
+                    guests: property.adults + property.children,
+                    pets: property.pets,
+                    fees: propertyFees,
                 },
                 undefined,
                 undefined
             );
             reservationIds.push(reservation.reservation.id);
             reservationReferences.push(reservation.reservation.confirmation_code);
+
             const transaction = await hostifyRequest<{ success: boolean, transaction: { id: number } }>(
                 "transactions",
                 "POST",
                 undefined,
                 {
                     reservation_id: reservation.reservation.id,
-                    amount: property_amount.total / 100,
+                    amount: amountCents / 100,
                     currency: "EUR",
                     charge_date: format(new Date(), "yyyy-MM-dd"),
                     is_completed: 0,
@@ -84,10 +104,11 @@ export async function buyCart({ fees,guest_data, cart, clientName, clientEmail, 
                 }
             );
             transactionIds.push(transaction.transaction.id);
-            const newGuestData = new GuestDataModel({ booking_code: reservation.reservation.confirmation_code, listing_id: reservation.reservation.listing_id, guest_data:guests_data, synced: false, succeeded: false });
-            await newGuestData.save();
-            const newChatId = generateUniqueId()
 
+            const newGuestData = new GuestDataModel({ booking_code: reservation.reservation.confirmation_code, listing_id: reservation.reservation.listing_id, guest_data: guests_data, synced: false, succeeded: false });
+            await newGuestData.save();
+
+            const newChatId = generateUniqueId();
             const newChat = new ChatModel({
                 chat_id: newChatId,
                 reservation_id: reservation.reservation.id.toString(),
@@ -98,11 +119,10 @@ export async function buyCart({ fees,guest_data, cart, clientName, clientEmail, 
                 guest_name: clientName,
                 status: "open"
             });
-
             await newChat.save();
-            const newItem = { ...property };
+
+            const newItem = { ...property, front_end_price: Number((amountCents / 100).toFixed(2)) };
             newCart.push(newItem);
-            indx++;
         }
         let bokunResponse: { success: false, message: string } | {
             success: true,
@@ -193,7 +213,6 @@ export async function buyCart({ fees,guest_data, cart, clientName, clientEmail, 
             }
             tourAmount += bokunResponse.booking.totalPrice * 100;
         }
-
         const { success, client_secret, id } = await fetchClientSecret(
             { alojamentoIdeal: amounts.reduce((acc, curr) => acc + curr, 0), detours: tourAmount },
             clientName,
@@ -202,7 +221,8 @@ export async function buyCart({ fees,guest_data, cart, clientName, clientEmail, 
             clientNotes,
             reservationIds,
             clientAddress,
-            bokunResponse.success ? [bokunResponse.booking.confirmationCode.toString()] : []
+            bokunResponse.success ? [bokunResponse.booking.confirmationCode.toString()] : [],
+            discountCodeTrimmed ? { code: discountCodeTrimmed, amountOffCents: 0 } : null,
         );
 
         const { success: order_success, orderId } = await registerOrder({
@@ -219,6 +239,8 @@ export async function buyCart({ fees,guest_data, cart, clientName, clientEmail, 
             tax_number: clientTax,
             isCompany,
             companyName,
+            discountCode: discountCodeTrimmed ?? undefined,
+            discountAmountCents: discountCodeTrimmed ? 0 : undefined,
             activityBookingIds: bokunResponse.success ? bokunResponse.booking.activityBookings.map((activity) => activity.productConfirmationCode) : [],
             activityBookingReferences: bokunResponse.success ? [bokunResponse.booking.confirmationCode] : []
         });

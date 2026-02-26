@@ -14,6 +14,8 @@ import Image from "next/image";
 import { RoomCheckoutForm } from "./room-checkout-form";
 import { useTranslations } from "next-intl";
 import { localeMap } from "@/lib/utils";
+import { useMemo, useState } from "react";
+import { AccommodationItem } from "@/hooks/cart-context";
 
 export const RoomCheckoutProvider = ({
   id,
@@ -21,9 +23,9 @@ export const RoomCheckoutProvider = ({
   tripDetails,
   rangeBooked,
   stayPrice,
-  initialCountry
+  initialCountry,
 }: {
-  initialCountry:string;
+  initialCountry: string;
   id: string;
   listingInfo: FullListingType;
   tripDetails: {
@@ -38,7 +40,11 @@ export const RoomCheckoutProvider = ({
   stayPrice: PriceType;
 }) => {
   const locale = useLocale();
-
+  const [discount, setDiscount] = useState<{
+    code: string;
+    amountOffCents: number;
+  } | null>(null);
+  const [initialStayPrice, setStayPrice] = useState<PriceType>(stayPrice);
   const t = useTranslations("checkout");
   const feeT = useTranslations("feeTranslations");
   const supportedLocales = [
@@ -100,9 +106,28 @@ export const RoomCheckoutProvider = ({
   const safeLocale: StripeLocale = isValidLocale(locale) ? locale : "auto";
 
   const stripePromise = loadStripe(
-    process.env.NEXT_PUBLIC_ENVIRONMENT == 'DEV' ? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY! : process.env.NEXT_PUBLIC_STRIPE_PROD_KEY!,
-    { locale: safeLocale }
+    process.env.NEXT_PUBLIC_ENVIRONMENT == "DEV"
+      ? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+      : process.env.NEXT_PUBLIC_STRIPE_PROD_KEY!,
+    { locale: safeLocale },
   );
+
+  const property = useMemo(() => {
+    return {
+      type: "accommodation",
+      property_id: parseInt(id),
+      start_date: tripDetails.start_date,
+      end_date: tripDetails.end_date,
+      adults: tripDetails.adults,
+      children: tripDetails.children,
+      infants: tripDetails.infants,
+      pets: tripDetails.pets,
+      name: listingInfo.listing.name,
+      front_end_price: initialStayPrice.total,
+      photo: listingInfo.photos[0].original_file || "",
+      fees: initialStayPrice.fees,
+    };
+  }, []);
 
   return (
     <div className="md:grid flex flex-col-reverse grid-cols-4 w-full max-w-7xl px-4 pt-12 gap-8 relative md:items-stretch items-center">
@@ -147,7 +172,7 @@ export const RoomCheckoutProvider = ({
         <div className="w-full flex flex-col gap-2">
           {!rangeBooked &&
             stayPrice &&
-            stayPrice.fees.map((fee) => {
+            initialStayPrice.fees.map((fee) => {
               return (
                 <div
                   key={fee.fee_id}
@@ -157,7 +182,7 @@ export const RoomCheckoutProvider = ({
                     <p className="md:text-base text-sm">
                       {fee.fee_name?.toLowerCase().startsWith("city tax")
                         ? `${feeT("city tax")}${fee.fee_name.slice(
-                            "City Tax".length
+                            "City Tax".length,
                           )}`
                         : feeT(fee.fee_name?.toLowerCase() || "not-found")}
                     </p>
@@ -174,7 +199,7 @@ export const RoomCheckoutProvider = ({
                     )}
                   </div>
                   <p className="w-full max-w-fit truncate">
-                    {fee.total_net.toFixed(2)} {stayPrice.symbol}
+                    {fee.total_net.toFixed(2)} {initialStayPrice.symbol}
                   </p>
                 </div>
               );
@@ -196,28 +221,18 @@ export const RoomCheckoutProvider = ({
         <div className="flex flex-row justify-between items-center w-full">
           <p className="font-semibold">{t("total")}</p>
           <p className="font-semibold">
-            {stayPrice && `${stayPrice.total} ${stayPrice.symbol}`}
+            {stayPrice &&
+              `${initialStayPrice.total} ${initialStayPrice.symbol}`}
           </p>
         </div>
       </Card>
       <div className="col-span-2 w-full">
         <Elements stripe={stripePromise}>
           <RoomCheckoutForm
-          initialCountry={initialCountry}
-            property={{
-              type: "accommodation",
-              property_id: parseInt(id),
-              start_date: tripDetails.start_date,
-              end_date: tripDetails.end_date,
-              adults: tripDetails.adults,
-              children: tripDetails.children,
-              infants: tripDetails.infants,
-              pets: tripDetails.pets,
-              name: listingInfo.listing.name,
-              front_end_price: stayPrice.total,
-              photo: listingInfo.photos[0].original_file || "",
-              fees: stayPrice.fees,
-            }}
+            setDiscount={setDiscount}
+            setInitialStayPrice={setStayPrice}
+            initialCountry={initialCountry}
+            property={property as AccommodationItem}
           />
         </Elements>
       </div>
