@@ -706,7 +706,7 @@ export const CheckoutForm = ({
           .map((item) => {
             return {
               label: item.name,
-              amount: item.front_end_price * 100,
+              amount: Math.round(item.front_end_price * 100),
             };
           }),
       ],

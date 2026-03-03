@@ -484,7 +484,7 @@ export const RoomCheckoutForm = ({
       displayItems: [
         {
           label: property.name,
-          amount: property.front_end_price * 100,
+          amount: Math.round(property.front_end_price * 100),
         },
       ],
       requestPayerName: true,
